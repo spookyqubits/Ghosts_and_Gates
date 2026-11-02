@@ -67,6 +67,6 @@
     area.hidden = true;
     document.body.classList.add('tabletop-page');
     showResources(true);
-    announce.textContent = 'Print, set up, and play · Qubit Touchdown is a tabletop game.';
+    announce.textContent = `Print, set up, and play · ${game.name} is a tabletop game.`;
   }
 })();

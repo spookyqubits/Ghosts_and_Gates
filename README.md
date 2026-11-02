@@ -11,9 +11,8 @@ Games focused on quantum computing gates and related quantum ideas: interference
 | Ghost Grid | Superposition and linked collapse through tic-tac-toe | Three browser versions, facilitator guide, full-game handout |
 | Ghost Hunt | Grover’s search through flip-and-reflect arithmetic | Browser game, tracker, printables |
 | Ghost Guard | Parity checks and the three-qubit bit-flip code | Browser game, labs, printable kit |
-| Qubit Touchdown | Quantum gates moving a qubit among six states | Tabletop board, gate cards, node tokens |
 
-All six game families have a facilitator guide. The site includes a downloadable classroom ZIP containing seven browser versions, guides, and selected printables. The games use teaching models with different scopes; their resource panels explain the connections to quantum physics and the limits of each model.
+All five game families have a facilitator guide. The site includes a downloadable classroom ZIP containing seven browser versions, guides, and selected printables. The games use teaching models with different scopes; their resource panels explain the connections to quantum physics and the limits of each model.
 
 ## Run locally
 
@@ -31,4 +30,4 @@ In this repository’s **Settings → Pages**, choose **Deploy from a branch**, 
 
 ## Credits
 
-Developed and adapted using QCaMP classroom materials. Ghost Grid draws on Allan Goff’s quantum tic-tac-toe (2006). Qubit Touchdown is by Kristina Armbruster, Mary Duda, and Thomas Wong. Original credits are retained in the games and facilitator guides; the collection does not assign a new blanket license to those materials or claim to be an official QCaMP website.
+Developed and adapted using QCaMP classroom materials. Ghost Grid draws on Allan Goff’s quantum tic-tac-toe (2006). Original credits are retained in the games and facilitator guides; the collection does not assign a new blanket license to those materials or claim to be an official QCaMP website.

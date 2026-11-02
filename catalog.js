@@ -150,41 +150,5 @@ window.GAME_CATALOG = [
         "file": "resources/ghost-guard/teacher-handout.pdf"
       }
     ]
-  },
-  {
-    "id": "qubit-touchdown",
-    "name": "Qubit Touchdown",
-    "number": "06",
-    "theme": "touchdown",
-    "concept": "Qubit gates",
-    "question": "What’s your next quantum play?",
-    "description": "Your football is a qubit. Your cards are quantum gates. Find a path through six states to the end zone.",
-    "time": "40–60 min",
-    "players": "2 players or teams",
-    "mode": "Tabletop kit",
-    "guide": "resources/qubit-touchdown/guide.pdf",
-    "learn": "Predict how gate cards move a qubit between six states and compare predictable with probabilistic measurement.",
-    "prompt": "Why does measuring at 0 leave the football there, while measuring at + can send it to 0 or 1?",
-    "materials": "Print a board and a set of cards. Add a football token and a coin or binary die. Optional node tokens let you make a large floor board.",
-    "note": "Game by Kristina Armbruster, Mary Duda, and Thomas Wong; teacher variations use QCaMP materials. This collection provides the tabletop version.",
-    "variants": [],
-    "resources": [
-      {
-        "name": "Game board",
-        "file": "resources/qubit-touchdown/board.pdf"
-      },
-      {
-        "name": "Gate cards",
-        "file": "resources/qubit-touchdown/cards.pdf"
-      },
-      {
-        "name": "Gate cards without Bloch artwork",
-        "file": "resources/qubit-touchdown/cards-simple.pdf"
-      },
-      {
-        "name": "Floor-board node tokens",
-        "file": "resources/qubit-touchdown/nodes.pdf"
-      }
-    ]
   }
 ];
