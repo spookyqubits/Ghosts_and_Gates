@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Ghost Hunt — A Quantum Search Game</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%20role=%22img%22%20aria-label=%22Ghost%22%3E%3Cdefs%3E%3ClinearGradient%20id=%22ghostMist%22%20x1=%220.6%22%20y1=%220%22%20x2=%220%22%20y2=%221%22%3E%3Cstop%20offset=%220.55%22%20stop-color=%22%23fff%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22%23fbd6dd%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath%20d=%22M18.5%2018%20C19.5%2010.5%2025%205.5%2031.5%205.5%20C39%205.5%2044.5%2011.5%2045%2019%20C45.2%2022.5%2045.5%2025%2047%2026%20C50%2027.5%2055.5%2025.5%2058.5%2027.5%20C62%2030%2059.5%2035.5%2055%2036%20C51.5%2036.5%2048.5%2036.5%2046.5%2038.5%20C43.5%2045.5%2036%2051.5%2026%2053.5%20C19%2055%2012%2055.5%208%2054%20C5.5%2053%207.5%2050.5%2010.5%2048.5%20C12.5%2047%2013%2045.5%2013%2044%20C14%2040.5%2014.3%2037%2014%2034%20C11%2034.2%206.5%2033.5%204.2%2030.5%20C2%2027.5%203.5%2023%208%2022.5%20C12%2022%2016%2021%2018.5%2018%20Z%22%20fill=%22url%28%23ghostMist%29%22%20stroke=%22%23d3061c%22%20stroke-width=%222.5%22%20stroke-linejoin=%22round%22/%3E%3Cellipse%20cx=%2229%22%20cy=%2217.5%22%20rx=%222.6%22%20ry=%223.6%22%20transform=%22rotate%28-10%2029%2017.5%29%22%20fill=%22%231b1b1f%22/%3E%3Cellipse%20cx=%2237.5%22%20cy=%2219.5%22%20rx=%222.3%22%20ry=%223.3%22%20transform=%22rotate%28-10%2037.5%2019.5%29%22%20fill=%22%231b1b1f%22/%3E%3Cpath%20d=%22M30.2%2024.6%20Q33.4%2025.8%2036.6%2024.9%20Q36%2029.2%2033%2029%20Q30.6%2028.6%2030.2%2024.6%20Z%22%20fill=%22%231b1b1f%22/%3E%3C/svg%3E">
+<style>
+:root { color-scheme: light; font-family: Arial, Helvetica, sans-serif; color: #202435; background: #fff;
+  --brand: #b41524; --a: #154c9c; --b: #6c2f9e; --gold: #8c6000; --ink: #1f2a44; --empty: #154c9c; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.app { max-width: 1600px; min-width: 650px; margin: auto; padding: 16px 20px 30px; }
+header { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+h1 { margin: 0; color: var(--brand); font-size: clamp(26px, 3vw, 40px); }
+.ghost-icon { width: 1.15em; height: 1.15em; vertical-align: -0.2em; margin-right: .28em; }
+.subtitle { margin: 5px 0 0; font-size: 18px; }
+.badge { border: 3px solid #bec8be; border-radius: 20px; padding: 10px 18px; font-weight: bold; font-size: clamp(17px, 1.8vw, 23px); white-space: nowrap; }
+.badge.P1 { color: var(--a); border-color: var(--a); background: #eef3fb; } .badge.P2 { color: var(--b); border-color: var(--b); background: #f5eefa; }
+.badge.done { color: #202435; background: #f0f3f8; }
+button { font: inherit; cursor: pointer; border: 2px solid #b9bdc8; border-radius: 9px; background: #f4f5f8; color: #202435; font-weight: bold; }
+button:hover:enabled { background: #e6eaf3; border-color: #50586c; }
+button:focus-visible { outline: 4px solid #985800; outline-offset: 3px; }
+button:disabled { cursor: default; opacity: .42; }
+.tabs { display: flex; gap: 8px; margin: 14px 0 0; flex-wrap: wrap; }
+.tabs button { padding: 9px 18px; font-size: 18px; }
+.tabs button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+#status { font-size: clamp(20px, 2.1vw, 28px); font-weight: bold; margin: 14px 0; padding: 13px 18px; background: #f0f3f8; border-left: 6px solid var(--brand); border-radius: 6px; }
+#status.P1 { border-left-color: var(--a); } #status.P2 { border-left-color: var(--b); }
+.view { display: none; } body[data-tab="duel"] #duel-view, body[data-tab="lab"] #lab-view, body[data-tab="big"] #big-view { display: block; }
+.grid3 { display: grid; grid-template-columns: minmax(300px, .9fr) minmax(360px, 1.15fr) minmax(220px, 270px); gap: 20px; align-items: start; }
+.grid2 { display: grid; grid-template-columns: minmax(380px, 1.3fr) minmax(300px, 1fr); gap: 20px; align-items: start; }
+h2 { font-size: 21px; margin: 0 0 8px; }
+/* hotel */
+.hotel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: #2a2440; padding: 14px; border-radius: 14px; }
+.door { aspect-ratio: 3 / 4; border-radius: 10px 10px 4px 4px; border: 3px solid #5b4a2e; background: linear-gradient(#8a6a3d, #6e512b); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 6px 4px; font-weight: 800; font-size: clamp(15px, 1.5vw, 21px); position: relative; }
+.door .knob { width: 10px; height: 10px; border-radius: 50%; background: #e6c46a; align-self: flex-end; margin-right: 4px; }
+.door .gi { width: 70%; height: auto; }
+.door.pick { background: linear-gradient(#f3d9de, #e9b8c2); color: #6b0f18; border-color: var(--brand); }
+.door.open-empty { background: #f4f5f8; color: #535969; border-color: #9aa0ad; }
+.door.open-ghost { background: #fff0c9; color: var(--brand); border-color: var(--brand); box-shadow: 0 0 0 4px #e09a00; }
+.door.clickable { cursor: pointer; }
+.door.clickable:hover { filter: brightness(1.12); }
+.hotel-note { font-size: 15px; color: #535969; margin: 8px 0 0; }
+/* panels */
+.panel { border: 2px solid #d9dce4; border-radius: 12px; padding: 12px; background: #fff; }
+.choice { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.choice button { padding: 10px 16px; font-size: 18px; min-width: 64px; }
+.choice button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.actions button { padding: 11px 15px; font-size: 17px; }
+.primary { background: var(--brand) !important; border-color: var(--brand) !important; color: #fff !important; }
+.primary:hover:enabled { background: #95111e !important; }
+.goldbtn { background: #e09a00 !important; border-color: #b07800 !important; color: #201600 !important; }
+svg.bars { width: 100%; height: auto; display: block; background: #fff; border: 1px solid #e3e5ea; border-radius: 10px; }
+table.track { border-collapse: collapse; width: 100%; margin-top: 10px; font-size: 16px; }
+table.track th, table.track td { border: 1px solid #d0d4dc; padding: 5px 6px; text-align: center; }
+table.track th { background: #f0f3f8; }
+table.track tr.cur td { background: #fff7da; font-weight: bold; }
+.practice { margin-top: 10px; padding: 10px; border: 2px dashed #c9ccd5; border-radius: 10px; font-size: 16px; }
+.practice input { width: 80px; font: inherit; padding: 4px 6px; margin: 0 6px; border: 2px solid #9aa0ad; border-radius: 6px; }
+.coins { display: flex; gap: 8px; margin: 10px 0 4px; align-items: flex-end; flex-wrap: wrap; }
+.coin { width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 20px; color: #4d3600; background: radial-gradient(circle at 35% 30%, #fff3c4, #e2b84a 60%, #b98a1c); border: 3px solid #9c7417; }
+.coin.blank { background: #eef0f4; border-color: #c9ccd5; color: #9aa0ad; }
+.coin.spin { animation: cspin .5s ease-out; }
+@keyframes cspin { from { transform: rotateY(0); } to { transform: rotateY(720deg); } }
+.coinval { text-align: center; font-size: 12px; color: #535969; font-weight: bold; }
+#binary { font-size: 19px; font-weight: bold; min-height: 28px; margin: 6px 0; }
+#event, #lab-event { min-height: 48px; font-size: 18px; line-height: 1.4; margin: 12px 0 0; }
+.side { padding: 12px; border-left: 2px solid #d7bd68; background: #fffcf2; border-radius: 0 12px 12px 0; }
+.side h2 { color: #6b4700; font-size: 18px; }
+.score { font-size: 20px; font-weight: 800; margin: 4px 0 10px; }
+.score .p1 { color: var(--a); } .score .p2 { color: var(--b); }
+.nightlog { font-size: 14px; line-height: 1.5; padding-left: 18px; margin: 4px 0; }
+.options { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; font-size: 15px; }
+.small { font-size: 13px; color: #6b4700; line-height: 1.35; }
+table.ref { border-collapse: collapse; font-size: 13px; width: 100%; margin-top: 6px; }
+table.ref th, table.ref td { border: 1px solid #e3d6a8; padding: 3px; text-align: center; }
+.readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.readout div { background: #f0f3f8; border-radius: 8px; padding: 8px; text-align: center; font-size: 14px; color: #535969; font-weight: bold; }
+.readout b { display: block; font-size: 24px; color: #202435; }
+.ctrl { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 17px; margin-bottom: 10px; }
+.ctrl select, .ctrl input { font: inherit; padding: 5px 8px; border: 2px solid #9aa0ad; border-radius: 8px; }
+.bigtable { border-collapse: collapse; width: 100%; font-size: 16px; margin-top: 10px; }
+.bigtable th, .bigtable td { border: 1px solid #d0d4dc; padding: 6px; text-align: right; }
+.bigtable th { background: #f0f3f8; text-align: center; }
+details { margin-top: 22px; font-size: 17px; line-height: 1.5; border-top: 1px solid #d9dce4; padding-top: 10px; }
+summary { font-weight: bold; font-size: 19px; cursor: pointer; }
+details table { border-collapse: collapse; margin: 8px 0; }
+details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-align: left; vertical-align: top; }
+.credit { font-size: 13px; color: #6b7080; margin-top: 18px; }
+@media (max-width: 1150px) { .grid3 { grid-template-columns: 1fr 1fr; } .side { grid-column: 1 / -1; border-left: none; border-top: 2px solid #d7bd68; border-radius: 0 0 12px 12px; } }
+@media (max-width: 820px) { .grid3, .grid2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-tab="duel">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<linearGradient id="ghostMist" x1="0.6" y1="0" x2="0" y2="1"><stop offset="0.55" stop-color="#fff"/><stop offset="1" stop-color="#fbd6dd"/></linearGradient>
+<symbol id="ghost" viewBox="0 0 64 64"><path d="M18.5 18 C19.5 10.5 25 5.5 31.5 5.5 C39 5.5 44.5 11.5 45 19 C45.2 22.5 45.5 25 47 26 C50 27.5 55.5 25.5 58.5 27.5 C62 30 59.5 35.5 55 36 C51.5 36.5 48.5 36.5 46.5 38.5 C43.5 45.5 36 51.5 26 53.5 C19 55 12 55.5 8 54 C5.5 53 7.5 50.5 10.5 48.5 C12.5 47 13 45.5 13 44 C14 40.5 14.3 37 14 34 C11 34.2 6.5 33.5 4.2 30.5 C2 27.5 3.5 23 8 22.5 C12 22 16 21 18.5 18 Z" fill="url(#ghostMist)" stroke="#d3061c" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="29" cy="17.5" rx="2.6" ry="3.6" transform="rotate(-10 29 17.5)" fill="#1b1b1f"/><ellipse cx="37.5" cy="19.5" rx="2.3" ry="3.3" transform="rotate(-10 37.5 19.5)" fill="#1b1b1f"/><path d="M30.2 24.6 Q33.4 25.8 36.6 24.9 Q36 29.2 33 29 Q30.6 28.6 30.2 24.6 Z" fill="#1b1b1f"/></symbol></defs></svg>
+<main class="app">
+  <header>
+    <div><h1><svg class="ghost-icon" aria-hidden="true" focusable="false"><use href="#ghost"/></svg>GHOST HUNT</h1>
+    <p class="subtitle">A quantum search game · Flip, then reflect around the average · Grades 6–8</p></div>
+    <span class="badge" id="turn-badge"></span>
+  </header>
+  <nav class="tabs" aria-label="Choose a view">
+    <button data-tab="duel" aria-pressed="true">Ghost Duel</button>
+    <button data-tab="lab" aria-pressed="false">Wave Lab</button>
+    <button data-tab="big" aria-pressed="false">Million-Room Hotel</button>
+  </nav>
+  <div id="status" role="status" aria-live="polite"></div>
+
+  <section class="view" id="duel-view">
+    <div class="grid3">
+      <section aria-label="Hotel">
+        <h2>The hotel</h2>
+        <div class="hotel" id="hotel"></div>
+        <p class="hotel-note" id="hotel-note"></p>
+      </section>
+      <section aria-label="Night">
+        <h2 id="night-title">Night 1</h2>
+        <div class="panel" id="panel">
+          <div id="rounds-box" hidden><b>Hunter: how many rounds of flip and reflect?</b>
+            <div class="choice" id="rounds-choice"></div></div>
+          <svg class="bars" id="duel-bars" viewBox="0 0 520 250" aria-label="Wave in each ghost room and each empty room"></svg>
+          <table class="track" id="duel-track"></table>
+          <div class="practice" id="practice" hidden></div>
+          <div id="look-box" hidden>
+            <b>LOOK: flip 7 coins. Heads = 1, tails = 0.</b>
+            <div class="coins" id="coins"></div>
+            <div id="binary"></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="lock" class="primary" hidden>Hide the ghosts</button>
+          <button id="go" class="primary" hidden>Lock in</button>
+          <button id="step" class="primary" hidden>Next step ▶</button>
+          <button id="flip-coins" class="goldbtn" hidden>Flip the 7 coins</button>
+          <button id="next-night" class="primary" hidden>Next night ▶</button>
+          <button id="new-duel">New duel</button>
+          <button id="fullscreen">Full screen</button>
+        </div>
+        <p id="event" aria-live="polite"></p>
+      </section>
+      <aside class="side" aria-labelledby="score-h">
+        <h2 id="score-h">Score</h2>
+        <div class="score" id="score"></div>
+        <ol class="nightlog" id="nightlog"></ol>
+        <div class="options">
+          <label><input type="checkbox" id="vs-cpu"> Player 2 is the computer</label>
+          <label><input type="checkbox" id="practice-on"> Type the answers first (math practice)</label>
+          <label><input type="checkbox" id="show-ref"> Show the catch-chance table</label>
+        </div>
+        <div id="ref" hidden></div>
+        <p class="small">A catch scores 1 point. Players swap hider and hunter each night. 6 nights.</p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="view" id="lab-view">
+    <div class="grid2">
+      <section aria-label="Every room's wave">
+        <div class="ctrl">
+          <label>Rooms <select id="lab-n"><option>4</option><option selected>8</option><option>16</option></select></label>
+          <label>Ghosts <select id="lab-m"><option selected>1</option><option>2</option><option>3</option></select></label>
+          <button id="lab-new">New hotel</button>
+        </div>
+        <svg class="bars" id="lab-bars" viewBox="0 0 760 320" aria-label="Wave in every room"></svg>
+        <div class="actions">
+          <button id="lab-flip">1. Flip</button>
+          <button id="lab-reflect">2. Reflect</button>
+          <button id="lab-round" class="primary">Flip + reflect (1 round)</button>
+          <button id="lab-look" class="goldbtn">Look</button>
+          <button id="lab-reset">Start over</button>
+        </div>
+        <p id="lab-event" aria-live="polite"></p>
+      </section>
+      <section aria-label="Readouts">
+        <div class="readout"><div>rounds<b id="lab-k">0</b></div><div>chance to catch<b id="lab-p">12.5%</b></div><div>squares add to<b id="lab-c">128</b></div></div>
+        <h2 style="margin-top:14px">The sweet spot</h2>
+        <svg class="bars" id="lab-curve" viewBox="0 0 520 240" aria-label="Chance to catch a ghost after each number of rounds"></svg>
+        <p class="hotel-note">Each dot is the chance to catch a ghost if you look after that many rounds. The ring marks where you are now.</p>
+      </section>
+    </div>
+  </section>
+
+  <section class="view" id="big-view">
+    <div class="grid2">
+      <section aria-label="Big hotel calculator">
+        <div class="ctrl">
+          <label>Rooms <input id="big-n" type="text" value="1,048,576" size="16"></label>
+          <label>Ghosts <input id="big-m" type="number" value="1" min="1" style="width:80px"></label>
+          <button id="big-go" class="primary">Find the best number of rounds</button>
+        </div>
+        <div class="readout"><div>best rounds<b id="big-k">–</b></div><div>chance to catch<b id="big-p">–</b></div><div>normal search looks<b id="big-c">–</b></div></div>
+        <p id="big-note" style="font-size:18px;line-height:1.4"></p>
+        <svg class="bars" id="big-curve" viewBox="0 0 520 240" aria-label="Chance to catch versus rounds for this hotel"></svg>
+      </section>
+      <section aria-label="Pattern table">
+        <h2>Spot the pattern</h2>
+        <table class="bigtable" id="big-table"></table>
+        <p class="hotel-note">Each time the hotel gets 4 times bigger, the quantum search needs only about 2 times as many rounds. A normal search needs 4 times as many looks.</p>
+      </section>
+    </div>
+  </section>
+
+  <details><summary>How to play</summary>
+    <p><b>The idea.</b> A ghost hides in one of 8 rooms, numbered in binary from 000 to 111. A quantum computer spreads a search wave over every room (4 in each room). It cannot look at the wave, but it can change it.</p>
+    <p><b>One round = flip, then reflect.</b> 1. FLIP: the ghost room's wave changes sign (only the hider knows which room). 2. AVERAGE: add all 8 rooms and divide by 8. 3. REFLECT: every room's new wave = 2 × average − old wave. 4. CHECK: the squares of all 8 waves still add up to 128.</p>
+    <p><b>Two numbers are enough.</b> Every empty room always has the same wave, so you only track G (each ghost room) and E (each empty room). With M ghosts: average = (M × (−G) + (8 − M) × E) ÷ 8, new G = 2 × average + G, new E = 2 × average − E.</p>
+    <p><b>Look.</b> Flip 7 coins and read them as a binary number from 0 to 127. If it is less than M × G², you caught a ghost.</p>
+    <p><b>Ghost Duel.</b> The hider secretly picks 1, 2 or 3 ghost rooms. The hunter then picks 0 to 3 rounds without knowing how many ghosts there are. The game reveals the number of ghosts (not where they are), runs the rounds, and the hunter looks. Swap roles each night; 6 nights.</p>
+  </details>
+  <details><summary>Why it works</summary>
+    <p>This is Grover's quantum search algorithm (1996). The flip is the "oracle", which marks the answer. Reflecting around the average is the "diffusion" step. Each round moves a little more of the wave into the ghost room, but too many rounds push it back out again. With a million rooms the best number of rounds is 804, while a normal computer would need to open about half a million rooms. A real quantum computer does the flip and reflect with gates on qubits; here you do the same arithmetic by hand.</p>
+  </details>
+  <details><summary>For teachers</summary>
+    <table><tr><th>In the game</th><th>Math or computer-science idea</th></tr>
+      <tr><td>Flip: the ghost room's wave becomes its opposite</td><td>The opposite of the opposite is the number itself (CCSS 6.NS.C.6.a)</td></tr>
+      <tr><td>Average of the 8 rooms</td><td>The mean (CCSS 6.SP.B.5.c)</td></tr>
+      <tr><td>Reflect: 2 × average − old</td><td>Distance on the number line and rational-number arithmetic (CCSS 7.NS.A.1.b, 7.NS.A.3)</td></tr>
+      <tr><td>Squares add up to 128</td><td>Whole-number exponents (6.EE.A.1); a checksum for catching mistakes</td></tr>
+      <tr><td>Chance = M × G² ÷ 128; coin look</td><td>Probability models (7.SP.C.7)</td></tr>
+      <tr><td>Rooms 000–111, 7-coin binary number</td><td>Binary numbers and data encoding (CSTA 2-DA-07)</td></tr>
+      <tr><td>Repeat "flip, reflect" and stop at the right time; the 128 check as a test</td><td>Loops and testing (CSTA 2017: 2-AP-12, 2-AP-17)</td></tr>
+      <tr><td>Best rounds ≈ 0.785 × √rooms</td><td>Square roots (CCSS 8.EE.A.2)</td></tr></table>
+    <p><b>Faithfulness.</b> The two-number rule is exactly Grover's algorithm: it matches the real circuit (Hadamard gates, oracle, diffusion) for every hiding place. The 7-coin look matches the exact chance to within 0.6%.</p>
+    <p><b>Background.</b> Hadamard's Hoard (Institute for Quantum Computing, University of Waterloo) is an earlier quantum-search board game. In it a quantum player races a classical player along a track of preset chances. Ghost Hunt instead has students compute the waves themselves and adds the hidden number of ghosts.</p>
+  </details>
+  <p class="credit">Ghost Hunt · developed using QCaMP material · works offline in any browser.</p>
+</main>
+
+<script id="logic">
+/* ---------- Pure game logic (no page access) ---------- */
+(function (root) {
+  const START = { 4: 2, 8: 4, 16: 8 };
+  function track(N, M, s, k) {
+    let G = s, E = s; const rows = [{ k: 0, G, E, avg: null, flipG: null }];
+    for (let i = 1; i <= k; i++) { const fG = -G, avg = (M * fG + (N - M) * E) / N, nG = 2 * avg - fG, nE = 2 * avg - E; rows.push({ k: i, G: nG, E: nE, avg, flipG: fG }); G = nG; E = nE; }
+    return rows;
+  }
+  const total = (N, s) => N * s * s;
+  function chance(N, M, s, k) { const r = track(N, M, s, k).pop(); return M * r.G * r.G / total(N, s); }
+  function best(N, M) {
+    let G = 1, E = 1, k = 0, p = M / N;
+    for (;;) { const fG = -G, avg = (M * fG + (N - M) * E) / N, nG = 2 * avg - fG, nE = 2 * avg - E, np = M * nG * nG / N; if (!(np > p)) break; G = nG; E = nE; k++; p = np; if (k > 3e6) break; }
+    return { k, p };
+  }
+  const coinNumber = bits => bits.reduce((a, b) => a * 2 + b, 0);
+  const caught = (bits, weight) => coinNumber(bits) < weight;
+  root.GH = { START, track, total, chance, best, coinNumber, caught };
+})(window);
+</script>
+
+<script>
+/* ---------- Page ---------- */
+const $ = s => document.querySelector(s);
+const rand = () => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] / 4294967296; };
+const randInt = n => Math.floor(rand() * n);
+const pick = (items, weights) => { let u = rand(), acc = 0; for (let i = 0; i < items.length; i++) { acc += weights[i]; if (u < acc) return items[i]; } return items[items.length - 1]; };
+const bin = (i, bits) => i.toString(2).padStart(bits, '0');
+const fmt = x => { if (Number.isInteger(x)) return String(x); const r = Math.round(x * 1000) / 1000; return String(r); };
+const pct = p => (Math.round(p * 1000) / 10).toFixed(1) + '%';
+const NAMES = ['Player 1', 'Player 2'];
+const CPU_HIDE = [[1, 3], [0.83, 0.17]], CPU_ROUNDS = [[1, 2], [0.94, 0.06]];   // best play found by solving the duel
+
+/* ----- bar charts ----- */
+function barsSVG(svg, items, opts) {   // items: [{label, value, color, mult}]
+  const W = +svg.getAttribute('viewBox').split(' ')[2], H = +svg.getAttribute('viewBox').split(' ')[3];
+  const top = 30, bottom = H - 40, maxV = opts.max, minV = -opts.max * 0.55;
+  const y = v => top + (maxV - v) / (maxV - minV) * (bottom - top);
+  const n = items.length, slot = (W - 70) / n, bw = Math.min(slot * 0.62, 90);
+  let h = `<line x1="40" x2="${W - 20}" y1="${y(0)}" y2="${y(0)}" stroke="#202435" stroke-width="1.5"/>`;
+  items.forEach((it, i) => {
+    const cx = 50 + slot * (i + 0.5), v = it.value, y0 = y(0), yv = y(v);
+    h += `<rect x="${cx - bw / 2}" y="${Math.min(y0, yv)}" width="${bw}" height="${Math.max(1, Math.abs(yv - y0))}" fill="${it.color}" rx="3" style="transition: all .45s"/>`;
+    h += `<text x="${cx}" y="${v >= 0 ? yv - 6 : yv + 18}" text-anchor="middle" font-size="${n > 8 ? 11 : 16}" font-weight="bold" fill="${it.color}">${fmt(v)}</text>`;
+    h += `<text x="${cx}" y="${H - 22}" text-anchor="middle" font-size="${n > 8 ? 10 : 14}" fill="#535969">${it.label}</text>`;
+    if (it.mult) h += `<text x="${cx}" y="${H - 6}" text-anchor="middle" font-size="13" font-weight="bold" fill="#535969">${it.mult}</text>`;
+  });
+  if (opts.avg !== undefined && opts.avg !== null) { h += `<line x1="40" x2="${W - 20}" y1="${y(opts.avg)}" y2="${y(opts.avg)}" stroke="#e09a00" stroke-width="3" stroke-dasharray="8 6"/><text x="${W - 22}" y="${y(opts.avg) - 6}" text-anchor="end" font-size="15" font-weight="bold" fill="#8c6000">average ${fmt(opts.avg)}</text>`; }
+  if (opts.title) h += `<text x="12" y="20" font-size="15" font-weight="bold" fill="#1f2a44">${opts.title}</text>`;
+  svg.innerHTML = h;
+}
+function curveSVG(svg, pts, cur, label) {   // pts: [[k, p]]
+  const W = 520, H = 240, L = 50, R = 20, T = 20, B = 40, kmax = Math.max(1, pts[pts.length - 1][0]);
+  const x = k => L + k / kmax * (W - L - R), y = p => T + (1 - p) * (H - T - B);
+  let h = `<line x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}" stroke="#202435"/><line x1="${L}" x2="${L}" y1="${y(0)}" y2="${y(1)}" stroke="#202435"/>`;
+  [0, .5, 1].forEach(p => h += `<text x="${L - 6}" y="${y(p) + 5}" text-anchor="end" font-size="13" fill="#535969">${p * 100}%</text><line x1="${L}" x2="${W - R}" y1="${y(p)}" y2="${y(p)}" stroke="#eceef2"/>`);
+  h += `<polyline points="${pts.map(([k, p]) => x(k) + ',' + y(p)).join(' ')}" fill="none" stroke="#b41524" stroke-width="2.5"/>`;
+  if (pts.length <= 40) pts.forEach(([k, p]) => h += `<circle cx="${x(k)}" cy="${y(p)}" r="4.5" fill="#b41524"/>`);
+  if (cur) h += `<circle cx="${x(cur[0])}" cy="${y(cur[1])}" r="10" fill="none" stroke="#e09a00" stroke-width="3.5"/>`;
+  h += `<text x="${(L + W - R) / 2}" y="${H - 8}" text-anchor="middle" font-size="14" fill="#535969">${label}</text>`;
+  svg.innerHTML = h;
+}
+
+/* ----- duel ----- */
+let D; const score = [0, 0];
+function newDuel() { D = { night: 1, nights: 6, log: [] }; score[0] = score[1] = 0; newNight(); }
+function newNight() {
+  Object.assign(D, { hider: (D.night + 1) % 2, hunter: D.night % 2, ghosts: [], M: 0, k: null, phase: 'hide', step: 0, rows: [], sub: 0, bits: [], result: null, opened: null, practiceOk: true });
+  // night 1: hider = Player 2, hunter = Player 1
+  D.hider = D.night % 2 === 1 ? 1 : 0; D.hunter = 1 - D.hider;
+  if (cpu() && D.hider === 1) { const M = pick(...CPU_HIDE); const rooms = [...Array(8).keys()]; while (D.ghosts.length < M) { const r = rooms.splice(randInt(rooms.length), 1)[0]; D.ghosts.push(r); } D.M = M; D.phase = 'rounds'; $('#event').textContent = 'The computer has hidden its ghosts.'; }
+  else $('#event').textContent = '';
+  if (D.phase === 'rounds' && cpu() && D.hunter === 1) cpuRounds();
+  render();
+}
+const cpu = () => $('#vs-cpu').checked;
+function cpuRounds() { D.k = pick(...CPU_ROUNDS); D.phase = 'reveal'; $('#event').textContent = `The computer chose ${D.k} round${D.k === 1 ? '' : 's'}.`; }
+function toggleRoom(i) { if (D.phase !== 'hide') return; const j = D.ghosts.indexOf(i); if (j >= 0) D.ghosts.splice(j, 1); else if (D.ghosts.length < 3) D.ghosts.push(i); render(); }
+function lockGhosts() { if (D.phase !== 'hide' || !D.ghosts.length) return; D.M = D.ghosts.length; D.phase = 'rounds'; $('#event').textContent = `${NAMES[D.hider]} hid the ghosts. ${NAMES[D.hunter]}, you may look now.`; if (cpu() && D.hunter === 1) cpuRounds(); render(); }
+function chooseRounds(k) { if (D.phase !== 'rounds') return; D.k = k; render(); }
+function lockRounds() {
+  if (D.phase !== 'rounds' || D.k === null) return;
+  D.phase = 'reveal'; $('#event').textContent = `Reveal: ${NAMES[D.hider]} hid ${D.M} ghost${D.M > 1 ? 's' : ''}. ${NAMES[D.hunter]} chose ${D.k} round${D.k === 1 ? '' : 's'}.`; render();
+}
+function startCompute() { D.rows = GH.track(8, D.M, 4, D.k); D.step = 0; D.sub = 0; D.practiceOk = !$('#practice-on').checked; D.phase = D.k === 0 ? 'look' : 'compute'; if (D.k === 0) $('#event').textContent = 'No rounds: the wave is still spread evenly. Looking now is a normal guess.'; render(); }
+function nextStep() {
+  if (D.phase === 'reveal') { startCompute(); return; }
+  if (D.phase !== 'compute') return;
+  if ($('#practice-on').checked && D.sub === 0 && !D.practiceOk) return;
+  const r = D.rows[D.step + 1];
+  if (D.sub === 0) { D.sub = 1; $('#event').textContent = `Round ${r.k}, step 1, FLIP: each ghost room's wave turns from ${fmt(-r.flipG)} into ${fmt(r.flipG)}. The average of all 8 rooms is (${D.M} × ${fmt(r.flipG)} + ${8 - D.M} × ${fmt(D.rows[D.step].E)}) ÷ 8 = ${fmt(r.avg)}.`; }
+  else { D.sub = 0; D.step++; $('#event').textContent = `Round ${r.k}, step 2, REFLECT around ${fmt(r.avg)}: ghost rooms become 2 × ${fmt(r.avg)} − (${fmt(r.flipG)}) = ${fmt(r.G)}; empty rooms become 2 × ${fmt(r.avg)} − ${fmt(D.rows[D.step - 1].E)} = ${fmt(r.E)}. Check: ${D.M} × ${fmt(r.G)}² + ${8 - D.M} × ${fmt(r.E)}² = ${fmt(D.M * r.G * r.G + (8 - D.M) * r.E * r.E)}.`;
+    D.practiceOk = !$('#practice-on').checked; if (D.step === D.k) D.phase = 'look'; }
+  render();
+}
+function checkPractice() {
+  const r = D.rows[D.step + 1], g = parseFloat($('#pr-g').value), e = parseFloat($('#pr-e').value);
+  const ok = Math.abs(g - r.G) < 1e-6 && Math.abs(e - r.E) < 1e-6;
+  const fb = $('#pr-fb');
+  if (ok) { D.practiceOk = true; fb.textContent = 'Correct! Press "Next step" to watch it happen.'; fb.style.color = '#1d7a3a'; }
+  else { const c = D.M * g * g + (8 - D.M) * e * e; fb.textContent = isFinite(c) ? `Not yet: with those numbers the squares add to ${fmt(c)}, not 128. Try again.` : 'Type two numbers.'; fb.style.color = '#b41524'; }
+  render(true);
+}
+function flipCoins() {
+  if (D.phase !== 'look') return;
+  D.bits = Array.from({ length: 7 }, () => randInt(2));
+  const G = D.rows.length ? D.rows[D.rows.length - 1].G : 4, w = D.M * G * G, num = GH.coinNumber(D.bits);
+  const ok = GH.caught(D.bits, w);
+  D.result = ok; D.phase = 'result';
+  const empties = [...Array(8).keys()].filter(i => !D.ghosts.includes(i));
+  D.opened = ok ? D.ghosts[randInt(D.ghosts.length)] : empties[randInt(empties.length)];
+  if (ok) score[D.hunter]++;
+  D.log.push(`${NAMES[D.hunter]}: ${D.M} ghost${D.M > 1 ? 's' : ''}, ${D.k} round${D.k === 1 ? '' : 's'}, ${ok ? 'caught!' : 'missed'}`);
+  $('#event').textContent = `The coins make ${D.bits.join('')} in binary = ${num}. The ghost weight is ${D.M} × ${fmt(G)}² = ${fmt(w)}. ${num} is ${ok ? 'less than' : 'not less than'} ${fmt(w)}, so ${ok ? `${NAMES[D.hunter]} caught a ghost in room ${bin(D.opened, 3)}!` : `the wave landed in empty room ${bin(D.opened, 3)}.`} (Chance was ${pct(Math.min(w, 128) / 128)}.)`;
+  render();
+  document.querySelectorAll('#coins .coin').forEach(c => { c.classList.remove('spin'); void c.offsetWidth; c.classList.add('spin'); });
+}
+function nextNight() { if (D.night >= D.nights) { D.phase = 'over'; render(); return; } D.night++; newNight(); }
+
+function render(keepPractice) {
+  if (document.body.dataset.tab !== 'duel') return;
+  const st = $('#status'), badge = $('#turn-badge'); st.className = ''; badge.className = 'badge';
+  const who = D.phase === 'hide' ? D.hider : D.hunter, cls = who === 0 ? 'P1' : 'P2';
+  // hotel
+  const showGhosts = D.phase === 'hide' || D.phase === 'over';
+  $('#hotel').innerHTML = [...Array(8).keys()].map(i => {
+    let c = 'door', inner = '';
+    if (D.phase === 'hide' && !(cpu() && D.hider === 1)) c += ' clickable';
+    if (D.phase === 'hide' && D.ghosts.includes(i)) { c += ' pick'; inner = '<svg class="gi" aria-hidden="true"><use href="#ghost"/></svg>'; }
+    if (D.phase === 'result' && D.opened === i) { c += D.result ? ' open-ghost' : ' open-empty'; inner = D.result ? '<svg class="gi" aria-hidden="true"><use href="#ghost"/></svg>' : '<span style="font-size:14px">empty</span>'; }
+    if (D.phase === 'result' && D.ghosts.includes(i) && D.opened !== i && D.result === false) { c += ''; }
+    return `<button class="${c}" data-room="${i}" aria-label="room ${bin(i, 3)}" ${c.includes('clickable') ? '' : 'tabindex="-1"'}><span>${bin(i, 3)}</span>${inner}<span class="knob"></span></button>`;
+  }).join('');
+  $('#hotel-note').textContent = D.phase === 'hide' ? (cpu() && D.hider === 1 ? '' : `${NAMES[D.hider]}: click 1, 2 or 3 rooms to hide ghosts (${D.ghosts.length} picked). ${NAMES[D.hunter]}, look away!`) : D.phase === 'result' ? 'After a look, the wave is gone. Only one room was opened.' : 'The doors stay closed. Only the hider knows where the ghosts are.';
+  $('#night-title').textContent = D.phase === 'over' ? 'Duel over' : `Night ${D.night} of ${D.nights}`;
+  // rounds choice
+  $('#rounds-box').hidden = D.phase !== 'rounds' || (cpu() && D.hunter === 1);
+  $('#rounds-choice').innerHTML = [0, 1, 2, 3].map(k => `<button data-k="${k}" aria-pressed="${D.k === k}">${k}</button>`).join('');
+  // bars + table
+  const cur = D.phase === 'compute' || D.phase === 'look' || D.phase === 'result' ? D.rows : [{ k: 0, G: 4, E: 4 }];
+  const showM = ['compute', 'look', 'result', 'reveal', 'over'].includes(D.phase);
+  let G = 4, E = 4, avg = null, title = 'Start: 4 in every room';
+  if (D.phase === 'compute' || D.phase === 'look' || D.phase === 'result') {
+    const r = D.rows[D.step];
+    G = r.G; E = r.E; title = D.step === 0 ? 'Start: 4 in every room' : `After round ${D.step}`;
+    if (D.phase === 'compute' && D.sub === 1) { const nx = D.rows[D.step + 1]; G = nx.flipG; avg = nx.avg; title = `Round ${nx.k}: ghost rooms flipped`; }
+  }
+  barsSVG($('#duel-bars'), [{ label: 'each ghost room', value: G, color: '#b41524', mult: showM ? `× ${D.M}` : '× ?' }, { label: 'each empty room', value: E, color: '#154c9c', mult: showM ? `× ${8 - D.M}` : '× ?' }], { max: 12, avg, title });
+  const rowsShown = (D.phase === 'compute' || D.phase === 'look' || D.phase === 'result') ? D.rows.slice(0, D.step + 1) : [{ k: 0, G: 4, E: 4, avg: null }];
+  $('#duel-track').innerHTML = '<tr><th>round</th><th>G (ghost)</th><th>E (empty)</th><th>average</th><th>check</th></tr>' + rowsShown.map((r, i) => `<tr class="${i === rowsShown.length - 1 ? 'cur' : ''}"><td>${r.k === 0 ? 'start' : r.k}</td><td>${fmt(r.G)}</td><td>${fmt(r.E)}</td><td>${r.avg === null ? '—' : fmt(r.avg)}</td><td>${showM ? fmt(D.M * r.G * r.G + (8 - D.M) * r.E * r.E) : '128'}</td></tr>`).join('');
+  // practice
+  const prac = $('#practice'), needPractice = $('#practice-on').checked && D.phase === 'compute' && D.sub === 0;
+  prac.hidden = !needPractice;
+  if (needPractice && !keepPractice) prac.innerHTML = `<b>Your turn: work out round ${D.step + 1}.</b><br>G = <input id="pr-g" inputmode="decimal" aria-label="new G"> E = <input id="pr-e" inputmode="decimal" aria-label="new E"> <button id="pr-check">Check</button> <span id="pr-fb"></span>`;
+  // look
+  $('#look-box').hidden = !(D.phase === 'look' || D.phase === 'result');
+  const bits = D.phase === 'result' ? D.bits : [];
+  $('#coins').innerHTML = [64, 32, 16, 8, 4, 2, 1].map((v, i) => `<div><div class="coin ${bits.length ? '' : 'blank'}">${bits.length ? (bits[i] ? 'H' : 'T') : '?'}</div><div class="coinval">${v}</div></div>`).join('');
+  if (D.phase === 'look' || D.phase === 'result') { const Gl = D.rows.length ? D.rows[D.rows.length - 1].G : 4, w = D.M * Gl * Gl; $('#binary').textContent = bits.length ? `${bits.join('')} = ${GH.coinNumber(bits)}  (ghost if less than ${fmt(w)})` : `Ghost weight = ${D.M} × ${fmt(Gl)}² = ${fmt(w)} out of 128 → chance ${pct(Math.min(w, 128) / 128)}`; }
+  // buttons
+  $('#lock').hidden = !(D.phase === 'hide' && !(cpu() && D.hider === 1)); $('#lock').disabled = !D.ghosts.length;
+  $('#go').hidden = D.phase !== 'rounds' || (cpu() && D.hunter === 1); $('#go').disabled = D.k === null;
+  $('#step').hidden = !(D.phase === 'reveal' || D.phase === 'compute'); $('#step').textContent = D.phase === 'reveal' ? 'Run the rounds ▶' : 'Next step ▶';
+  $('#step').disabled = D.phase === 'compute' && $('#practice-on').checked && D.sub === 0 && !D.practiceOk;
+  $('#flip-coins').hidden = D.phase !== 'look';
+  $('#next-night').hidden = D.phase !== 'result'; $('#next-night').textContent = D.night >= D.nights ? 'See the winner ▶' : 'Next night ▶';
+  // side
+  $('#score').innerHTML = `<span class="p1">Player 1: ${score[0]}</span><br><span class="p2">${cpu() ? 'Computer' : 'Player 2'}: ${score[1]}</span>`;
+  $('#nightlog').innerHTML = D.log.map(l => `<li>${l}</li>`).join('');
+  $('#ref').hidden = !$('#show-ref').checked;
+  // status
+  if (D.phase === 'hide') { st.textContent = cpu() && D.hider === 1 ? 'The computer is hiding ghosts…' : `${NAMES[D.hider]}: hide 1, 2 or 3 ghosts. ${NAMES[D.hunter]}, look away!`; st.classList.add(D.hider ? 'P2' : 'P1'); badge.classList.add(D.hider ? 'P2' : 'P1'); badge.textContent = `${NAMES[D.hider]} hides`; }
+  else if (D.phase === 'rounds') { st.textContent = `${NAMES[D.hunter]}: how many rounds before you look?`; st.classList.add(cls); badge.classList.add(cls); badge.textContent = `${NAMES[D.hunter]} hunts`; }
+  else if (D.phase === 'reveal') { st.textContent = `${D.M} ghost${D.M > 1 ? 's' : ''} · ${D.k} round${D.k === 1 ? '' : 's'}. Run the rounds!`; badge.classList.add('done'); badge.textContent = 'Reveal'; }
+  else if (D.phase === 'compute') { st.textContent = `Round ${D.step + (D.sub ? 1 : 1)} of ${D.k}: ${D.sub === 0 ? 'flip the ghost rooms' : 'reflect around the average'}`; badge.classList.add('done'); badge.textContent = 'Flip & reflect'; }
+  else if (D.phase === 'look') { st.textContent = `${NAMES[D.hunter]}: flip 7 coins to LOOK.`; st.classList.add(cls); badge.classList.add(cls); badge.textContent = 'Look!'; }
+  else if (D.phase === 'result') { st.textContent = D.result ? `${NAMES[D.hunter]} caught a ghost!` : `${NAMES[D.hunter]} missed.`; st.classList.add(cls); badge.classList.add('done'); badge.textContent = `Night ${D.night} done`; }
+  else if (D.phase === 'over') { const w = score[0] === score[1] ? 'It is a tie!' : `${score[0] > score[1] ? 'Player 1' : (cpu() ? 'The computer' : 'Player 2')} wins the duel!`; st.textContent = `${w} ${score[0]} to ${score[1]}.`; badge.classList.add('done'); badge.textContent = 'Duel over'; }
+}
+function buildRef() {
+  let h = '<table class="ref"><tr><th></th><th>0</th><th>1</th><th>2</th><th>3</th></tr>';
+  for (const M of [1, 2, 3]) h += `<tr><th>${M} ghost${M > 1 ? 's' : ''}</th>${[0, 1, 2, 3].map(k => `<td>${pct(GH.chance(8, M, 4, k))}</td>`).join('')}</tr>`;
+  $('#ref').innerHTML = h + '</table><p class="small">Columns: number of rounds. Try to work these out yourself first!</p>';
+}
+
+/* ----- wave lab ----- */
+let L;
+function labNew() { const N = +$('#lab-n').value, M = Math.min(+$('#lab-m').value, N - 1), s = GH.START[N]; const rooms = [...Array(N).keys()], g = []; while (g.length < M) g.push(rooms.splice(randInt(rooms.length), 1)[0]); L = { N, M, s, ghosts: g, vals: Array(N).fill(s), k: 0, flipped: false, avg: null, looked: null }; $('#lab-event').textContent = `${N} rooms, ${M} ghost${M > 1 ? 's' : ''} (shown in red, so you can watch). Every room starts at ${s}.`; renderLab(); }
+function labFlip() { if (L.flipped || L.looked !== null) return; L.ghosts.forEach(i => L.vals[i] = -L.vals[i]); L.flipped = true; L.avg = L.vals.reduce((a, b) => a + b, 0) / L.N; $('#lab-event').textContent = `FLIP: the ghost room${L.M > 1 ? 's turn' : ' turns'} negative. The average of all ${L.N} rooms is now ${fmt(L.avg)} (gold line).`; renderLab(); }
+function labReflect() { if (!L.flipped || L.looked !== null) return; const a = L.avg; L.vals = L.vals.map(v => 2 * a - v); L.flipped = false; L.avg = null; L.k++; $('#lab-event').textContent = `REFLECT: every bar is mirrored across the average ${fmt(a)} (new = 2 × ${fmt(a)} − old). Round ${L.k} done.`; renderLab(); }
+function labRound() { if (L.looked !== null) return; if (!L.flipped) labFlip(); setTimeout(labReflect, 650); }
+function labLook() {
+  if (L.looked !== null) return;
+  const tot = L.vals.reduce((a, v) => a + v * v, 0); let u = rand() * tot, i = 0; for (; i < L.N - 1; i++) { u -= L.vals[i] * L.vals[i]; if (u < 0) break; }
+  L.looked = i; const g = L.ghosts.includes(i);
+  $('#lab-event').textContent = `LOOK: the wave landed in room ${bin(i, Math.log2(L.N))}: ${g ? 'a ghost! Caught.' : 'empty.'} Each room's chance was its wave squared ÷ ${tot}. Press "Start over" to try again.`; renderLab();
+}
+function labReset() { L.vals = Array(L.N).fill(L.s); L.k = 0; L.flipped = false; L.avg = null; L.looked = null; $('#lab-event').textContent = `Back to ${L.s} in every room.`; renderLab(); }
+function renderLab() {
+  if (document.body.dataset.tab !== 'lab') return;
+  const bits = Math.log2(L.N);
+  barsSVG($('#lab-bars'), L.vals.map((v, i) => ({ label: bin(i, bits), value: v, color: L.looked === i ? '#e09a00' : (L.ghosts.includes(i) ? '#b41524' : '#154c9c') })), { max: L.s * 3, avg: L.avg, title: L.looked !== null ? 'After the look' : L.flipped ? 'Flipped: now reflect around the average' : (L.k ? `After ${L.k} round${L.k > 1 ? 's' : ''}` : 'Start') });
+  const tot = L.vals.reduce((a, v) => a + v * v, 0), p = L.ghosts.reduce((a, i) => a + L.vals[i] * L.vals[i], 0) / tot;
+  $('#lab-k').textContent = L.k; $('#lab-p').textContent = L.flipped ? '…' : pct(p); $('#lab-c').textContent = fmt(tot);
+  const pts = []; for (let k = 0; k <= 12; k++) pts.push([k, GH.chance(L.N, L.M, L.s, k)]);
+  curveSVG($('#lab-curve'), pts, L.flipped ? null : [Math.min(L.k, 12), GH.chance(L.N, L.M, L.s, Math.min(L.k, 12))], 'rounds of flip and reflect');
+  ['#lab-flip', '#lab-round'].forEach(s => $(s).disabled = L.flipped || L.looked !== null);
+  $('#lab-reflect').disabled = !L.flipped || L.looked !== null; $('#lab-look').disabled = L.flipped || L.looked !== null;
+}
+
+/* ----- million-room hotel ----- */
+function parseN(s) { const n = Number(String(s).replace(/[,\s_]/g, '')); return Number.isFinite(n) ? Math.floor(n) : NaN; }
+function bigGo() {
+  const N = parseN($('#big-n').value), M = Math.max(1, Math.floor(+$('#big-m').value || 1));
+  if (!(N >= 2) || N > 1e12 || M >= N) { $('#big-note').textContent = 'Use between 2 and 1,000,000,000,000 rooms, with fewer ghosts than rooms.'; return; }
+  const b = GH.best(N, M), normal = (N + 1) / (M + 1);
+  $('#big-k').textContent = b.k.toLocaleString('en-US'); $('#big-p').textContent = pct(b.p); $('#big-c').textContent = normal.toLocaleString('en-US', { maximumFractionDigits: 1 });
+  $('#big-note').textContent = `With ${N.toLocaleString('en-US')} rooms and ${M} ghost${M > 1 ? 's' : ''}, flip and reflect ${b.k.toLocaleString('en-US')} times, then look: you catch a ghost ${pct(b.p)} of the time. A normal search opens about ${normal.toLocaleString('en-US', { maximumFractionDigits: 1 })} rooms on average. 0.785 × √(rooms ÷ ghosts) = ${(Math.PI / 4 * Math.sqrt(N / M)).toFixed(1)}.`;
+  const kmax = Math.max(2, 2 * b.k + 2), stepK = Math.max(1, Math.ceil(kmax / 200)), pts = [];
+  let G = 1, E = 1; for (let k = 0; k <= kmax; k++) { if (k % stepK === 0) pts.push([k, M * G * G / N]); const fG = -G, avg = (M * fG + (N - M) * E) / N; G = 2 * avg - fG; E = 2 * avg - E; }
+  curveSVG($('#big-curve'), pts, [b.k, b.p], 'rounds of flip and reflect');
+}
+function buildBigTable() {
+  const Ns = [4, 16, 64, 256, 1024, 4096, 65536, 1048576, 1e9];
+  $('#big-table').innerHTML = '<tr><th>rooms</th><th>best rounds</th><th>chance</th><th>√rooms</th><th>normal looks</th></tr>' + Ns.map(N => { const b = GH.best(N, 1); return `<tr><td>${N.toLocaleString('en-US')}</td><td>${b.k.toLocaleString('en-US')}</td><td>${pct(b.p)}</td><td>${Math.sqrt(N).toLocaleString('en-US', { maximumFractionDigits: 1 })}</td><td>${((N + 1) / 2).toLocaleString('en-US', { maximumFractionDigits: 1 })}</td></tr>`; }).join('');
+}
+
+/* ----- wiring ----- */
+function setTab(t) {
+  document.body.dataset.tab = t; document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === t)));
+  if (t === 'duel') render();
+  else { $('#status').className = ''; $('#turn-badge').className = 'badge done';
+    if (t === 'lab') { $('#status').textContent = 'Wave Lab: watch every room while you flip and reflect.'; $('#turn-badge').textContent = 'Wave Lab'; renderLab(); }
+    else { $('#status').textContent = 'Million-Room Hotel: how many rounds does a giant hotel need?'; $('#turn-badge').textContent = 'Big hotel'; bigGo(); } }
+}
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => setTab(b.dataset.tab));
+$('#hotel').addEventListener('click', e => { const b = e.target.closest('.door'); if (b && b.classList.contains('clickable')) toggleRoom(+b.dataset.room); });
+$('#rounds-choice').addEventListener('click', e => { const b = e.target.closest('button'); if (b) chooseRounds(+b.dataset.k); });
+$('#practice').addEventListener('click', e => { if (e.target.id === 'pr-check') checkPractice(); });
+$('#lock').onclick = lockGhosts; $('#go').onclick = lockRounds; $('#step').onclick = nextStep; $('#flip-coins').onclick = flipCoins; $('#next-night').onclick = nextNight;
+$('#new-duel').onclick = newDuel; $('#vs-cpu').onchange = newDuel; $('#practice-on').onchange = () => { D.practiceOk = !$('#practice-on').checked; render(); }; $('#show-ref').onchange = () => render();
+$('#lab-new').onclick = labNew; $('#lab-n').onchange = labNew; $('#lab-m').onchange = labNew;
+$('#lab-flip').onclick = labFlip; $('#lab-reflect').onclick = labReflect; $('#lab-round').onclick = labRound; $('#lab-look').onclick = labLook; $('#lab-reset').onclick = labReset;
+$('#big-go').onclick = bigGo; $('#big-n').addEventListener('keydown', e => { if (e.key === 'Enter') bigGo(); });
+$('#fullscreen').onclick = () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); };
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (document.body.dataset.tab === 'duel') { if (D.phase === 'rounds' && '0123'.includes(e.key) && e.key.length === 1) chooseRounds(+e.key); else if (e.key === 'ArrowRight' && (D.phase === 'reveal' || D.phase === 'compute')) { e.preventDefault(); nextStep(); } }
+});
+buildRef(); buildBigTable(); newDuel(); labNew();
+</script>
+</body>
+</html>

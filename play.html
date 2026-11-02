@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf7f1">
+  <meta name="description" content="Play a SpookyQubits game and explore its classroom guide, offline download, and printables.">
+  <title>Play — SpookyQubits</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="catalog.js" defer></script>
+  <script src="player.js" defer></script>
+</head>
+<body class="player-page">
+  <a class="skip-link" href="#game-area">Skip to game</a>
+  <header class="player-header"><a class="back-link" href="index.html#games"><span aria-hidden="true">←</span> All games</a><a class="brand player-brand" href="index.html"><img src="assets/ghost.svg" width="32" height="32" alt=""><span>Spooky<span class="brand-red">Qubits</span></span></a><span class="player-tag">THE PLAYGROUND</span></header>
+  <main>
+    <div class="player-toolbar"><div class="game-selection"><label for="game-select">Your game</label><select id="game-select"></select></div><div class="game-selection variant-selection" id="variant-control" hidden><label for="variant-select">Version</label><select id="variant-select"></select></div><div class="player-actions"><button id="resources-toggle" class="button small secondary" aria-expanded="false" aria-controls="resource-panel">Guide &amp; downloads <span aria-hidden="true">↓</span></button><a id="standalone" class="button small secondary" target="_blank" rel="noopener">Open game in new tab ↗</a><button id="fullscreen-button" class="button small primary">Full screen <span aria-hidden="true">⛶</span></button></div></div>
+    <p class="player-announcement" id="player-announcement" role="status"></p>
+    <section class="resource-panel" id="resource-panel" hidden aria-labelledby="resource-heading"></section>
+    <p class="screen-note">Wide board · Swipe sideways inside the game. A tablet or computer gives you more room to play.</p>
+    <section id="game-area" class="game-area" aria-label="Game"><div id="game-loading" class="game-loading" role="status"><span class="loading-ghost" aria-hidden="true">✦</span>Getting your game ready…</div></section>
+    <noscript><style>.player-toolbar,.player-announcement,.game-area{display:none}</style><div class="noscript-message"><h1>Choose a game</h1><p>The playground launcher uses JavaScript. You can also open these self-contained games directly:</p><ul><li><a href="games/catch-the-photon.html">Catch the Photon · Play the game + Wave Lab</a></li><li><a href="games/ghost-coin.html">Ghost Coin · Play all four levels + Chip Lab</a></li><li><a href="games/ghost-grid-intro.html">Ghost Grid · Start here: superposition</a></li><li><a href="games/ghost-grid-step-by-step.html">Ghost Grid · Superposition: step by step</a></li><li><a href="games/ghost-grid-full.html">Ghost Grid · Full Goff game: linked collapses</a></li><li><a href="games/ghost-hunt.html">Ghost Hunt · Play Ghost Hunt</a></li><li><a href="games/ghost-guard.html">Ghost Guard · Play + Ghost Box and Noise Labs</a></li></ul><p><a href="index.html#classroom">Download the classroom collection</a></p></div></noscript>
+  </main>
+</body>
+</html>

@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Ghost Guard — A Quantum Error-Correction Game</title>
+<style>
+:root { color-scheme: light; font-family: Arial, Helvetica, sans-serif; color: #202435; background: #fff;
+  --brand: #b41524; --g: #154c9c; --r: #6c2f9e; --plus: #1d7a3a; --minus: #c0182a; --gold: #8c6000; --flip: #0f6e6e; --sign: #b35c00; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.app { max-width: 1560px; min-width: 650px; margin: auto; padding: 16px 20px 30px; }
+header { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+h1 { margin: 0; color: var(--brand); font-size: clamp(26px, 3vw, 40px); }
+.ghost-icon { width: 1.15em; height: 1.15em; vertical-align: -0.2em; margin-right: .28em; }
+.subtitle { margin: 5px 0 0; font-size: 18px; }
+.badge { border: 3px solid #bec8be; border-radius: 20px; padding: 10px 18px; font-weight: bold; font-size: clamp(17px, 1.8vw, 23px); white-space: nowrap; }
+.badge.G { color: var(--g); border-color: var(--g); background: #eef3fb; }
+.badge.R { color: var(--r); border-color: var(--r); background: #f5eefa; }
+.badge.done { color: #202435; background: #f0f3f8; }
+button { font: inherit; cursor: pointer; border: 2px solid #b9bdc8; border-radius: 9px; background: #f4f5f8; color: #202435; font-weight: bold; }
+button:hover:enabled { background: #e6eaf3; border-color: #50586c; }
+button:focus-visible { outline: 4px solid #985800; outline-offset: 3px; }
+button:disabled { cursor: default; opacity: .42; }
+.tabs { display: flex; gap: 8px; margin: 14px 0 0; flex-wrap: wrap; }
+.tabs button { padding: 9px 18px; font-size: 18px; }
+.tabs button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+#levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 0; }
+#levels button { padding: 9px 10px; font-size: 15px; text-align: left; line-height: 1.25; }
+#levels button strong { display: block; font-size: 17px; }
+#levels button[aria-pressed="true"] { background: #202435; border-color: #202435; color: #fff; }
+#status { font-size: clamp(20px, 2.1vw, 27px); font-weight: bold; margin: 14px 0; padding: 13px 18px; background: #f0f3f8; border-left: 6px solid var(--brand); border-radius: 6px; }
+#status.G { border-left-color: var(--g); } #status.R { border-left-color: var(--r); }
+.play-area { display: grid; grid-template-columns: minmax(340px, 1.15fr) minmax(300px, 1fr) minmax(230px, 290px); gap: 20px; align-items: start; }
+h2 { font-size: 22px; margin: 0 0 8px; }
+/* ghost box */
+.gbox { border: 4px solid #202435; border-radius: 16px; padding: 12px; background: #fbfbfd; position: relative; min-height: 270px; }
+.row { display: grid; grid-template-columns: 120px 1fr; gap: 10px; align-items: center; border: 3px solid #d0d4de; border-radius: 12px; padding: 8px 10px; margin-bottom: 10px; background: #fff; }
+.row.gone { opacity: .25; border-style: dashed; }
+.row .chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; min-height: 52px; align-items: center; }
+.chip { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 28px; font-weight: 800; line-height: 1;
+  border: 3px solid rgba(255,255,255,.75); box-shadow: inset 0 -4px 0 rgba(0,0,0,.22), 0 2px 4px rgba(0,0,0,.3); }
+.chip.plus { background: var(--plus); } .chip.minus { background: var(--minus); }
+.coins { display: flex; gap: 12px; justify-content: center; }
+.coinwrap { text-align: center; font-size: 13px; font-weight: bold; color: #535969; }
+.coin { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 26px; font-weight: 800; margin-top: 3px;
+  border: 4px solid #9c7417; background: radial-gradient(circle at 35% 30%, #fff3c4, #e2b84a 60%, #b98a1c); color: #4d3600; }
+.coin.t { border-color: #55607a; background: radial-gradient(circle at 35% 30%, #f3f5fb, #aab3c8 60%, #75809a); color: #222a3d; }
+.coin.changed { animation: turn .5s ease-in-out; }
+@keyframes turn { 0% { transform: rotateY(0); } 50% { transform: rotateY(90deg); } 100% { transform: rotateY(0); } }
+.lid { position: absolute; inset: 0; border-radius: 12px; background: repeating-linear-gradient(45deg, #202435 0 12px, #2d3452 12px 24px); color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 20px; font-weight: bold; padding: 20px; gap: 8px; }
+.lid svg { width: 70px; height: 70px; }
+.lid .small { font-size: 15px; font-weight: normal; opacity: .9; }
+.formula { text-align: center; font-size: 19px; font-weight: bold; margin: 6px 0 0; min-height: 28px; }
+.keeper { margin: 12px 0 0; border: 3px solid var(--gold); background: #fff7da; border-radius: 12px; padding: 10px 12px; font-size: 18px; min-height: 64px; }
+.keeper .ans { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+.keeper .ans span { background: #fff; border: 2px solid #e3d6a8; border-radius: 8px; padding: 6px; text-align: center; font-weight: bold; }
+.keeper .ans span.no { border-color: var(--minus); color: var(--minus); }
+.keeper .ans span.yes { border-color: var(--plus); color: var(--plus); }
+/* hands */
+.hand-title { font-size: 18px; font-weight: bold; margin: 0 0 8px; }
+.hand-title.G { color: var(--g); } .hand-title.R { color: var(--r); }
+.hand { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 10px; }
+.hand button { padding: 10px 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 104px; background: #fff; border-width: 3px; }
+.hand button .icon { font-size: 32px; height: 36px; display: grid; place-items: center; line-height: 1; }
+.hand button .nm { font-size: 19px; margin-top: 4px; }
+.hand button .rl { font-size: 13px; color: #535969; margin-top: 4px; line-height: 1.2; }
+.c-check { border-color: var(--g) !important; } .c-check .nm, .c-check .icon { color: var(--g); }
+.c-rest { border-color: #6b7080 !important; } .c-rest .nm { color: #4a4f5e; }
+.c-calm { border-color: #6b7080 !important; } .c-calm .nm { color: #4a4f5e; }
+.c-flip { border-color: var(--flip) !important; } .c-flip .nm, .c-flip .icon { color: var(--flip); }
+.c-sign { border-color: var(--sign) !important; } .c-sign .nm, .c-sign .icon { color: var(--sign); }
+.c-peek { border-color: var(--brand) !important; } .c-peek .nm, .c-peek .icon { color: var(--brand); }
+.c-fix { border-color: var(--gold) !important; } .c-fix .nm { color: var(--gold); }
+.pick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; }
+.pick button { padding: 7px 4px; font-size: 15px; }
+.subhead { font-size: 15px; font-weight: bold; color: #535969; margin: 12px 0 4px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.actions button { padding: 11px 15px; font-size: 17px; }
+.primary { background: var(--brand) !important; border-color: var(--brand) !important; color: #fff !important; }
+.primary:hover:enabled { background: #95111e !important; }
+.options { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 12px; font-size: 16px; align-items: center; }
+.options label { cursor: pointer; }
+.options select { font: inherit; padding: 4px; }
+#event { min-height: 26px; font-size: 18px; line-height: 1.4; margin: 14px 0 0; }
+.hint { color: #535969; font-size: 15px; line-height: 1.45; margin: 10px 0 0; }
+.handoff { border: 3px dashed var(--r); border-radius: 12px; padding: 18px; text-align: center; font-size: 20px; font-weight: bold; background: #f5eefa; }
+.handoff.G { border-color: var(--g); background: #eef3fb; }
+.handoff button { margin-top: 12px; padding: 10px 18px; font-size: 18px; }
+/* side */
+.side { padding: 12px; border-left: 2px solid #d7bd68; background: #fffcf2; border-radius: 0 12px 12px 0; }
+.side h2 { color: #6b4700; font-size: 18px; margin-bottom: 8px; }
+.nights { width: 100%; border-collapse: collapse; font-size: 14px; }
+.nights th, .nights td { border-bottom: 1px solid #e3d6a8; padding: 4px 3px; text-align: center; }
+.nights tr.current { background: #fff0c9; font-weight: bold; }
+.secret { border: 3px solid #202435; border-radius: 10px; padding: 8px; margin: 10px 0; text-align: center; font-weight: bold; background: #fff; }
+.secret.hidden { background: repeating-linear-gradient(45deg, #202435 0 10px, #2d3452 10px 20px); color: #fff; }
+#result { font-size: 19px; font-weight: bold; text-align: center; min-height: 48px; line-height: 1.3; margin-top: 8px; }
+#result.G { color: var(--g); } #result.R { color: var(--r); }
+table.score { width: 100%; border-collapse: collapse; font-size: 15px; margin-top: 8px; }
+table.score td { border-bottom: 1px solid #e3d6a8; padding: 5px 3px; }
+table.score td:last-child { text-align: right; font-weight: bold; }
+.side .small { font-size: 13px; color: #6b4700; line-height: 1.35; margin: 8px 0 0; }
+/* views */
+.view { display: none; } body[data-tab="play"] #play-view, body[data-tab="lab"] #lab-view, body[data-tab="noise"] #noise-view { display: block; }
+body:not([data-tab="play"]) #levels { display: none; }
+.lab-area { display: grid; grid-template-columns: minmax(340px, 1.1fr) minmax(300px, 1fr); gap: 20px; align-items: start; }
+.history { display: flex; flex-wrap: wrap; gap: 6px; min-height: 36px; margin: 10px 0; align-items: center; }
+.history span { border: 2px solid #b9bdc8; border-radius: 8px; padding: 4px 8px; font-weight: bold; font-size: 15px; background: #fff; }
+.history span.flip { border-color: var(--flip); color: var(--flip); } .history span.sign { border-color: var(--sign); color: var(--sign); }
+.history span.check { border-color: var(--g); color: var(--g); } .history span.peek { border-color: var(--brand); color: var(--brand); }
+.labgrid { display: grid; grid-template-columns: 110px repeat(3, 1fr); gap: 6px; align-items: center; margin: 6px 0; }
+.labgrid button { padding: 8px 4px; font-size: 15px; }
+.labgrid .lab-l { font-weight: bold; font-size: 15px; }
+.noise-area { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 22px; align-items: start; }
+.ctrl { margin: 10px 0; font-size: 17px; }
+.ctrl input[type=range] { width: 100%; }
+.ctrl .val { font-weight: bold; }
+.radio { display: flex; gap: 14px; }
+canvas { width: 100%; max-width: 760px; border: 1px solid #d9dce4; border-radius: 8px; background: #fff; display: block; margin-bottom: 12px; }
+.out { font-size: 18px; line-height: 1.5; background: #f0f3f8; border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
+details { margin-top: 22px; font-size: 17px; line-height: 1.5; border-top: 1px solid #d9dce4; padding-top: 10px; }
+summary { font-weight: bold; font-size: 19px; cursor: pointer; }
+details table { border-collapse: collapse; margin: 8px 0; }
+details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-align: left; }
+.credit { font-size: 13px; color: #6b7080; margin-top: 18px; }
+#selftest { white-space: pre-wrap; font-size: 13px; background: #f4f5f8; padding: 8px; display: none; }
+:fullscreen .app, :-webkit-full-screen .app { max-width: none; }
+@media (max-width: 1100px) { .play-area { grid-template-columns: 1fr 1fr; } .side { grid-column: 1 / -1; border-left: none; border-top: 2px solid #d7bd68; border-radius: 0 0 12px 12px; } }
+@media (max-width: 820px) { .play-area, .lab-area, .noise-area { grid-template-columns: 1fr; } #levels { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-tab="play">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<linearGradient id="ghostMist" x1="0.6" y1="0" x2="0" y2="1"><stop offset="0.55" stop-color="#fff"/><stop offset="1" stop-color="#fbd6dd"/></linearGradient>
+<symbol id="ghost" viewBox="0 0 64 64"><path d="M18.5 18 C19.5 10.5 25 5.5 31.5 5.5 C39 5.5 44.5 11.5 45 19 C45.2 22.5 45.5 25 47 26 C50 27.5 55.5 25.5 58.5 27.5 C62 30 59.5 35.5 55 36 C51.5 36.5 48.5 36.5 46.5 38.5 C43.5 45.5 36 51.5 26 53.5 C19 55 12 55.5 8 54 C5.5 53 7.5 50.5 10.5 48.5 C12.5 47 13 45.5 13 44 C14 40.5 14.3 37 14 34 C11 34.2 6.5 33.5 4.2 30.5 C2 27.5 3.5 23 8 22.5 C12 22 16 21 18.5 18 Z" fill="url(#ghostMist)" stroke="#d3061c" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="29" cy="17.5" rx="2.6" ry="3.6" transform="rotate(-10 29 17.5)" fill="#1b1b1f"/><ellipse cx="37.5" cy="19.5" rx="2.3" ry="3.3" transform="rotate(-10 37.5 19.5)" fill="#1b1b1f"/><path d="M30.2 24.6 Q33.4 25.8 36.6 24.9 Q36 29.2 33 29 Q30.6 28.6 30.2 24.6 Z" fill="#1b1b1f"/></symbol></defs></svg>
+<main class="app">
+  <header>
+    <div><h1><svg class="ghost-icon" aria-hidden="true" focusable="false"><use href="#ghost"/></svg>GHOST GUARD</h1>
+    <p class="subtitle">A quantum error-correction game · Check, don't look · Grades 6–8</p></div>
+    <span class="badge" id="turn-badge"></span>
+  </header>
+  <nav class="tabs" aria-label="Views">
+    <button data-tab="play" aria-pressed="true">Play the game</button>
+    <button data-tab="lab" aria-pressed="false">Ghost Box lab</button>
+    <button data-tab="noise" aria-pressed="false">Noise Lab</button>
+    <button id="fs-btn" aria-pressed="false">Full screen</button>
+  </nav>
+  <div id="levels" role="group" aria-label="Level">
+    <button data-level="0"><strong>Level 0 · Classical message</strong>Plain HHH or TTT. Peeking is fine.</button>
+    <button data-level="1"><strong>Level 1 · Ghost Guard duel</strong>A ghost in two rows. Check, don't look.</button>
+    <button data-level="2"><strong>Level 2 · The Sign Gremlin</strong>The Gremlin has one Sign card. Can checks see it?</button>
+  </div>
+
+  <section id="play-view" class="view">
+    <div id="status" role="status" aria-live="polite"></div>
+    <div class="play-area">
+      <div>
+        <h2>The Ghost Box</h2>
+        <div class="gbox" id="gbox"></div>
+        <div class="keeper" id="keeper" aria-live="polite"></div>
+      </div>
+      <div>
+        <div id="hands"></div>
+        <div id="event" aria-live="polite"></div>
+        <div class="actions">
+          <button id="new-game" class="primary">New game</button>
+        </div>
+        <div class="options">
+          <label>Mode
+            <select id="mode">
+              <option value="cpuR">I am the Guardian · computer is the Gremlin</option>
+              <option value="cpuG">I am the Gremlin · computer is the Guardian</option>
+              <option value="two">Two players on one screen</option>
+            </select></label>
+          <label><input type="checkbox" id="opt-hints" checked> Show check-table hints</label>
+          <label><input type="checkbox" id="opt-teacher"> Teacher view: see inside the box</label>
+        </div>
+        <p class="hint" id="hand-hint"></p>
+      </div>
+      <aside class="side">
+        <h2>Seven nights</h2>
+        <table class="nights" id="nights"></table>
+        <div class="secret hidden" id="secret">Secret card (face down)</div>
+        <div id="result" aria-live="polite"></div>
+        <h2 style="margin-top:12px">Score</h2>
+        <table class="score">
+          <tr><td>Guardian wins</td><td id="s-g">0</td></tr>
+          <tr><td>Gremlin wins</td><td id="s-r">0</td></tr>
+          <tr><td>Guardian win rate</td><td id="s-rate">–</td></tr>
+        </table>
+        <p class="small">With the best play by both sides, each side wins exactly half the games (3 Checks vs 2 Flips over 7 nights). Swap roles after every game.</p>
+        <button id="reset-score" style="margin-top:8px;padding:6px 10px;font-size:14px">Reset score</button>
+      </aside>
+    </div>
+  </section>
+
+  <section id="lab-view" class="view">
+    <div class="lab-area">
+      <div>
+        <h2>Inside the Ghost Box</h2>
+        <div class="gbox" id="lab-box"></div>
+        <div class="keeper" id="lab-keeper"></div>
+      </div>
+      <div>
+        <div class="ctrl"><label>Secret: <select id="lab-secret"></select></label> <button id="lab-reset" style="padding:6px 10px">Start over</button></div>
+        <div class="labgrid">
+          <span class="lab-l" style="color:var(--flip)">Flip coin</span><button data-lab="flip" data-k="0">1</button><button data-lab="flip" data-k="1">2</button><button data-lab="flip" data-k="2">3</button>
+          <span class="lab-l" style="color:var(--sign)">Sign on coin</span><button data-lab="sign" data-k="0">1</button><button data-lab="sign" data-k="1">2</button><button data-lab="sign" data-k="2">3</button>
+          <span class="lab-l" style="color:var(--brand)">Peek at coin</span><button data-lab="peek" data-k="0">1</button><button data-lab="peek" data-k="1">2</button><button data-lab="peek" data-k="2">3</button>
+        </div>
+        <div class="actions" style="margin-top:6px">
+          <button data-lab="check" class="c-check" style="border-width:3px">Check (ask the Keeper)</button>
+          <button data-lab="fix" class="c-fix" style="border-width:3px">Fix using the check table</button>
+        </div>
+        <div class="history" id="lab-history"></div>
+        <div class="subhead">Try these</div>
+        <div class="actions" style="margin-top:2px">
+          <button data-preset="one">One flip, then check and fix</button>
+          <button data-preset="two">Two flips, then check and fix</button>
+          <button data-preset="sign">A sign error, then check</button>
+          <button data-preset="peek">Peek once</button>
+        </div>
+        <p class="hint" id="lab-note"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="noise-view" class="view">
+    <div class="noise-area">
+      <div>
+        <h2>Noise Lab</h2>
+        <p class="hint" style="margin-top:0">Every night, each coin is hit by noise on its own. After each night the Guardian checks and fixes. How often is the ghost lost?</p>
+        <div class="ctrl">Flip chance per coin per night: <span class="val" id="p-val"></span><input type="range" id="p" min="0" max="60" value="10"></div>
+        <div class="ctrl">Sign chance per coin per night: <span class="val" id="q-val"></span><input type="range" id="q" min="0" max="30" value="0"></div>
+        <div class="ctrl">Coins guarding the ghost:
+          <div class="radio"><label><input type="radio" name="n" value="1"> 1 (no guard)</label><label><input type="radio" name="n" value="3" checked> 3</label><label><input type="radio" name="n" value="5"> 5</label></div></div>
+        <div class="ctrl"><label>Nights to run <select id="nights-n"><option>100</option><option selected>1000</option><option>10000</option></select></label></div>
+        <div class="actions"><button id="run" class="primary">Run the nights</button><button id="clear-dots">Clear dots</button></div>
+        <div class="out" id="noise-out"></div>
+      </div>
+      <div>
+        <canvas id="chart-flip" width="760" height="330" aria-label="Chart: chance the ghost is lost per night against flip chance, for 1, 3 and 5 coins"></canvas>
+        <canvas id="chart-sign" width="760" height="270" aria-label="Chart: chance the ghost is soured per night against sign chance, for 1, 3 and 5 coins"></canvas>
+        <p class="hint">Lines: exact chance. Dots: your runs. With checks after every night, 3 or 5 coins beat 1 coin only when the flip chance is below 50% (the <b>threshold</b>). Against sign errors a flip guard never helps: more coins make the ghost <i>more</i> likely to sour. Real quantum computers use codes that check for both kinds.</p>
+      </div>
+    </div>
+  </section>
+
+  <details>
+    <summary>How to play</summary>
+    <p><b>Goal.</b> The Keeper hides a ghost in the box: a row of three HEADS coins and a row of three TAILS coins, each with its own chips (the secret). The <b style="color:var(--g)">Guardian</b> wins if after seven nights the ghost comes back exactly as it started. The <b style="color:var(--r)">Gremlin</b> wins if it does not.</p>
+    <p><b>Hands.</b> Guardian: 3 Check + 4 Rest. Gremlin: 2 Flip + 5 Calm (Level 2: one Calm becomes a Sign). Every night each player plays one card face-down.</p>
+    <table>
+      <tr><th>Card</th><th>What the Keeper does</th></tr>
+      <tr><td>Calm</td><td>Nothing.</td></tr>
+      <tr><td>Flip k</td><td>Turns coin k over <b>in both rows</b>.</td></tr>
+      <tr><td>Sign k</td><td>In every row whose coin k shows TAILS, swaps every chip's colour.</td></tr>
+      <tr><td>Rest</td><td>Nothing.</td></tr>
+      <tr><td>Check</td><td>Says only: "Coins 1 &amp; 2 match / don't match. Coins 2 &amp; 3 match / don't match." The answer is the same for both rows.</td></tr>
+      <tr><td>Peek k</td><td>Shows coin k, but the ghost must pick one row (chance ∝ chips²). The other row is lost, and so is the secret.</td></tr>
+    </table>
+    <p><b>Check table.</b></p>
+    <table>
+      <tr><th>Coins 1 &amp; 2</th><th>Coins 2 &amp; 3</th><th>Turn</th></tr>
+      <tr><td>match</td><td>match</td><td>nothing</td></tr>
+      <tr><td>don't match</td><td>match</td><td>coin 1</td></tr>
+      <tr><td>don't match</td><td>don't match</td><td>coin 2</td></tr>
+      <tr><td>match</td><td>don't match</td><td>coin 3</td></tr>
+    </table>
+    <p><b>End.</b> After night 7 there is one free final Check and Fix. Then the box opens. Same chips, same colours, same rows: the Guardian wins.</p>
+    <p><b>The physics.</b> The two rows are the two parts of one qubit stored in three qubits (the 3-qubit bit-flip code). Chips are amplitudes, colours are signs. Flip is a bit-flip error (X), Sign is a phase error (Z), Check measures the parities Z₁Z₂ and Z₂Z₃, and Peek is a measurement that collapses the superposition. Two flips between checks make the Guardian "fix" the wrong coin and swap the rows: a logical error.</p>
+    <p class="credit">Ghost Guard · QCaMP classroom materials · Works offline. Physics model and game balance verified by exact simulation; the computer plays the exact optimal (equilibrium) strategy.</p>
+  </details>
+  <pre id="selftest"></pre>
+</main>
+<script>
+"use strict";
+const STRAT = {"guardian":{"0||":0.5,"1|1|1":1.0,"2|11|11":1.0,"3|111|110":0.0,"4|1110|110x":0.0,"5|11100|110xx":0.0,"6|111000|110xxx":0.0,"2|11|10":1.0,"3|111|101":0.0,"4|1110|101x":0.0,"5|11100|101xx":0.0,"6|111000|101xxx":0.0,"3|111|100":0.0,"4|1110|100x":0.0,"5|11100|100xx":0.0,"6|111000|100xxx":0.0,"1|1|0":0.4,"2|11|01":1.0,"3|111|011":0.0,"4|1110|011x":0.0,"5|11100|011xx":0.0,"6|111000|011xxx":0.0,"3|111|010":0.0,"4|1110|010x":0.0,"5|11100|010xx":0.0,"6|111000|010xxx":0.0,"2|11|00":0.25,"3|111|001":0.0,"4|1110|001x":0.0,"5|11100|001xx":0.0,"6|111000|001xxx":0.0,"3|111|000":0.0,"4|1110|000x":0.0,"5|11100|000xx":0.0,"6|111000|000xxx":0.0,"3|110|00x":0.3333,"4|1101|00x1":0.0,"5|11010|00x1x":0.0,"6|110100|00x1xx":0.0,"4|1100|00xx":0.5,"5|11001|00xx1":0.0,"6|110010|00xx1x":0.0,"5|11000|00xxx":1.0,"6|110001|00xxx1":0.0,"4|1101|00x0":0.0,"5|11010|00x0x":0.0,"6|110100|00x0xx":0.0,"5|11001|00xx0":0.0,"6|110010|00xx0x":0.0,"2|10|0x":0.5,"3|101|0x1":1.0,"4|1011|0x10":0.0,"5|10110|0x10x":0.0,"6|101100|0x10xx":0.0,"4|1011|0x11":0.0,"5|10110|0x11x":0.0,"6|101100|0x11xx":0.0,"3|100|0xx":0.6667,"4|1001|0xx1":1.0,"5|10011|0xx10":0.0,"6|100110|0xx10x":0.0,"4|1000|0xxx":1.0,"5|10001|0xxx1":1.0,"6|100011|0xxx10":0.0,"5|10011|0xx11":0.0,"6|100110|0xx11x":0.0,"6|100011|0xxx11":0.0,"3|101|0x0":0.3333,"4|1011|0x01":0.0,"5|10110|0x01x":0.0,"6|101100|0x01xx":0.0,"4|1011|0x00":0.0,"5|10110|0x00x":0.0,"6|101100|0x00xx":0.0,"4|1010|0x0x":0.5,"5|10101|0x0x1":0.0,"6|101010|0x0x1x":0.0,"5|10100|0x0xx":1.0,"6|101001|0x0xx1":0.0,"5|10101|0x0x0":0.0,"6|101010|0x0x0x":0.0,"4|1001|0xx0":0.5,"5|10011|0xx01":0.0,"6|100110|0xx01x":0.0,"5|10011|0xx00":0.0,"6|100110|0xx00x":0.0,"5|10010|0xx0x":1.0,"6|100101|0xx0x1":0.0,"5|10001|0xxx0":1.0,"6|100011|0xxx01":0.0,"1|0|x":0.6,"2|01|x1":1.0,"3|011|x10":1.0,"4|0111|x100":0.0,"5|01110|x100x":0.0,"6|011100|x100xx":0.0,"3|011|x11":1.0,"4|0111|x110":0.0,"5|01110|x110x":0.0,"6|011100|x110xx":0.0,"4|0111|x101":0.0,"5|01110|x101x":0.0,"6|011100|x101xx":0.0,"2|00|xx":0.75,"3|001|xx1":1.0,"4|0011|xx10":1.0,"5|00111|xx100":0.0,"6|001110|xx100x":0.0,"3|000|xxx":1.0,"4|0001|xxx1":1.0,"5|00011|xxx10":1.0,"6|000111|xxx100":0.0,"4|0011|xx11":1.0,"5|00111|xx110":0.0,"6|001110|xx110x":0.0,"5|00111|xx101":0.0,"6|001110|xx101x":0.0,"5|00011|xxx11":1.0,"6|000111|xxx110":0.0,"6|000111|xxx101":0.0,"2|01|x0":0.5,"3|011|x01":1.0,"4|0111|x011":0.0,"5|01110|x011x":0.0,"6|011100|x011xx":0.0,"4|0111|x010":0.0,"5|01110|x010x":0.0,"6|011100|x010xx":0.0,"3|011|x00":0.3333,"4|0111|x001":0.0,"5|01110|x001x":0.0,"6|011100|x001xx":0.0,"4|0111|x000":0.0,"5|01110|x000x":0.0,"6|011100|x000xx":0.0,"4|0110|x00x":0.5,"5|01101|x00x1":0.0,"6|011010|x00x1x":0.0,"5|01100|x00xx":1.0,"6|011001|x00xx1":0.0,"5|01101|x00x0":0.0,"6|011010|x00x0x":0.0,"3|010|x0x":0.6667,"4|0101|x0x1":1.0,"5|01011|x0x10":0.0,"6|010110|x0x10x":0.0,"5|01011|x0x11":0.0,"6|010110|x0x11x":0.0,"4|0100|x0xx":1.0,"5|01001|x0xx1":1.0,"6|010011|x0xx10":0.0,"6|010011|x0xx11":0.0,"4|0101|x0x0":0.5,"5|01011|x0x01":0.0,"6|010110|x0x01x":0.0,"5|01011|x0x00":0.0,"6|010110|x0x00x":0.0,"5|01010|x0x0x":1.0,"6|010101|x0x0x1":0.0,"5|01001|x0xx0":1.0,"6|010011|x0xx01":0.0,"3|001|xx0":0.6667,"4|0011|xx01":1.0,"5|00111|xx011":0.0,"6|001110|xx011x":0.0,"5|00111|xx010":0.0,"6|001110|xx010x":0.0,"4|0011|xx00":0.5,"5|00111|xx001":0.0,"6|001110|xx001x":0.0,"5|00111|xx000":0.0,"6|001110|xx000x":0.0,"5|00110|xx00x":1.0,"6|001101|xx00x1":0.0,"4|0010|xx0x":1.0,"5|00101|xx0x1":1.0,"6|001011|xx0x10":0.0,"6|001011|xx0x11":0.0,"5|00101|xx0x0":1.0,"6|001011|xx0x01":0.0,"4|0001|xxx0":1.0,"5|00011|xxx01":1.0,"6|000111|xxx011":0.0,"6|000111|xxx010":0.0,"5|00011|xxx00":1.0,"6|000111|xxx001":0.0},"gremlin":{"0||":0.1667,"1|1|1":1.0,"2|11|11":0.0,"3|111|110":0.0,"4|1110|1100":0.0,"5|11100|11000":0.0,"6|111000|110000":0.0,"3|110|110":0.0,"4|1101|1100":0.0,"5|11010|11000":0.0,"6|110100|110000":0.0,"4|1100|1100":0.0,"5|11001|11000":0.0,"6|110010|110000":0.0,"5|11000|11000":0.0,"6|110001|110000":0.0,"6|110000|110000":0.0,"2|10|11":0.0,"3|101|110":0.0,"4|1011|1100":0.0,"5|10110|11000":0.0,"6|101100|110000":0.0,"4|1010|1100":0.0,"5|10101|11000":0.0,"6|101010|110000":0.0,"5|10100|11000":0.0,"6|101001|110000":0.0,"6|101000|110000":0.0,"3|100|110":0.0,"4|1001|1100":0.0,"5|10011|11000":0.0,"6|100110|110000":0.0,"5|10010|11000":0.0,"6|100101|110000":0.0,"6|100100|110000":0.0,"4|1000|1100":0.0,"5|10001|11000":0.0,"6|100011|110000":0.0,"6|100010|110000":0.0,"5|10000|11000":0.0,"6|100001|110000":0.0,"1|1|0":0.2,"2|11|01":1.0,"3|111|011":0.0,"4|1110|0110":0.0,"5|11100|01100":0.0,"6|111000|011000":0.0,"3|110|011":0.0,"4|1101|0110":0.0,"5|11010|01100":0.0,"6|110100|011000":0.0,"4|1100|0110":0.0,"5|11001|01100":0.0,"6|110010|011000":0.0,"5|11000|01100":0.0,"6|110001|011000":0.0,"6|110000|011000":0.0,"2|11|00":0.25,"3|111|001":1.0,"4|1110|0011":0.0,"5|11100|00110":0.0,"6|111000|001100":0.0,"3|111|000":1.0,"4|1110|0001":1.0,"5|11100|00011":0.0,"6|111000|000110":0.0,"3|110|001":1.0,"4|1101|0011":0.0,"5|11010|00110":0.0,"6|110100|001100":0.0,"4|1100|0011":0.0,"5|11001|00110":0.0,"6|110010|001100":0.0,"5|11000|00110":0.0,"6|110001|001100":0.0,"6|110000|001100":0.0,"3|110|000":0.3333,"4|1101|0001":1.0,"5|11010|00011":0.0,"6|110100|000110":0.0,"4|1101|0000":1.0,"5|11010|00001":1.0,"6|110100|000011":0.0,"4|1100|0001":1.0,"5|11001|00011":0.0,"6|110010|000110":0.0,"5|11000|00011":0.0,"6|110001|000110":0.0,"6|110000|000110":0.0,"4|1100|0000":0.5,"5|11001|00001":1.0,"6|110010|000011":0.0,"5|11001|00000":1.0,"6|110010|000001":1.0,"5|11000|00001":1.0,"6|110001|000011":0.0,"6|110000|000011":0.0,"5|11000|00000":1.0,"6|110001|000001":1.0,"6|110000|000001":1.0,"2|10|01":1.0,"3|101|011":0.0,"4|1011|0110":0.0,"5|10110|01100":0.0,"6|101100|011000":0.0,"4|1010|0110":0.0,"5|10101|01100":0.0,"6|101010|011000":0.0,"5|10100|01100":0.0,"6|101001|011000":0.0,"6|101000|011000":0.0,"3|100|011":0.0,"4|1001|0110":0.0,"5|10011|01100":0.0,"6|100110|011000":0.0,"5|10010|01100":0.0,"6|100101|011000":0.0,"6|100100|011000":0.0,"4|1000|0110":0.0,"5|10001|01100":0.0,"6|100011|011000":0.0,"6|100010|011000":0.0,"5|10000|01100":0.0,"6|100001|011000":0.0,"2|10|00":0.25,"3|101|001":1.0,"4|1011|0011":0.0,"5|10110|00110":0.0,"6|101100|001100":0.0,"4|1010|0011":0.0,"5|10101|00110":0.0,"6|101010|001100":0.0,"5|10100|00110":0.0,"6|101001|001100":0.0,"6|101000|001100":0.0,"3|101|000":0.3333,"4|1011|0001":1.0,"5|10110|00011":0.0,"6|101100|000110":0.0,"4|1011|0000":1.0,"5|10110|00001":1.0,"6|101100|000011":0.0,"4|1010|0001":1.0,"5|10101|00011":0.0,"6|101010|000110":0.0,"5|10100|00011":0.0,"6|101001|000110":0.0,"6|101000|000110":0.0,"4|1010|0000":0.5,"5|10101|00001":1.0,"6|101010|000011":0.0,"5|10101|00000":1.0,"6|101010|000001":1.0,"5|10100|00001":1.0,"6|101001|000011":0.0,"6|101000|000011":0.0,"5|10100|00000":1.0,"6|101001|000001":1.0,"6|101000|000001":1.0,"3|100|001":1.0,"4|1001|0011":0.0,"5|10011|00110":0.0,"6|100110|001100":0.0,"5|10010|00110":0.0,"6|100101|001100":0.0,"6|100100|001100":0.0,"4|1000|0011":0.0,"5|10001|00110":0.0,"6|100011|001100":0.0,"6|100010|001100":0.0,"5|10000|00110":0.0,"6|100001|001100":0.0,"3|100|000":0.3333,"4|1001|0001":1.0,"5|10011|00011":0.0,"6|100110|000110":0.0,"5|10010|00011":0.0,"6|100101|000110":0.0,"6|100100|000110":0.0,"4|1001|0000":0.5,"5|10011|00001":1.0,"6|100110|000011":0.0,"5|10011|00000":1.0,"6|100110|000001":1.0,"5|10010|00001":1.0,"6|100101|000011":0.0,"6|100100|000011":0.0,"5|10010|00000":1.0,"6|100101|000001":1.0,"6|100100|000001":1.0,"4|1000|0001":1.0,"5|10001|00011":0.0,"6|100011|000110":0.0,"6|100010|000110":0.0,"5|10000|00011":0.0,"6|100001|000110":0.0,"4|1000|0000":1.0,"5|10001|00001":1.0,"6|100011|000011":0.0,"6|100010|000011":0.0,"5|10000|00001":-0.0,"6|100001|000010":1.0,"1|0|1":1.0,"2|01|11":0.0,"3|011|110":0.0,"4|0111|1100":0.0,"5|01110|11000":0.0,"6|011100|110000":0.0,"4|0110|1100":0.0,"5|01101|11000":0.0,"6|011010|110000":0.0,"5|01100|11000":0.0,"6|011001|110000":0.0,"6|011000|110000":0.0,"3|010|110":0.0,"4|0101|1100":0.0,"5|01011|11000":0.0,"6|010110|110000":0.0,"5|01010|11000":0.0,"6|010101|110000":0.0,"6|010100|110000":0.0,"4|0100|1100":0.0,"5|01001|11000":0.0,"6|010011|110000":0.0,"6|010010|110000":0.0,"5|01000|11000":0.0,"6|010001|110000":0.0,"2|00|11":0.0,"3|001|110":0.0,"4|0011|1100":0.0,"5|00111|11000":0.0,"6|001110|110000":0.0,"5|00110|11000":0.0,"6|001101|110000":0.0,"6|001100|110000":0.0,"4|0010|1100":0.0,"5|00101|11000":0.0,"6|001011|110000":0.0,"6|001010|110000":0.0,"5|00100|11000":0.0,"6|001001|110000":0.0,"3|000|110":0.0,"4|0001|1100":0.0,"5|00011|11000":0.0,"6|000111|110000":0.0,"6|000110|110000":0.0,"5|00010|11000":0.0,"6|000101|110000":0.0,"4|0000|1100":0.0,"5|00001|11000":0.0,"6|000011|110000":0.0,"1|0|0":0.2,"2|01|01":1.0,"3|011|011":0.0,"4|0111|0110":0.0,"5|01110|01100":0.0,"6|011100|011000":0.0,"4|0110|0110":0.0,"5|01101|01100":0.0,"6|011010|011000":0.0,"5|01100|01100":0.0,"6|011001|011000":0.0,"6|011000|011000":0.0,"3|010|011":0.0,"4|0101|0110":0.0,"5|01011|01100":0.0,"6|010110|011000":0.0,"5|01010|01100":0.0,"6|010101|011000":0.0,"6|010100|011000":0.0,"4|0100|0110":0.0,"5|01001|01100":0.0,"6|010011|011000":0.0,"6|010010|011000":0.0,"5|01000|01100":0.0,"6|010001|011000":0.0,"2|01|00":0.25,"3|011|001":1.0,"4|0111|0011":0.0,"5|01110|00110":0.0,"6|011100|001100":0.0,"4|0110|0011":0.0,"5|01101|00110":0.0,"6|011010|001100":0.0,"5|01100|00110":0.0,"6|011001|001100":0.0,"6|011000|001100":0.0,"3|011|000":0.3333,"4|0111|0001":1.0,"5|01110|00011":0.0,"6|011100|000110":0.0,"4|0111|0000":1.0,"5|01110|00001":1.0,"6|011100|000011":0.0,"4|0110|0001":1.0,"5|01101|00011":0.0,"6|011010|000110":0.0,"5|01100|00011":0.0,"6|011001|000110":0.0,"6|011000|000110":0.0,"4|0110|0000":0.5,"5|01101|00001":1.0,"6|011010|000011":0.0,"5|01101|00000":1.0,"6|011010|000001":1.0,"5|01100|00001":1.0,"6|011001|000011":0.0,"6|011000|000011":0.0,"5|01100|00000":1.0,"6|011001|000001":1.0,"6|011000|000001":1.0,"3|010|001":1.0,"4|0101|0011":0.0,"5|01011|00110":0.0,"6|010110|001100":0.0,"5|01010|00110":0.0,"6|010101|001100":0.0,"6|010100|001100":0.0,"4|0100|0011":0.0,"5|01001|00110":0.0,"6|010011|001100":0.0,"6|010010|001100":0.0,"5|01000|00110":0.0,"6|010001|001100":0.0,"3|010|000":0.3333,"4|0101|0001":1.0,"5|01011|00011":0.0,"6|010110|000110":0.0,"5|01010|00011":0.0,"6|010101|000110":0.0,"6|010100|000110":0.0,"4|0101|0000":0.5,"5|01011|00001":1.0,"6|010110|000011":0.0,"5|01011|00000":1.0,"6|010110|000001":1.0,"5|01010|00001":1.0,"6|010101|000011":0.0,"6|010100|000011":0.0,"5|01010|00000":1.0,"6|010101|000001":1.0,"6|010100|000001":1.0,"4|0100|0001":1.0,"5|01001|00011":0.0,"6|010011|000110":0.0,"6|010010|000110":0.0,"5|01000|00011":0.0,"6|010001|000110":0.0,"4|0100|0000":1.0,"5|01001|00001":1.0,"6|010011|000011":0.0,"6|010010|000011":0.0,"5|01000|00001":-0.0,"6|010001|000010":1.0,"2|00|01":1.0,"3|001|011":0.0,"4|0011|0110":0.0,"5|00111|01100":0.0,"6|001110|011000":0.0,"5|00110|01100":0.0,"6|001101|011000":0.0,"6|001100|011000":0.0,"4|0010|0110":0.0,"5|00101|01100":0.0,"6|001011|011000":0.0,"6|001010|011000":0.0,"5|00100|01100":0.0,"6|001001|011000":0.0,"3|000|011":0.0,"4|0001|0110":0.0,"5|00011|01100":0.0,"6|000111|011000":0.0,"6|000110|011000":0.0,"5|00010|01100":0.0,"6|000101|011000":0.0,"4|0000|0110":0.0,"5|00001|01100":0.0,"6|000011|011000":0.0,"2|00|00":0.25,"3|001|001":1.0,"4|0011|0011":0.0,"5|00111|00110":0.0,"6|001110|001100":0.0,"5|00110|00110":0.0,"6|001101|001100":0.0,"6|001100|001100":0.0,"4|0010|0011":0.0,"5|00101|00110":0.0,"6|001011|001100":0.0,"6|001010|001100":0.0,"5|00100|00110":0.0,"6|001001|001100":0.0,"3|001|000":0.3333,"4|0011|0001":1.0,"5|00111|00011":0.0,"6|001110|000110":0.0,"5|00110|00011":0.0,"6|001101|000110":0.0,"6|001100|000110":0.0,"4|0011|0000":0.5,"5|00111|00001":1.0,"6|001110|000011":0.0,"5|00111|00000":1.0,"6|001110|000001":1.0,"5|00110|00001":1.0,"6|001101|000011":0.0,"6|001100|000011":0.0,"5|00110|00000":1.0,"6|001101|000001":1.0,"6|001100|000001":1.0,"4|0010|0001":1.0,"5|00101|00011":0.0,"6|001011|000110":0.0,"6|001010|000110":0.0,"5|00100|00011":0.0,"6|001001|000110":0.0,"4|0010|0000":1.0,"5|00101|00001":1.0,"6|001011|000011":0.0,"6|001010|000011":0.0,"5|00100|00001":-0.0,"6|001001|000010":1.0,"3|000|001":1.0,"4|0001|0011":0.0,"5|00011|00110":0.0,"6|000111|001100":0.0,"6|000110|001100":0.0,"5|00010|00110":0.0,"6|000101|001100":0.0,"4|0000|0011":0.0,"5|00001|00110":0.0,"6|000011|001100":0.0,"3|000|000":0.0,"4|0001|0000":1.0,"5|00011|00001":1.0,"6|000111|000011":0.0,"6|000110|000011":0.0,"5|00010|00001":-0.0,"6|000101|000010":1.0,"4|0000|0000":0.0,"5|00001|00000":1.0,"6|000011|000001":1.0}};
+const N = 7;
+const SECRETS = [[2,1],[1,2],[2,-1],[-1,2],[3,1],[1,3],[3,-1],[-1,3]];
+const LEVELS = { 0: {rows:1, checks:3, flips:2, signs:0}, 1: {rows:2, checks:3, flips:2, signs:0}, 2: {rows:2, checks:3, flips:2, signs:1} };
+const FIX = { '00': null, '10': 0, '11': 1, '01': 2 };
+const $ = s => document.querySelector(s);
+const ri = n => Math.floor(Math.random() * n);
+
+/* ---------------- rule engine (no DOM) ---------------- */
+function makeState(level, si, msg) {
+  const L = LEVELS[level], sec = SECRETS[si];
+  const rows = L.rows === 1 ? [{bits:[msg,msg,msg], c:1}] : [{bits:[0,0,0], c:sec[0]}, {bits:[1,1,1], c:sec[1]}];
+  return { level, si, sec, msg, t:0, rows, gCards:{check:L.checks, rest:N-L.checks}, rCards:{flip:L.flips, sign:L.signs, calm:N-L.flips-L.signs},
+    gh:'', obs:'', rh:'', gap:[], log:[], peeked:false, over:false, rCard:null, gCard:null, syn:null };
+}
+function flipAll(rows, k) { rows.forEach(r => r.bits[k] ^= 1); }
+function signAll(rows, k) { rows.forEach(r => { if (r.bits[k] === 1) r.c = -r.c; }); }
+function checkRows(rows) {
+  const s = rows.map(r => '' + (r.bits[0]^r.bits[1]) + (r.bits[1]^r.bits[2]));
+  if (s.some(x => x !== s[0])) throw new Error('rows disagree on parity');
+  return s[0];
+}
+function peekProbs(rows, k) { const w = {0:0, 1:0}; rows.forEach(r => w[r.bits[k]] += r.c*r.c); const t = w[0]+w[1]; return {0:w[0]/t, 1:w[1]/t}; }
+function peek(rows, k) { const p = peekProbs(rows, k); const o = Math.random() < p[1] ? 1 : 0; const kept = rows.filter(r => r.bits[k] === o); return {o, kept, p}; }
+function applyNoise(S, card) {
+  if (card.type === 'flip') { flipAll(S.rows, card.k); S.rCards.flip--; S.gap.push(card.k); }
+  else if (card.type === 'sign') { signAll(S.rows, card.k); S.rCards.sign--; }
+  else S.rCards.calm--;
+  S.rh += card.type === 'flip' ? '1' : '0';
+}
+function guardianAct(S, type) {
+  S.gCards[type]--; S.gh += type === 'check' ? '1' : '0';
+  if (type === 'check') { const syn = checkRows(S.rows); S.obs += syn === '00' ? '0' : '1'; S.gap = []; return syn; }
+  S.obs += 'x'; return null;
+}
+function judge(S) {
+  if (S.level === 0) { const ok = S.rows[0].bits.every(b => b === S.msg); return {win: ok, why: ok ? 'safe' : 'flipped'}; }
+  if (S.peeked) return {win:false, why:'collapsed'};
+  const r0 = S.rows.find(r => r.bits.join('') === '000'), r1 = S.rows.find(r => r.bits.join('') === '111');
+  if (!r0 || !r1) return {win:false, why:'broken'};
+  const swapped = Math.abs(r0.c) !== Math.abs(S.sec[0]) || Math.abs(r1.c) !== Math.abs(S.sec[1]);
+  const soured = !swapped ? (Math.sign(r0.c) !== Math.sign(S.sec[0]) || Math.sign(r1.c) !== Math.sign(S.sec[1]))
+                          : (Math.sign(r0.c) !== Math.sign(S.sec[1]) || Math.sign(r1.c) !== Math.sign(S.sec[0]));
+  if (!swapped && !soured) return {win:true, why:'safe'};
+  return {win:false, why: swapped && soured ? 'swapped and soured' : swapped ? 'swapped' : 'soured'};
+}
+/* equilibrium policies (computer players) */
+function cpuGremlin(S) {
+  const left = N - S.t, R = S.rCards; let pf;
+  if (R.flip === 0) pf = 0; else if (R.flip >= left) pf = 1;
+  else { const key = S.t + '|' + S.gh + '|' + S.rh; pf = key in STRAT.gremlin ? STRAT.gremlin[key] : R.flip / left; }
+  if (Math.random() < pf) { const opts = [0,1,2].filter(k => !S.gap.includes(k)); return {type:'flip', k: opts.length ? opts[ri(opts.length)] : ri(3)}; }
+  const nonflip = R.calm + R.sign;
+  if (R.sign > 0 && Math.random() < R.sign / nonflip) return {type:'sign', k: ri(3)};
+  return {type:'calm'};
+}
+function cpuGuardian(S) {
+  const left = N - S.t, G = S.gCards; let pc;
+  if (G.check === 0) pc = 0; else if (G.check >= left) pc = 1;
+  else { const key = S.t + '|' + S.gh + '|' + S.obs; pc = key in STRAT.guardian ? STRAT.guardian[key] : G.check / left; }
+  return Math.random() < pc ? 'check' : 'rest';
+}
+function randGremlin(S) { const R = S.rCards, tot = R.flip + R.calm + R.sign, x = ri(tot);
+  if (x < R.flip) return {type:'flip', k: ri(3)}; if (x < R.flip + R.sign) return {type:'sign', k: ri(3)}; return {type:'calm'}; }
+function randGuardian(S) { const G = S.gCards; return ri(G.check + G.rest) < G.check ? 'check' : 'rest'; }
+function simulate(level, gPol, rPol, games) {
+  let w = 0;
+  for (let i = 0; i < games; i++) {
+    const S = makeState(level, ri(8), ri(2));
+    for (let t = 0; t < N; t++) { applyNoise(S, rPol(S)); const syn = guardianAct(S, gPol(S)); if (syn) { const k = FIX[syn]; if (k !== null) flipAll(S.rows, k); } S.t++; }
+    const k = FIX[checkRows(S.rows)]; if (k !== null) flipAll(S.rows, k);
+    if (judge(S).win) w++;
+  }
+  return w / games;
+}
+/* noise lab model: n coins, checks after every night */
+function binomTail(n, p) { let s = 0; for (let k = Math.floor(n/2)+1; k <= n; k++) s += comb(n,k) * p**k * (1-p)**(n-k); return s; }
+function comb(n, k) { let c = 1; for (let i = 1; i <= k; i++) c = c * (n - k + i) / i; return c; }
+function pFlipFail(n, p) { return n === 1 ? p : binomTail(n, p); }
+function pSignFail(n, q) { return (1 - (1 - 2*q)**n) / 2; }
+function pLost(n, p, q) { const a = pFlipFail(n, p), b = pSignFail(n, q); return a + b - a*b; }
+function runNights(n, p, q, nights) {
+  let lost = 0;
+  for (let i = 0; i < nights; i++) {
+    let f = 0, z = 0; for (let k = 0; k < n; k++) { if (Math.random() < p) f++; if (Math.random() < q) z++; }
+    const flipFail = n === 1 ? f === 1 : f > n/2; const signFail = z % 2 === 1;
+    if (flipFail || signFail) lost++;
+  }
+  return lost / nights;
+}
+
+/* ---------------- UI helpers ---------------- */
+const ghostSVG = '<svg aria-hidden="true" focusable="false"><use href="#ghost"/></svg>';
+function chipsHTML(c) { const n = Math.abs(c), cls = c > 0 ? 'plus' : 'minus', s = c > 0 ? '+' : '−'; return Array.from({length:n}, () => `<span class="chip ${cls}" aria-hidden="true">${s}</span>`).join(''); }
+function chipWords(c) { return `${Math.abs(c)} ${c > 0 ? 'green' : 'red'}`; }
+function rowHTML(r, label, gone, changed) {
+  const coins = r.bits.map((b, k) => `<div class="coinwrap">coin ${k+1}<div class="coin ${b ? 't' : ''} ${changed && changed.includes(k) ? 'changed' : ''}" aria-label="coin ${k+1} ${b ? 'TAILS' : 'HEADS'}">${b ? 'T' : 'H'}</div></div>`).join('');
+  return `<div class="row ${gone ? 'gone' : ''}"><div class="chips" aria-label="${label}: ${chipWords(r.c)} chips">${chipsHTML(r.c)}</div><div class="coins">${coins}</div></div>`;
+}
+function formulaHTML(rows) {
+  return rows.map(r => `<span style="color:${r.c > 0 ? 'var(--plus)' : 'var(--minus)'}">${r.c > 0 ? (rows.indexOf(r) ? '+ ' : '') : '− '}${Math.abs(r.c)}</span>·${r.bits.map(b => b ? 'T' : 'H').join('')}`).join(' ');
+}
+function synWords(syn) {
+  const a = syn[0] === '0', b = syn[1] === '0';
+  return `<div class="ans"><span class="${a ? 'yes' : 'no'}">Coins 1 &amp; 2: ${a ? 'match ✓' : "don't match ✗"}</span><span class="${b ? 'yes' : 'no'}">Coins 2 &amp; 3: ${b ? 'match ✓' : "don't match ✗"}</span></div>`;
+}
+function fixWords(syn) { const k = FIX[syn]; return k === null ? 'Check table: no fix needed.' : `Check table: coin ${k+1} is the odd one out.`; }
+
+/* ---------------- Play view ---------------- */
+let level = 1, S = null, phase = 'r', changed = [], eventMsg = '', score = {g:0, r:0};
+const mode = () => $('#mode').value;
+function newGame() {
+  S = makeState(level, ri(8), ri(2)); phase = 'r'; changed = []; eventMsg = ''; $('#result').textContent = ''; $('#result').className = '';
+  advance();
+}
+function advance() {
+  if (!S.over && phase === 'r' && mode() === 'cpuR') { S.rCard = cpuGremlin(S); phase = 'g'; eventMsg = 'The Gremlin played a card face-down.'; }
+  if (!S.over && phase === 'g' && mode() === 'cpuG') { setTimeout(() => { if (S && phase === 'g' && !S.over) guardianPlays(cpuGuardian(S)); }, 450); }
+  render();
+}
+function gremlinPlays(card) { S.rCard = card; phase = mode() === 'two' ? 'handG' : 'g'; eventMsg = 'The Gremlin played a card face-down.'; advance(); }
+function guardianPlays(type) {
+  S.gCard = type; changed = [];
+  const before = S.rows.map(r => r.bits.slice());
+  applyNoise(S, S.rCard);
+  if (S.rCard.type === 'flip') changed = [S.rCard.k];
+  const syn = guardianAct(S, type); S.syn = syn;
+  S.log.push({g:type, r:S.rCard, syn});
+  if (syn) {
+    eventMsg = 'The Guardian checks. The Keeper answers.';
+    if (mode() === 'cpuG') { const k = FIX[syn]; if (k !== null) { flipAll(S.rows, k); changed.push(k); } S.log[S.log.length-1].fix = k; eventMsg += k === null ? ' The Guardian turns nothing.' : ` The Guardian turns coin ${k+1}.`; endNight(); return; }
+    phase = 'fix'; render(); return;
+  }
+  eventMsg = 'The Guardian rests.'; endNight();
+}
+function doFix(k) {
+  if (k !== null) { flipAll(S.rows, k); changed = [k]; }
+  const last = S.log[S.log.length-1]; last.fix = k;
+  eventMsg = k === null ? 'The Guardian turns nothing.' : `The Guardian turns coin ${k+1} in both rows.`;
+  if (phase === 'finalfix') return finish();
+  endNight();
+}
+function endNight() {
+  S.t++; S.rCard = null;
+  if (S.t >= N) { S.syn = checkRows(S.rows); S.log.push({final:true, syn:S.syn});
+    if (mode() === 'cpuG') { const k = FIX[S.syn]; if (k !== null) flipAll(S.rows, k); S.log[S.log.length-1].fix = k; return finish(); }
+    phase = 'finalfix'; eventMsg = 'Night 7 is over. Free final check:'; render(); return; }
+  phase = mode() === 'two' ? 'handR' : 'r'; advance();
+}
+function guardianPeek(k) {
+  const res = peek(S.rows, k);
+  if (S.level === 0) { eventMsg = `Peek: coin ${k+1} shows ${res.o ? 'TAILS' : 'HEADS'}. Ordinary coins don't mind being looked at.`; render(); return; }
+  const lostRows = S.rows.filter(r => !res.kept.includes(r));
+  S.rows = res.kept; S.peeked = true; S.lostRows = lostRows;
+  eventMsg = `Peek at coin ${k+1}: ${res.o ? 'TAILS' : 'HEADS'}. The ghost had to pick a row (${Math.round(100*res.p[res.o])}% chance) and the other row vanished. The secret is gone.`;
+  finish();
+}
+function finish() {
+  S.over = true; phase = 'over';
+  const j = judge(S);
+  if (j.win) score.g++; else score.r++;
+  const why = { safe: S.level === 0 ? 'The message is back to ' + (S.msg ? 'TTT' : 'HHH') + '.' : 'Same chips, same colours, same rows.',
+    flipped: 'The message came back wrong: two flips hid in one gap.',
+    collapsed: 'The Guardian peeked, so the ghost collapsed to one row.',
+    swapped: 'Two flips hid between checks, the fix turned the wrong coin, and the rows swapped chips.',
+    soured: 'A Sign error changed chip colours. Checks cannot see sign errors.',
+    'swapped and soured': 'Two flips swapped the rows and a Sign error changed colours.', broken: 'The ghost is broken.' }[j.why];
+  $('#result').className = j.win ? 'G' : 'R';
+  $('#result').innerHTML = (j.win ? 'Guardian wins! ' : 'Gremlin wins! ') + '<br><span style="font-weight:normal;font-size:16px">' + why + '</span>';
+  render();
+}
+function badge() {
+  const b = $('#turn-badge');
+  if (!S || S.over) { b.className = 'badge done'; b.textContent = 'Game over'; return; }
+  const who = (phase === 'r' || phase === 'handR') ? 'R' : 'G';
+  b.className = 'badge ' + who; b.textContent = `Night ${Math.min(S.t+1, N)} of ${N} · ${who === 'G' ? 'Guardian' : 'Gremlin'}`;
+}
+function statusText() {
+  const st = $('#status');
+  if (S.over) { st.className = ''; st.textContent = 'The box is open. Compare the ghost with the secret card.'; return; }
+  if (phase === 'r' || phase === 'handR') { st.className = 'R'; st.textContent = mode() === 'two' ? 'Gremlin: choose your card in secret. Guardian, look away!' : 'Gremlin: choose your card.'; return; }
+  if (phase === 'handG') { st.className = 'G'; st.textContent = 'Pass to the Guardian.'; return; }
+  if (phase === 'g') { st.className = 'G'; st.textContent = mode() === 'cpuG' ? 'The computer Guardian is choosing…' : 'Guardian: Check or Rest?'; return; }
+  if (phase === 'fix') { st.className = 'G'; st.textContent = 'Guardian: which coin do you turn?'; return; }
+  if (phase === 'finalfix') { st.className = 'G'; st.textContent = 'Final check. Guardian: which coin do you turn?'; }
+}
+function renderBox() {
+  const showInside = S.over || $('#opt-teacher').checked;
+  let html = '';
+  if (S.level === 0) html += rowHTML(S.rows[0], 'message', false, changed).replace('<div class="chips"', '<div class="chips" style="visibility:hidden"');
+  else { S.rows.forEach((r, i) => html += rowHTML(r, 'row ' + (i+1), false, changed)); (S.lostRows || []).forEach(r => html += rowHTML(r, 'lost row', true)); }
+  html += `<div class="formula">${S.level === 0 ? 'Message: ' + S.rows[0].bits.map(b => b ? 'T' : 'H').join('') : 'Ghost = ' + formulaHTML(S.rows)}</div>`;
+  if (!showInside) html += `<div class="lid">${ghostSVG}<div>Box closed</div><div class="small">Only the Keeper can see inside.${S.level ? '<br>The ghost is in two rows at once.' : ''}</div></div>`;
+  $('#gbox').innerHTML = html;
+  const kp = $('#keeper');
+  if (S.syn)
+    kp.innerHTML = `<b>Keeper:</b>${synWords(S.syn)}${$('#opt-hints').checked ? `<div class="hint" style="margin-top:6px">${fixWords(S.syn)}</div>` : ''}`;
+  else kp.innerHTML = '<b>Keeper:</b> <span class="hint">answers only "match" or "don\'t match" questions.</span>';
+}
+function handBtn(cls, icon, nm, rl, fn, dis) { return `<button class="${cls}" ${dis ? 'disabled' : ''} data-fn="${fn}"><span class="icon">${icon}</span><span class="nm">${nm}</span><span class="rl">${rl}</span></button>`; }
+function renderHands() {
+  const h = $('#hands'); let html = '';
+  const R = S.rCards, G = S.gCards;
+  if (S.over) { h.innerHTML = '<div class="hand-title">Game over. Press New game and swap roles.</div>'; return; }
+  if (phase === 'handG') { h.innerHTML = `<div class="handoff G">Gremlin's card is down.<br>Guardian, your turn.<br><button class="primary" data-fn="toG">I am the Guardian — show my cards</button></div>`; return; }
+  if (phase === 'handR') { h.innerHTML = `<div class="handoff">Night ${S.t+1}. Pass to the Gremlin.<br><button class="primary" data-fn="toR">I am the Gremlin — show my cards</button></div>`; return; }
+  if (phase === 'r') {
+    html += `<div class="hand-title R">Gremlin's hand · ${R.flip} Flip · ${R.calm} Calm${R.sign ? ' · ' + R.sign + ' Sign' : ''}</div><div class="hand">`;
+    html += handBtn('c-calm', '☾', 'Calm', `${R.calm} left · nothing happens`, 'calm', R.calm === 0) + '</div>';
+    html += `<div class="subhead">Flip a coin (both rows) · ${R.flip} left</div><div class="pick">` + [0,1,2].map(k => `<button class="c-flip" data-fn="flip${k}" ${R.flip ? '' : 'disabled'}>⟲ Flip ${k+1}</button>`).join('') + '</div>';
+    if (LEVELS[S.level].signs) html += `<div class="subhead">Sign on a coin · ${R.sign} left</div><div class="pick">` + [0,1,2].map(k => `<button class="c-sign" data-fn="sign${k}" ${R.sign ? '' : 'disabled'}>± Sign ${k+1}</button>`).join('') + '</div>';
+  } else if (phase === 'g') {
+    html += `<div class="hand-title G">Guardian's hand · ${G.check} Check · ${G.rest} Rest</div><div class="hand">`;
+    html += handBtn('c-check', '?', 'Check', `${G.check} left · ask the Keeper`, 'check', G.check === 0 || mode() === 'cpuG');
+    html += handBtn('c-rest', 'z', 'Rest', `${G.rest} left`, 'rest', G.rest === 0 || mode() === 'cpuG') + '</div>';
+    if (mode() !== 'cpuG') html += `<div class="subhead">${S.level ? 'Peek at a coin (breaks the ghost!)' : 'Peek at a coin (free for a plain message)'}</div><div class="pick">` + [0,1,2].map(k => `<button class="c-peek" data-fn="peek${k}">👁 Peek ${k+1}</button>`).join('') + '</div>';
+  } else if (phase === 'fix' || phase === 'finalfix') {
+    html += `<div class="hand-title G">Turn a coin in both rows</div><div class="pick">` + [0,1,2].map(k => `<button class="c-fix" data-fn="fix${k}">Turn coin ${k+1}</button>`).join('') + '</div>';
+    html += `<div class="actions"><button class="c-fix" data-fn="fixn">No fix</button></div>`;
+  }
+  h.innerHTML = html;
+}
+function renderNights() {
+  const showR = S.over || $('#opt-teacher').checked || mode() === 'cpuG';
+  let html = '<tr><th>Night</th><th>Guardian</th><th>Gremlin</th><th>Check</th></tr>';
+  for (let t = 0; t < N; t++) {
+    const e = S.log[t];
+    const rtxt = !e ? '' : showR ? (e.r.type === 'calm' ? 'Calm' : (e.r.type === 'flip' ? 'Flip ' : 'Sign ') + (e.r.k+1)) : '🂠';
+    const ctxt = !e || !e.syn ? '' : (e.syn === '00' ? 'all match' : 'odd: ' + (FIX[e.syn]+1)) + (e.fix !== undefined && e.fix !== null ? ` → ${e.fix+1}` : '');
+    html += `<tr class="${t === S.t && !S.over ? 'current' : ''}"><td>${t+1}</td><td>${e ? (e.g === 'check' ? 'Check' : 'Rest') : ''}</td><td>${rtxt}</td><td>${ctxt}</td></tr>`;
+  }
+  const f = S.log.find(e => e.final);
+  html += `<tr><td>Final</td><td>${f ? 'Check' : ''}</td><td></td><td>${f ? (f.syn === '00' ? 'all match' : 'odd: ' + (FIX[f.syn]+1)) + (f.fix != null ? ` → ${f.fix+1}` : '') : ''}</td></tr>`;
+  $('#nights').innerHTML = html;
+  const sc = $('#secret');
+  if (S.over || $('#opt-teacher').checked) { sc.className = 'secret';
+    sc.innerHTML = S.level === 0 ? `Secret message: ${S.msg ? 'TTT' : 'HHH'}` : `Secret: HHH row ${chipWords(S.sec[0])} · TTT row ${chipWords(S.sec[1])}`; }
+  else { sc.className = 'secret hidden'; sc.textContent = 'Secret card (face down)'; }
+  $('#s-g').textContent = score.g; $('#s-r').textContent = score.r;
+  $('#s-rate').textContent = score.g + score.r ? Math.round(100 * score.g / (score.g + score.r)) + '%' : '–';
+}
+function render() {
+  badge(); statusText(); renderBox(); renderHands(); renderNights();
+  $('#event').textContent = eventMsg;
+  $('#hand-hint').textContent = S.level === 2 ? 'Level 2: the Gremlin has one Sign card. Watch the check answers: can they ever spot it?' :
+    S.level === 0 ? 'Level 0: a plain message. Peeking is harmless; majority vote fixes one flip.' : 'Tip: the Gremlin wins by sneaking two Flips into the same gap between checks.';
+}
+$('#hands').addEventListener('click', e => {
+  const b = e.target.closest('button[data-fn]'); if (!b || b.disabled) return; const f = b.dataset.fn;
+  if (f === 'toG') { phase = 'g'; return advance(); }
+  if (f === 'toR') { phase = 'r'; return advance(); }
+  if (f === 'calm') return gremlinPlays({type:'calm'});
+  if (f.startsWith('flip')) return gremlinPlays({type:'flip', k:+f[4]});
+  if (f.startsWith('sign')) return gremlinPlays({type:'sign', k:+f[4]});
+  if (f === 'check' || f === 'rest') return guardianPlays(f);
+  if (f.startsWith('peek')) return guardianPeek(+f[4]);
+  if (f === 'fixn') return doFix(null);
+  if (f.startsWith('fix')) return doFix(+f[3]);
+});
+document.querySelectorAll('#levels button').forEach(b => b.addEventListener('click', () => { level = +b.dataset.level; document.querySelectorAll('#levels button').forEach(x => x.setAttribute('aria-pressed', x === b)); newGame(); }));
+$('#new-game').addEventListener('click', newGame);
+$('#mode').addEventListener('change', newGame);
+['#opt-hints', '#opt-teacher'].forEach(s => $(s).addEventListener('change', render));
+$('#reset-score').addEventListener('click', () => { score = {g:0, r:0}; render(); });
+document.querySelectorAll('.tabs button[data-tab]').forEach(b => b.addEventListener('click', () => {
+  document.body.dataset.tab = b.dataset.tab; document.querySelectorAll('.tabs button[data-tab]').forEach(x => x.setAttribute('aria-pressed', x === b));
+  if (b.dataset.tab === 'noise') drawCharts();
+}));
+$('#fs-btn').addEventListener('click', () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); else document.exitFullscreen(); });
+
+/* ---------------- Ghost Box lab ---------------- */
+let lab = null;
+function labReset() { const si = +$('#lab-secret').value; lab = {rows:[{bits:[0,0,0], c:SECRETS[si][0]}, {bits:[1,1,1], c:SECRETS[si][1]}], lost:[], hist:[], syn:null, note:'Start: the ghost is in two rows at once. Try a Flip, then Check.', changed:[]}; labRender(); }
+function labDo(kind, k) {
+  lab.changed = []; const R = lab.rows;
+  if (kind === 'flip') { flipAll(R, k); lab.changed = [k]; lab.syn = null; lab.hist.push(['flip', 'Flip ' + (k+1)]); lab.note = `Flip ${k+1}: coin ${k+1} turned over in both rows. The chips did not move.`; }
+  if (kind === 'sign') { signAll(R, k); lab.syn = null; lab.hist.push(['sign', 'Sign ' + (k+1)]); lab.note = `Sign ${k+1}: rows showing TAILS on coin ${k+1} swapped chip colours. The coins did not move, so a Check will not notice.`; }
+  if (kind === 'check') { lab.syn = checkRows(R); lab.hist.push(['check', 'Check']); lab.note = 'Check: both rows give the same answer, so the Keeper reveals where a flip is but nothing about the chips. ' + fixWords(lab.syn); }
+  if (kind === 'fix') { const syn = checkRows(R), kk = FIX[syn]; if (kk !== null) { flipAll(R, kk); lab.changed = [kk]; } lab.syn = null; lab.hist.push(['check', kk === null ? 'Fix: none' : 'Fix ' + (kk+1)]); lab.note = kk === null ? 'Fix: the check said all match, so nothing to turn.' : `Fix: turned coin ${kk+1} in both rows.`; }
+  if (kind === 'peek') {
+    if (R.length === 1) { lab.note = `Peek ${k+1}: ${R[0].bits[k] ? 'TAILS' : 'HEADS'}. Only one row is left, so peeking changes nothing now.`; lab.hist.push(['peek', 'Peek ' + (k+1)]); return labRender(); }
+    const res = peek(R, k); lab.lost = lab.lost.concat(R.filter(r => !res.kept.includes(r))); lab.rows = res.kept; lab.syn = null;
+    lab.hist.push(['peek', 'Peek ' + (k+1)]); lab.note = `Peek ${k+1}: ${res.o ? 'TAILS' : 'HEADS'}. Chance was ${Math.round(100*res.p[res.o])}% (chips squared). The other row is gone forever: the ghost is no longer in two rows.`;
+  }
+  labRender();
+}
+function labRender() {
+  let html = ''; lab.rows.forEach((r, i) => html += rowHTML(r, 'row ' + (i+1), false, lab.changed)); lab.lost.forEach(r => html += rowHTML(r, 'lost row', true));
+  html += `<div class="formula">Ghost = ${formulaHTML(lab.rows)}</div>`;
+  $('#lab-box').innerHTML = html;
+  let kp = '<b>Keeper:</b> ' + (lab.syn ? synWords(lab.syn) : '<span class="hint">press Check to ask.</span>');
+  if (lab.rows.length === 2) { const p = peekProbs(lab.rows, 0); kp += `<div class="hint" style="margin-top:6px">If you peek now: ${Math.round(100*Math.max(p[0],p[1]))}% / ${Math.round(100*Math.min(p[0],p[1]))}% (chips squared).</div>`; }
+  $('#lab-keeper').innerHTML = kp;
+  $('#lab-history').innerHTML = lab.hist.length ? lab.hist.map(h => `<span class="${h[0]}">${h[1]}</span>`).join('<span class="arrow">→</span>') : '<span style="border:none;color:#8a8f9c;font-style:italic">No moves yet</span>';
+  $('#lab-note').textContent = lab.note;
+}
+$('#lab-secret').innerHTML = SECRETS.map((s, i) => `<option value="${i}">HHH: ${chipWords(s[0])} · TTT: ${chipWords(s[1])}</option>`).join('');
+$('#lab-reset').addEventListener('click', labReset); $('#lab-secret').addEventListener('change', labReset);
+document.querySelectorAll('[data-lab]').forEach(b => b.addEventListener('click', () => labDo(b.dataset.lab, +b.dataset.k)));
+document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => {
+  labReset(); const p = b.dataset.preset;
+  if (p === 'one') { labDo('flip', 0); labDo('check'); labDo('fix'); lab.note = 'One flip: the check finds it and the fix undoes it. The ghost is safe.'; }
+  if (p === 'two') { labDo('flip', 0); labDo('flip', 1); labDo('check'); labDo('fix'); lab.note = 'Two flips: the check points at coin 3, the "fix" makes all three wrong, and the rows have swapped chips. The ghost is ruined.'; }
+  if (p === 'sign') { labDo('sign', 0); labDo('check'); lab.note = 'A sign error: the check says all match, yet the TTT row changed colour. A flip guard is blind to sign errors.'; }
+  if (p === 'peek') { labDo('peek', 1); }
+  labRender();
+}));
+
+/* ---------------- Noise Lab ---------------- */
+let dots = [];
+const NCOL = {1:'#8a8f9c', 3:'#154c9c', 5:'#6c2f9e'};
+function getN() { return +document.querySelector('input[name=n]:checked').value; }
+function updVals() { $('#p-val').textContent = $('#p').value + '%'; $('#q-val').textContent = $('#q').value + '%'; }
+function chart(cv, xmax, ymax, fn, xlab, ylab, curDot, which) {
+  const c = cv.getContext('2d'), W = cv.width, H = cv.height, L = 64, B = 44, T = 30, Rm = 90;
+  c.clearRect(0, 0, W, H); c.font = '14px Arial'; c.fillStyle = '#202435'; c.strokeStyle = '#d9dce4';
+  const X = x => L + x / xmax * (W - L - Rm), Y = y => H - B - y / ymax * (H - B - T);
+  for (let i = 0; i <= 6; i++) { const x = xmax * i / 6; c.beginPath(); c.moveTo(X(x), T); c.lineTo(X(x), H - B); c.stroke(); c.fillText(Math.round(100*x) + '%', X(x) - 12, H - B + 18); }
+  for (let i = 0; i <= 5; i++) { const y = ymax * i / 5; c.beginPath(); c.moveTo(L, Y(y)); c.lineTo(W - Rm, Y(y)); c.stroke(); c.fillText(Math.round(100*y) + '%', L - 42, Y(y) + 5); }
+  c.fillText(xlab, L + 4, H - 6); c.font = 'bold 14px Arial'; c.fillText(ylab, L, 18); c.font = '14px Arial';
+  [1, 3, 5].forEach(n => {
+    c.strokeStyle = NCOL[n]; c.lineWidth = n === getN() ? 4 : 2; c.beginPath();
+    for (let i = 0; i <= 200; i++) { const x = xmax * i / 200, y = Math.min(fn(n, x), ymax); i ? c.lineTo(X(x), Y(y)) : c.moveTo(X(x), Y(y)); }
+    c.stroke(); c.fillStyle = NCOL[n]; const ye = Math.min(fn(n, xmax), ymax); c.fillText(n === 1 ? '1 coin' : n + ' coins', W - Rm + 6, Y(ye) + 5);
+  });
+  c.lineWidth = 1;
+  dots.filter(d => d.which === which).forEach(d => { c.fillStyle = NCOL[d.n]; c.beginPath(); c.arc(X(d.x), Y(Math.min(d.y, ymax)), 6, 0, 7); c.fill(); c.strokeStyle = '#fff'; c.stroke(); });
+  c.strokeStyle = '#8c6000'; c.setLineDash([5, 4]); c.beginPath(); c.moveTo(X(curDot), T); c.lineTo(X(curDot), H - B); c.stroke(); c.setLineDash([]);
+}
+function drawCharts() {
+  updVals(); const p = $('#p').value / 100, q = $('#q').value / 100;
+  chart($('#chart-flip'), 0.6, 0.7, pFlipFail, 'Flip chance per coin per night', 'Ghost lost per night (flips only)', p, 'f');
+  chart($('#chart-sign'), 0.3, 0.6, pSignFail, 'Sign chance per coin per night', 'Ghost soured per night (signs only)', q, 's');
+}
+$('#run').addEventListener('click', () => {
+  const n = getN(), p = $('#p').value / 100, q = $('#q').value / 100, nights = +$('#nights-n').value;
+  const sim = runNights(n, p, q, nights), ex = pLost(n, p, q);
+  if (q === 0) dots.push({which:'f', n, x:p, y:sim}); else if (p === 0) dots.push({which:'s', n, x:q, y:sim});
+  const lost = Math.round(sim * nights);
+  $('#noise-out').innerHTML = `<b>${n} coin${n > 1 ? 's' : ''}</b>, flip ${Math.round(100*p)}%, sign ${Math.round(100*q)}%:<br>ghost lost on <b>${lost}</b> of ${nights} nights (${(100*sim).toFixed(1)}%).<br>Exact chance: ${(100*ex).toFixed(1)}%. One unguarded coin: ${(100*pLost(1, p, q)).toFixed(1)}%.` +
+    (p > 0 && q > 0 ? '<br><span class="hint">Dots are drawn only when one kind of noise is set to 0%.</span>' : '');
+  drawCharts();
+});
+$('#clear-dots').addEventListener('click', () => { dots = []; drawCharts(); });
+['#p', '#q'].forEach(s => $(s).addEventListener('input', drawCharts));
+document.querySelectorAll('input[name=n]').forEach(r => r.addEventListener('change', drawCharts));
+
+/* ---------------- self-test (open with #selftest) ---------------- */
+function selfTest() {
+  const out = {};
+  let ok = true;
+  for (let i = 0; i < 3000; i++) {
+    const s = SECRETS[ri(8)]; const R = [{bits:[0,0,0], c:s[0]}, {bits:[1,1,1], c:s[1]}];
+    for (let j = 0; j < 8; j++) { const k = ri(3), op = ri(3); if (op === 0) flipAll(R, k); else if (op === 1) signAll(R, k); else { try { checkRows(R); } catch (e) { ok = false; } } }
+  }
+  out.parityAlwaysSameInBothRows = ok;
+  const T = (lvl, ev) => { const S = makeState(lvl, 0, 0); ev.forEach(e => { if (e[0] === 'X') flipAll(S.rows, e[1]); if (e[0] === 'Z') signAll(S.rows, e[1]); if (e[0] === 'C') { const k = FIX[checkRows(S.rows)]; if (k !== null) flipAll(S.rows, k); } });
+    const k = FIX[checkRows(S.rows)]; if (k !== null) flipAll(S.rows, k); return judge(S).why; };
+  out.rules = { oneFlip: T(1, [['X',0],['C']]), twoFlipsSameGap: T(1, [['X',0],['X',1],['C']]), twoFlipsSplit: T(1, [['X',0],['C'],['X',1],['C']]), sameCoinTwice: T(1, [['X',2],['X',2]]), sign: T(1, [['Z',0],['C']]) };
+  const p = peekProbs([{bits:[0,0,0], c:2}, {bits:[1,1,1], c:1}], 0); out.peek_2v1 = p;
+  const G = 40000;
+  out.optimal_vs_optimal = simulate(1, cpuGuardian, cpuGremlin, G);
+  out.random_vs_random = simulate(1, randGuardian, randGremlin, G);
+  out.optimalGuardian_vs_randomGremlin = simulate(1, cpuGuardian, randGremlin, G);
+  out.randomGuardian_vs_optimalGremlin = simulate(1, randGuardian, cpuGremlin, G);
+  out.level2_optimal_vs_optimal = simulate(2, cpuGuardian, cpuGremlin, G);
+  out.noise_3coins_p10 = {sim: runNights(3, 0.1, 0, 200000), exact: pFlipFail(3, 0.1)};
+  out.noise_3coins_q10 = {sim: runNights(3, 0, 0.1, 200000), exact: pSignFail(3, 0.1)};
+  out.noise_5coins_p10 = {sim: runNights(5, 0.1, 0, 200000), exact: pFlipFail(5, 0.1)};
+  const pre = $('#selftest'); pre.style.display = 'block'; pre.textContent = 'SELFTEST ' + JSON.stringify(out, null, 1);
+  document.title = 'SELFTEST-DONE';
+  return out;
+}
+
+/* ---------------- start ---------------- */
+document.querySelector('#levels button[data-level="1"]').setAttribute('aria-pressed', 'true');
+document.querySelectorAll('#levels button').forEach(b => { if (b.dataset.level !== '1') b.setAttribute('aria-pressed', 'false'); });
+labReset(); newGame(); drawCharts();
+if (location.hash === '#selftest') selfTest();
+</script>
+</body>
+</html>

@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Ghost Coin — A Quantum Penny-Flip Game</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%20role=%22img%22%20aria-label=%22Ghost%22%3E%3Cdefs%3E%3ClinearGradient%20id=%22ghostMist%22%20x1=%220.6%22%20y1=%220%22%20x2=%220%22%20y2=%221%22%3E%3Cstop%20offset=%220.55%22%20stop-color=%22%23fff%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22%23fbd6dd%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath%20d=%22M18.5%2018%20C19.5%2010.5%2025%205.5%2031.5%205.5%20C39%205.5%2044.5%2011.5%2045%2019%20C45.2%2022.5%2045.5%2025%2047%2026%20C50%2027.5%2055.5%2025.5%2058.5%2027.5%20C62%2030%2059.5%2035.5%2055%2036%20C51.5%2036.5%2048.5%2036.5%2046.5%2038.5%20C43.5%2045.5%2036%2051.5%2026%2053.5%20C19%2055%2012%2055.5%208%2054%20C5.5%2053%207.5%2050.5%2010.5%2048.5%20C12.5%2047%2013%2045.5%2013%2044%20C14%2040.5%2014.3%2037%2014%2034%20C11%2034.2%206.5%2033.5%204.2%2030.5%20C2%2027.5%203.5%2023%208%2022.5%20C12%2022%2016%2021%2018.5%2018%20Z%22%20fill=%22url%28%23ghostMist%29%22%20stroke=%22%23d3061c%22%20stroke-width=%222.5%22%20stroke-linejoin=%22round%22/%3E%3Cellipse%20cx=%2229%22%20cy=%2217.5%22%20rx=%222.6%22%20ry=%223.6%22%20transform=%22rotate%28-10%2029%2017.5%29%22%20fill=%22%231b1b1f%22/%3E%3Cellipse%20cx=%2237.5%22%20cy=%2219.5%22%20rx=%222.3%22%20ry=%223.3%22%20transform=%22rotate%28-10%2037.5%2019.5%29%22%20fill=%22%231b1b1f%22/%3E%3Cpath%20d=%22M30.2%2024.6%20Q33.4%2025.8%2036.6%2024.9%20Q36%2029.2%2033%2029%20Q30.6%2028.6%2030.2%2024.6%20Z%22%20fill=%22%231b1b1f%22/%3E%3C/svg%3E">
+<style>
+:root { color-scheme: light; font-family: Arial, Helvetica, sans-serif; color: #202435; background: #fff;
+  --brand: #b41524; --a: #154c9c; --b: #6c2f9e; --plus: #1d7a3a; --minus: #c0182a; --gold: #8c6000; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.app { max-width: 1560px; min-width: 650px; margin: auto; padding: 16px 20px 30px; }
+header { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+h1 { margin: 0; color: var(--brand); font-size: clamp(26px, 3vw, 40px); }
+.ghost-icon { width: 1.15em; height: 1.15em; vertical-align: -0.2em; margin-right: .28em; }
+.subtitle { margin: 5px 0 0; font-size: 18px; }
+.badge { border: 3px solid #bec8be; border-radius: 20px; padding: 10px 18px; font-weight: bold; font-size: clamp(17px, 1.8vw, 23px); white-space: nowrap; }
+.badge.A { color: var(--a); border-color: var(--a); background: #eef3fb; }
+.badge.B { color: var(--b); border-color: var(--b); background: #f5eefa; }
+.badge.done { color: #202435; background: #f0f3f8; }
+button { font: inherit; cursor: pointer; border: 2px solid #b9bdc8; border-radius: 9px; background: #f4f5f8; color: #202435; font-weight: bold; }
+button:hover:enabled { background: #e6eaf3; border-color: #50586c; }
+button:focus-visible { outline: 4px solid #985800; outline-offset: 3px; }
+button:disabled { cursor: default; opacity: .42; }
+.tabs { display: flex; gap: 8px; margin: 14px 0 0; }
+.tabs button { padding: 9px 18px; font-size: 18px; }
+.tabs button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+#levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0 0; }
+#levels button { padding: 9px 10px; font-size: 15px; text-align: left; line-height: 1.25; }
+#levels button strong { display: block; font-size: 17px; }
+#levels button[aria-pressed="true"] { background: #202435; border-color: #202435; color: #fff; }
+#status { font-size: clamp(21px, 2.2vw, 29px); font-weight: bold; margin: 14px 0; padding: 13px 18px; background: #f0f3f8; border-left: 6px solid var(--brand); border-radius: 6px; }
+#status.A { border-left-color: var(--a); } #status.B { border-left-color: var(--b); }
+.play-area { display: grid; grid-template-columns: minmax(330px, 1.1fr) minmax(300px, 1fr) minmax(220px, 270px); gap: 20px; align-items: start; }
+h2 { font-size: 22px; margin: 0 0 8px; }
+/* coin table */
+.coin-table { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.box { border: 4px solid; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; min-height: 240px; }
+.box.heads { border-color: var(--a); background: #eef3fb; }
+.box.tails { border-color: var(--b); background: #f5eefa; }
+.box h3 { margin: 0; text-align: center; font-size: clamp(22px, 2.2vw, 30px); letter-spacing: .04em; }
+.box.heads h3 { color: var(--a); } .box.tails h3 { color: var(--b); }
+.box .who { text-align: center; font-size: 14px; font-weight: bold; color: #535969; }
+.chips { flex: 1; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 12px; min-height: 160px; padding: 8px 0; }
+.chip { width: clamp(58px, 5.6vw, 82px); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: clamp(36px, 3.6vw, 52px); font-weight: 800; line-height: 1;
+  border: 4px solid rgba(255,255,255,.75); box-shadow: inset 0 -6px 0 rgba(0,0,0,.22), 0 2px 6px rgba(0,0,0,.3); }
+.chip.plus { background: var(--plus); } .chip.minus { background: var(--minus); }
+.chip.new { animation: pop .4s ease-out; }
+.chip.moved { animation: slide .4s ease-out; }
+.chip.changed { animation: turn .5s ease-in-out; }
+.chip.pair { outline: 5px dashed var(--gold); outline-offset: 4px; animation: shake .45s 2; }
+.chip.extra { outline: 5px dotted var(--gold); outline-offset: 4px; opacity: .45; }
+@keyframes pop { from { transform: scale(.2); opacity: 0; } 70% { transform: scale(1.12); } to { transform: scale(1); opacity: 1; } }
+@keyframes slide { from { transform: translateY(-14px); opacity: .3; } to { transform: none; opacity: 1; } }
+@keyframes turn { 0% { transform: rotateY(0); } 50% { transform: rotateY(90deg); } 100% { transform: rotateY(0); } }
+@keyframes shake { 0%,100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.empty { color: #8a8f9c; font-size: 16px; font-style: italic; }
+.state-note { margin: 10px 0 0; font-size: 19px; font-weight: bold; text-align: center; padding: 10px; background: #f0f3f8; border-radius: 8px; min-height: 46px; }
+.legend { display: flex; justify-content: center; gap: 18px; margin-top: 10px; font-size: 16px; flex-wrap: wrap; }
+.legend .mini { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; font-weight: 800; vertical-align: -5px; margin-right: 4px; }
+/* cards */
+.slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.slot { border: 2px dashed #b9bdc8; border-radius: 12px; min-height: 168px; padding: 6px; display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+.slot .lbl { font-size: 15px; font-weight: bold; text-align: center; }
+.slot .lbl.A { color: var(--a); } .slot .lbl.B { color: var(--b); }
+.slot.next { border: 3px solid #202435; }
+.slot.active { border: 3px solid var(--gold); background: #fff7da; }
+.card { border-radius: 10px; padding: 8px 6px; text-align: center; border: 3px solid #202435; background: #fff; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.card .icon { font-size: 38px; line-height: 1; height: 40px; display: grid; place-items: center; }
+.card .nm { font-size: 21px; font-weight: 800; margin-top: 4px; }
+.card .rl { font-size: 13px; margin-top: 4px; color: #535969; font-weight: bold; line-height: 1.2; }
+.card.back { background: repeating-linear-gradient(45deg, #202435 0 10px, #2d3452 10px 20px); color: #fff; }
+.card.back .icon { font-size: 34px; }
+.gi { width: 40px; height: 40px; }
+.leave { border-color: #6b7080 !important; } .leave .nm { color: #4a4f5e; }
+.flip { border-color: #0f6e6e !important; } .flip .nm, .flip .icon { color: #0f6e6e; }
+.sign { border-color: #b35c00 !important; } .sign .nm, .sign .icon { color: #b35c00; }
+.ghost { border-color: var(--brand) !important; } .ghost .nm { color: var(--brand); }
+.hand { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; }
+.hand button { padding: 10px 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 118px; background: #fff; border-width: 3px; }
+.hand button .icon { font-size: 36px; height: 40px; display: grid; place-items: center; line-height: 1; }
+.hand button .nm { font-size: 21px; margin-top: 4px; }
+.hand button .rl { font-size: 13px; color: #535969; margin-top: 4px; line-height: 1.2; }
+.hand button kbd { font-size: 11px; color: #8a8f9c; margin-top: 4px; font-family: inherit; }
+.hand-title { font-size: 18px; font-weight: bold; margin: 0 0 8px; }
+.hand-title.A { color: var(--a); } .hand-title.B { color: var(--b); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.actions button { padding: 11px 15px; font-size: 17px; }
+.primary { background: var(--brand) !important; border-color: var(--brand) !important; color: #fff !important; }
+.primary:hover:enabled { background: #95111e !important; }
+.blue { background: var(--a) !important; border-color: var(--a) !important; color: #fff !important; }
+.options { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 12px; font-size: 16px; }
+.options label { cursor: pointer; }
+#event { min-height: 26px; font-size: 18px; line-height: 1.4; margin: 14px 0 0; }
+.hint { color: #535969; font-size: 15px; line-height: 1.45; margin: 10px 0 0; }
+/* side pane */
+.side { padding: 12px; border-left: 2px solid #d7bd68; background: #fffcf2; border-radius: 0 12px 12px 0; }
+.side h2 { color: #6b4700; font-size: 18px; margin-bottom: 10px; }
+.coin-wrap { display: grid; place-items: center; margin: 6px 0 12px; perspective: 600px; }
+.toss-coin { width: 110px; height: 110px; border-radius: 50%; display: grid; place-items: center; font-size: 22px; font-weight: 800; color: #4d3600;
+  background: radial-gradient(circle at 35% 30%, #fff3c4, #e2b84a 60%, #b98a1c); border: 5px solid #9c7417; box-shadow: 0 4px 10px rgba(0,0,0,.25); }
+.toss-coin.spin { animation: coinspin 1.3s ease-out; }
+@keyframes coinspin { from { transform: rotateY(0) translateY(0); } 40% { transform: rotateY(900deg) translateY(-40px); } to { transform: rotateY(1800deg) translateY(0); } }
+#result { font-size: 20px; font-weight: bold; text-align: center; min-height: 54px; line-height: 1.3; }
+#result.A { color: var(--a); } #result.B { color: var(--b); }
+table.score { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+table.score th, table.score td { border-bottom: 1px solid #e3d6a8; padding: 5px 3px; text-align: center; }
+table.score th:first-child, table.score td:first-child { text-align: left; }
+table.score tr.current { background: #fff0c9; font-weight: bold; }
+.side .small { font-size: 13px; color: #6b4700; line-height: 1.35; margin: 8px 0 0; }
+/* lab */
+#lab-view { display: none; }
+body[data-tab="lab"] #lab-view { display: block; }
+body[data-tab="lab"] #play-view, body[data-tab="lab"] #levels { display: none; }
+.lab-area { display: grid; grid-template-columns: minmax(330px, 1.1fr) minmax(300px, 1fr); gap: 20px; align-items: start; }
+.history { display: flex; flex-wrap: wrap; gap: 6px; min-height: 36px; margin: 10px 0; align-items: center; }
+.history span { border: 2px solid; border-radius: 8px; padding: 4px 8px; font-weight: bold; font-size: 15px; background: #fff; }
+.history .arrow { border: none; padding: 0; color: #8a8f9c; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.presets button { padding: 8px 10px; font-size: 15px; }
+details { margin-top: 22px; font-size: 17px; line-height: 1.5; border-top: 1px solid #d9dce4; padding-top: 10px; }
+summary { font-weight: bold; font-size: 19px; cursor: pointer; }
+details table { border-collapse: collapse; margin: 8px 0; }
+details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-align: left; }
+.credit { font-size: 13px; color: #6b7080; margin-top: 18px; }
+@media (max-width: 1100px) { .play-area { grid-template-columns: 1fr 1fr; } .side { grid-column: 1 / -1; border-left: none; border-top: 2px solid #d7bd68; border-radius: 0 0 12px 12px; } #levels { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 820px) { .play-area, .lab-area { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-tab="play">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<linearGradient id="ghostMist" x1="0.6" y1="0" x2="0" y2="1"><stop offset="0.55" stop-color="#fff"/><stop offset="1" stop-color="#fbd6dd"/></linearGradient>
+<symbol id="ghost" viewBox="0 0 64 64"><path d="M18.5 18 C19.5 10.5 25 5.5 31.5 5.5 C39 5.5 44.5 11.5 45 19 C45.2 22.5 45.5 25 47 26 C50 27.5 55.5 25.5 58.5 27.5 C62 30 59.5 35.5 55 36 C51.5 36.5 48.5 36.5 46.5 38.5 C43.5 45.5 36 51.5 26 53.5 C19 55 12 55.5 8 54 C5.5 53 7.5 50.5 10.5 48.5 C12.5 47 13 45.5 13 44 C14 40.5 14.3 37 14 34 C11 34.2 6.5 33.5 4.2 30.5 C2 27.5 3.5 23 8 22.5 C12 22 16 21 18.5 18 Z" fill="url(#ghostMist)" stroke="#d3061c" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="29" cy="17.5" rx="2.6" ry="3.6" transform="rotate(-10 29 17.5)" fill="#1b1b1f"/><ellipse cx="37.5" cy="19.5" rx="2.3" ry="3.3" transform="rotate(-10 37.5 19.5)" fill="#1b1b1f"/><path d="M30.2 24.6 Q33.4 25.8 36.6 24.9 Q36 29.2 33 29 Q30.6 28.6 30.2 24.6 Z" fill="#1b1b1f"/></symbol></defs></svg>
+<main class="app">
+  <header>
+    <div><h1><svg class="ghost-icon" aria-hidden="true" focusable="false"><use href="#ghost"/></svg>GHOST COIN</h1>
+    <p class="subtitle">A quantum penny-flip game · Ghost chips can cancel out · Grades 6–8</p></div>
+    <span class="badge" id="turn-badge"></span>
+  </header>
+  <nav class="tabs" aria-label="Choose a view">
+    <button id="tab-play" aria-pressed="true">Play the game</button>
+    <button id="tab-lab" aria-pressed="false">Chip lab</button>
+  </nav>
+  <div id="levels" role="group" aria-label="Choose a level"></div>
+  <div id="status" role="status" aria-live="polite"></div>
+
+  <div id="play-view">
+    <div class="play-area">
+      <section aria-label="The coin">
+        <h2>The coin</h2>
+        <div class="coin-table" id="coin"></div>
+        <p class="state-note" id="note"></p>
+        <div class="legend"><span><span class="mini" style="background:var(--plus)">+</span>green chip</span><span><span class="mini" style="background:var(--minus)">−</span>red chip</span><span>green + red in one box = <b>zero pair</b></span></div>
+      </section>
+      <section aria-label="Cards">
+        <h2>Cards played</h2>
+        <div class="slots" id="slots"></div>
+        <div id="hand-wrap"><p class="hand-title" id="hand-title"></p><div class="hand" id="hand"></div></div>
+        <div class="actions">
+          <button id="reveal" class="primary" hidden>Reveal the cards</button>
+          <button id="step" class="primary" hidden>Next step ▶</button>
+          <button id="autoplay" hidden>Play all</button>
+          <button id="open" class="blue" hidden>Open the box</button>
+          <button id="toss" class="blue" hidden>Toss the real coin</button>
+          <button id="next-round" class="primary" hidden>Next round</button>
+          <button id="restart">Restart round</button>
+          <button id="fullscreen">Full screen</button>
+        </div>
+        <div class="options">
+          <label><input type="checkbox" id="cpu-b"> Computer plays B</label>
+          <label><input type="checkbox" id="show-cards"> Show cards when picked</label>
+        </div>
+        <p id="event" aria-live="polite"></p>
+        <p class="hint" id="hint"></p>
+      </section>
+      <aside class="side" aria-labelledby="side-h">
+        <h2 id="side-h">Open the box</h2>
+        <div class="coin-wrap"><div class="toss-coin" id="toss-coin">?</div></div>
+        <p id="result" aria-live="polite"></p>
+        <h2>Score</h2>
+        <table class="score" id="score"></table>
+        <p class="small">Play many rounds at each level. Does Player A's win rate change?</p>
+        <button id="reset-score" style="margin-top:8px;padding:6px 10px;font-size:14px">Reset score</button>
+      </aside>
+    </div>
+  </div>
+
+  <div id="lab-view">
+    <div class="lab-area">
+      <section aria-label="Lab coin">
+        <h2>The coin</h2>
+        <div class="coin-table" id="lab-coin"></div>
+        <p class="state-note" id="lab-note"></p>
+        <div class="history" id="lab-history" aria-label="Moves so far"></div>
+      </section>
+      <section aria-label="Lab cards">
+        <h2>Try any card</h2>
+        <div class="hand" id="lab-hand"></div>
+        <p class="hand-title" style="margin-top:16px">Try these</p>
+        <div class="presets" id="presets"></div>
+        <div class="actions">
+          <button id="lab-open" class="blue">Open the box</button>
+          <button id="lab-reset" class="primary">Start over (HEADS)</button>
+        </div>
+        <p id="lab-event" aria-live="polite" style="font-size:18px;min-height:52px;line-height:1.4;margin-top:14px"></p>
+      </section>
+    </div>
+  </div>
+
+  <details><summary>How to play</summary>
+    <p><b>Goal.</b> The coin starts as one green chip on HEADS. Player A wins if the coin ends on HEADS. Player B wins if it ends on TAILS.</p>
+    <p><b>Turns.</b> A, then B, then A each pick one card in secret. The cards stay face-down. Then reveal them and do the moves in order.</p>
+    <table><tr><th>Card</th><th>What happens to the chips</th></tr>
+      <tr><td>Leave</td><td>Nothing.</td></tr>
+      <tr><td>Flip</td><td>Swap what is in the two boxes.</td></tr>
+      <tr><td>Sign</td><td>Every chip on TAILS changes color.</td></tr>
+      <tr><td>Ghost</td><td>Each HEADS chip becomes a same-color chip on HEADS <b>and</b> one on TAILS. Each TAILS chip becomes a same-color chip on HEADS and an <b>opposite</b>-color chip on TAILS.</td></tr></table>
+    <p><b>Clean up.</b> A green and a red chip in the same box are a <b>zero pair</b>: remove both. If two matching chips are left in a box, keep one.</p>
+    <p><b>Open the box.</b> Chips in one box only: that side wins. Chips in both boxes: toss a real coin.</p>
+    <p><b>Levels.</b> 1: only Leave and Flip. 2: Player A also gets Ghost. 3: Player B also gets Sign. 4: everyone gets every card.</p>
+    <p><b>On a projector:</b> type a card's letter (L, F, S, G) instead of clicking, so nobody sees the choice.</p>
+  </details>
+  <details><summary>Why can Player A always win in Level 2? (spoiler)</summary>
+    <p>A plays <b>Ghost</b>: the coin is now in both boxes with the same colors. Flip just swaps two matching chips, so B's move changes nothing. A plays <b>Ghost</b> again: the two TAILS chips are one green and one red, a zero pair, so they cancel. Only HEADS is left.</p>
+    <p>In Level 3, B can play <b>Sign</b>. The coin still looks 50/50, but now the HEADS chips cancel after the second Ghost, and the coin lands on TAILS. A hidden sign you cannot "see" decides the game.</p>
+  </details>
+  <details><summary>For teachers: the real quantum ideas</summary>
+    <table><tr><th>In the game</th><th>In quantum computing</th></tr>
+      <tr><td>A chip in a box</td><td>An amplitude (a signed "maybe")</td></tr>
+      <tr><td>Ghost card</td><td>Hadamard gate (H): makes a superposition</td></tr>
+      <tr><td>Flip card</td><td>X gate (quantum NOT)</td></tr>
+      <tr><td>Sign card</td><td>Z gate (phase flip)</td></tr>
+      <tr><td>Zero pair cancels</td><td>Destructive interference</td></tr>
+      <tr><td>Two matching chips</td><td>Constructive interference</td></tr>
+      <tr><td>Open the box</td><td>Measurement</td></tr></table>
+    <p>The chip rules are exact: they give the same results as the real gates, and the coin can only be HEADS, TAILS, or a 50/50 ghost. Level 2 is David Meyer's quantum penny-flip game (<i>Physical Review Letters</i> 82, 1052, 1999), where a quantum player always beats a classical one. Zero pairs connect to Common Core 7.NS.A.1a: opposite quantities combine to make 0.</p>
+    <p><b>Discussion questions.</b> Is Level 1 fair? Why does A win every time in Level 2? The Sign card changes nothing you can see. Why does it matter? Does a ghost coin with different colors look different from one with the same colors when you open it?</p>
+  </details>
+  <p class="credit">Ghost Coin · developed using QCaMP material · works offline in any browser.</p>
+</main>
+
+<script id="logic">
+/* ---------- Pure game logic (no page access) ---------- */
+(function (root) {
+  const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a; };
+  const mk = (s, mH, mT, caption, settled) => ({ H: s.H.slice(), T: s.T.slice(), mH: mH || s.H.map(() => ''), mT: mT || s.T.map(() => ''), caption, settled: !!settled });
+  function tidyFrames(s) {
+    const marks = { H: [], T: [] }, after = { H: [], T: [] }; let pairs = false;
+    for (const b of ['H', 'T']) {
+      const arr = s[b], plus = [], minus = [];
+      arr.forEach((c, i) => (c > 0 ? plus : minus).push(i));
+      marks[b] = arr.map(() => '');
+      const k = Math.min(plus.length, minus.length);
+      for (let j = 0; j < k; j++) { marks[b][plus[j]] = 'pair'; marks[b][minus[j]] = 'pair'; pairs = true; }
+      after[b] = arr.filter((c, i) => marks[b][i] !== 'pair');
+    }
+    const g = gcd(after.H.length, after.T.length);
+    let extra = false;
+    if (g > 1) {
+      for (const b of ['H', 'T']) {
+        const keep = after[b].length / g; let seen = 0;
+        s[b].forEach((c, i) => { if (marks[b][i] !== 'pair') { if (seen >= keep) { marks[b][i] = 'extra'; extra = true; } seen++; } });
+        after[b] = after[b].slice(0, keep);
+      }
+    }
+    if (!pairs && !extra) return [];
+    let cap = pairs ? 'Zero pair! A green and a red chip in the same box cancel out.' : '';
+    if (extra) cap += (cap ? ' ' : '') + 'Two matching chips in one box count as one.';
+    return [mk(s, marks.H, marks.T, cap, false), mk(after, null, null, pairs ? 'The zero pair is gone.' : 'Tidied up.', true)];
+  }
+  function moveFrames(s, move) {
+    if (move === 'leave') return [mk(s, null, null, 'Leave: nothing happens.', true)];
+    if (move === 'flip') { const n = { H: s.T.slice(), T: s.H.slice() }; return [mk(n, n.H.map(() => 'moved'), n.T.map(() => 'moved'), 'Flip: the two boxes swap.', true)]; }
+    if (move === 'sign') { const n = { H: s.H.slice(), T: s.T.map(c => -c) };
+      return [mk(n, null, n.T.map(() => 'changed'), n.T.length ? 'Sign: every TAILS chip changes color.' : 'Sign: TAILS is empty, so nothing changes.', true)]; }
+    if (move === 'ghost') {
+      const n = { H: [...s.H, ...s.T], T: [...s.H, ...s.T.map(c => -c)] };
+      const cap = s.T.length ? 'Ghost: every chip splits into both boxes. A chip from TAILS leaves an opposite-color chip on TAILS.'
+                             : 'Ghost: the chip splits into both boxes, same color.';
+      const t = tidyFrames(n);
+      return [mk(n, n.H.map(() => 'new'), n.T.map(() => 'new'), cap, t.length === 0), ...t];
+    }
+    throw new Error('unknown move ' + move);
+  }
+  function play(seq, start) { let s = start || { H: [1], T: [] }; const frames = []; for (const m of seq) { const f = moveFrames(s, m); frames.push(...f); const last = f[f.length - 1]; s = { H: last.H, T: last.T }; } return { state: s, frames }; }
+  function outcome(s) { if (s.H.length && !s.T.length) return 'H'; if (s.T.length && !s.H.length) return 'T'; return 'toss'; }
+  function describe(s) {
+    const o = outcome(s);
+    if (o === 'H') return 'HEADS for sure.';
+    if (o === 'T') return 'TAILS for sure.';
+    return s.H[0] === s.T[0] ? 'Ghost coin: in both boxes, same colors. Open it now → 50/50.'
+                             : 'Ghost coin: in both boxes, different colors (a hidden sign!). Open it now → 50/50.';
+  }
+  root.GC = { moveFrames, play, outcome, describe };
+})(window);
+</script>
+
+<script>
+/* ---------- Page ---------- */
+const $ = s => document.querySelector(s);
+const CARDS = {
+  leave: { name: 'Leave', key: 'L', icon: '—', rule: 'Do nothing' },
+  flip:  { name: 'Flip',  key: 'F', icon: '⇄', rule: 'Swap the boxes' },
+  sign:  { name: 'Sign',  key: 'S', icon: '±', rule: 'TAILS chips change color' },
+  ghost: { name: 'Ghost', key: 'G', icon: '<svg class="gi" aria-hidden="true"><use href="#ghost"/></svg>', rule: 'Split into both boxes' }
+};
+const ALL = ['leave', 'flip', 'sign', 'ghost'];
+const LEVELS = [
+  { n: 1, title: 'Normal coin', A: ['leave', 'flip'], B: ['leave', 'flip'], q: 'Is this game fair?' },
+  { n: 2, title: 'The quantum trick', A: ['leave', 'flip', 'ghost'], B: ['leave', 'flip'], q: 'Can Player A win every time?' },
+  { n: 3, title: 'The counter-trick', A: ['leave', 'flip', 'ghost'], B: ['leave', 'flip', 'sign'], q: 'Can Player B fight back?' },
+  { n: 4, title: 'Free play', A: ALL, B: ALL, q: 'Out-guess your opponent!' }
+];
+const ORDER = ['A', 'B', 'A'];
+const START = () => ({ H: [1], T: [] });
+const rand2 = () => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % 2; };
+const randInt = n => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
+
+let S = { roundId: 0, level: 1, phase: 'pick', slot: 0, picks: [null, null, null], frames: [], fi: -1, frameSlot: [], result: null, timer: null, score: {} };
+LEVELS.forEach(l => S.score[l.n] = { r: 0, a: 0, b: 0 });
+const lvl = () => LEVELS[S.level - 1];
+
+function chipHTML(c, cls) { return `<div class="chip ${c > 0 ? 'plus' : 'minus'} ${cls || ''}" aria-label="${c > 0 ? 'green plus' : 'red minus'} chip">${c > 0 ? '+' : '−'}</div>`; }
+function renderCoin(el, f) {
+  const box = (key, label, who, arr, marks) => `<div class="box ${key}"><h3>${label}</h3><div class="who">${who}</div><div class="chips">${arr.length ? arr.map((c, i) => chipHTML(c, marks[i])).join('') : '<span class="empty">empty</span>'}</div></div>`;
+  el.innerHTML = box('heads', 'HEADS', 'Player A wins', f.H, f.mH) + box('tails', 'TAILS', 'Player B wins', f.T, f.mT);
+}
+function cardHTML(m, back) {
+  if (back) return `<div class="card back"><div class="icon"><svg class="gi" aria-hidden="true"><use href="#ghost"/></svg></div><div class="nm">?</div><div class="rl" style="color:#cfd4e4">face-down</div></div>`;
+  const c = CARDS[m]; return `<div class="card ${m}"><div class="icon">${c.icon}</div><div class="nm">${c.name}</div><div class="rl">${c.rule}</div></div>`;
+}
+function handButtons(moves, prefix) {
+  return moves.map(m => { const c = CARDS[m]; return `<button class="${m}" data-move="${m}" data-prefix="${prefix}" aria-label="${c.name}: ${c.rule}"><span class="icon">${c.icon}</span><span class="nm">${c.name}</span><span class="rl">${c.rule}</span><kbd>key ${c.key}</kbd></button>`; }).join('');
+}
+
+/* ----- play view ----- */
+function currentFrame() {
+  if (S.fi >= 0) return S.frames[S.fi];
+  const s = START(); return { H: s.H, T: s.T, mH: [''], mT: [], caption: '', settled: true };
+}
+function render() {
+  const L = lvl(), f = currentFrame();
+  document.querySelectorAll('#levels button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.level === S.level)));
+  renderCoin($('#coin'), f);
+  $('#note').textContent = f.settled ? GC.describe(f) : '…';
+  // slots
+  const activeSlot = S.fi >= 0 ? S.frameSlot[S.fi] : -1;
+  $('#slots').innerHTML = ORDER.map((p, i) => {
+    const pick = S.picks[i];
+    const faceUp = pick && (S.phase !== 'pick' && S.phase !== 'ready' ? (activeSlot >= i || S.phase === 'open' || S.phase === 'toss' || S.phase === 'done') : $('#show-cards').checked);
+    const cls = ['slot', S.phase === 'pick' && S.slot === i ? 'next' : '', activeSlot === i && S.phase === 'playing' ? 'active' : ''].join(' ');
+    return `<div class="${cls}"><div class="lbl ${p}">Card ${i + 1} · Player ${p}</div>${pick ? cardHTML(pick, !faceUp) : '<div class="card" style="border-style:dashed;border-color:#c9ccd5;color:#9aa0ad">empty</div>'}</div>`;
+  }).join('');
+  // hand
+  const picking = S.phase === 'pick';
+  $('#hand-wrap').hidden = !picking;
+  if (picking) {
+    const p = ORDER[S.slot];
+    $('#hand-title').className = 'hand-title ' + p;
+    $('#hand-title').textContent = `Player ${p}'s cards (wants ${p === 'A' ? 'HEADS' : 'TAILS'})`;
+    $('#hand').innerHTML = handButtons(L[p], 'play');
+    const cpu = p === 'B' && $('#cpu-b').checked;
+    $('#hand').querySelectorAll('button').forEach(b => b.disabled = cpu);
+  }
+  // buttons
+  $('#reveal').hidden = S.phase !== 'ready';
+  $('#step').hidden = $('#autoplay').hidden = S.phase !== 'playing';
+  $('#open').hidden = S.phase !== 'open';
+  $('#toss').hidden = S.phase !== 'toss';
+  $('#next-round').hidden = S.phase !== 'done';
+  $('#autoplay').textContent = S.timer ? 'Pause' : 'Play all';
+  // status + badge
+  const st = $('#status'), badge = $('#turn-badge');
+  st.className = ''; badge.className = 'badge';
+  if (S.phase === 'pick') {
+    const p = ORDER[S.slot], cpu = p === 'B' && $('#cpu-b').checked;
+    st.textContent = cpu ? `Computer (Player B) is choosing card ${S.slot + 1}…` : `Player ${p}: secretly choose card ${S.slot + 1} of 3`;
+    st.classList.add(p); badge.classList.add(p); badge.textContent = `Player ${p}'s turn`;
+  } else if (S.phase === 'ready') { st.textContent = 'All three cards are face-down. Reveal them!'; badge.classList.add('done'); badge.textContent = 'Ready'; }
+  else if (S.phase === 'playing') { const sl = S.frameSlot[S.fi]; st.textContent = sl >= 0 ? `Card ${sl + 1}: Player ${ORDER[sl]} played ${CARDS[S.picks[sl]].name}` : 'The coin starts on HEADS.'; badge.classList.add('done'); badge.textContent = 'Playing cards'; }
+  else if (S.phase === 'open') { st.textContent = 'All cards played. Now open the box!'; badge.classList.add('done'); badge.textContent = 'Open the box'; }
+  else if (S.phase === 'toss') { st.textContent = 'Chips in both boxes: toss the real coin!'; badge.classList.add('done'); badge.textContent = 'Toss'; }
+  else if (S.phase === 'done') { const w = S.result === 'H' ? 'A' : 'B'; st.textContent = `${S.result === 'H' ? 'HEADS' : 'TAILS'}: Player ${w} wins!`; st.classList.add(w); badge.classList.add(w); badge.textContent = `Player ${w} wins`; }
+  $('#hint').textContent = `Level ${L.n}: ${L.q} Player A has ${L.A.map(m => CARDS[m].name).join(', ')}. Player B has ${L.B.map(m => CARDS[m].name).join(', ')}.`;
+  // score
+  $('#score').innerHTML = '<tr><th>Level</th><th>Rounds</th><th>A wins</th><th>B wins</th><th>A %</th></tr>' + LEVELS.map(l => {
+    const s = S.score[l.n]; return `<tr class="${l.n === S.level ? 'current' : ''}"><td>${l.n}. ${l.title}</td><td>${s.r}</td><td>${s.a}</td><td>${s.b}</td><td>${s.r ? Math.round(100 * s.a / s.r) + '%' : '–'}</td></tr>`;
+  }).join('');
+  if (S.phase === 'pick' && ORDER[S.slot] === 'B' && $('#cpu-b').checked && !S.cpuPending) {
+    S.cpuPending = true;
+    setTimeout(() => { S.cpuPending = false; if (S.phase === 'pick' && ORDER[S.slot] === 'B' && $('#cpu-b').checked) { const opts = lvl().B; pick(opts[randInt(opts.length)], true); } }, 800);
+  }
+}
+function pick(move, cpu) {
+  if (S.phase !== 'pick') return;
+  const p = ORDER[S.slot]; if (!lvl()[p].includes(move)) return;
+  S.picks[S.slot] = move;
+  $('#event').textContent = `✓ ${cpu ? 'Computer' : 'Player ' + p} placed card ${S.slot + 1} face-down.` + (S.slot < 2 ? ` Pass to Player ${ORDER[S.slot + 1]}.` : '');
+  S.slot++; if (S.slot > 2) S.phase = 'ready';
+  render();
+}
+function reveal() {
+  const start = START(); S.frames = [{ H: start.H, T: start.T, mH: [''], mT: [], caption: 'Start: one green chip on HEADS.', settled: true }]; S.frameSlot = [-1];
+  let s = start;
+  S.picks.forEach((m, i) => { const fr = GC.moveFrames(s, m); fr.forEach(f => { S.frames.push(f); S.frameSlot.push(i); }); const last = fr[fr.length - 1]; s = { H: last.H, T: last.T }; });
+  S.fi = 0; S.phase = 'playing'; $('#event').textContent = S.frames[0].caption; render();
+}
+function step() {
+  if (S.phase !== 'playing') return;
+  if (S.fi < S.frames.length - 1) { S.fi++; $('#event').textContent = S.frames[S.fi].caption; }
+  if (S.fi >= S.frames.length - 1) { stopAuto(); S.phase = 'open'; }
+  render();
+}
+function stopAuto() { if (S.timer) { clearInterval(S.timer); S.timer = null; } }
+function autoplay() { if (S.timer) { stopAuto(); render(); return; } S.timer = setInterval(step, 1300); render(); step(); }
+function openBox() {
+  const f = currentFrame(), o = GC.outcome(f);
+  if (o === 'toss') { S.phase = 'toss'; $('#result').className = ''; $('#result').textContent = 'Chips are in both boxes. It could go either way!'; render(); return; }
+  finish(o, o === 'H' ? 'Only HEADS has chips.' : 'Only TAILS has chips.');
+}
+function toss() {
+  const coin = $('#toss-coin'); $('#toss').disabled = true;
+  const r = rand2() ? 'H' : 'T';
+  coin.classList.remove('spin'); void coin.offsetWidth; coin.classList.add('spin'); coin.textContent = '';
+  const id = S.roundId;
+  setTimeout(() => { $('#toss').disabled = false; if (id !== S.roundId) return; coin.textContent = r === 'H' ? 'HEADS' : 'TAILS'; finish(r, 'The real coin landed on ' + (r === 'H' ? 'HEADS.' : 'TAILS.'), true); }, 1300);
+}
+function finish(o, why, collapsed) {
+  if (collapsed) { const f = currentFrame(), c = o === 'H' ? f.H[0] : f.T[0];
+    S.frames.push({ H: o === 'H' ? [c] : [], T: o === 'T' ? [c] : [], mH: o === 'H' ? ['new'] : [], mT: o === 'T' ? ['new'] : [], caption: '', settled: true }); S.frameSlot.push(2); S.fi = S.frames.length - 1;
+    $('#event').textContent = `Opening the box ends the ghost: the coin is now just ${o === 'H' ? 'HEADS' : 'TAILS'}.`; }
+  S.result = o; S.phase = 'done';
+  const sc = S.score[S.level]; sc.r++; if (o === 'H') sc.a++; else sc.b++;
+  const w = o === 'H' ? 'A' : 'B';
+  $('#toss-coin').textContent = o === 'H' ? 'HEADS' : 'TAILS';
+  $('#result').className = w; $('#result').textContent = `${why} Player ${w} wins!`;
+  render();
+}
+function newRound() {
+  stopAuto(); S.roundId = (S.roundId || 0) + 1; Object.assign(S, { phase: 'pick', slot: 0, picks: [null, null, null], frames: [], fi: -1, frameSlot: [], result: null });
+  $('#event').textContent = ''; $('#result').textContent = ''; $('#result').className = ''; $('#toss-coin').textContent = '?';
+  render();
+}
+
+/* ----- lab view ----- */
+let LAB = { s: START(), hist: [], queue: [], busy: false, frame: null };
+function renderLab() {
+  const f = LAB.frame || { H: LAB.s.H, T: LAB.s.T, mH: LAB.s.H.map(() => ''), mT: LAB.s.T.map(() => ''), settled: true };
+  renderCoin($('#lab-coin'), f);
+  $('#lab-note').textContent = f.settled ? GC.describe(f) : '…';
+  $('#lab-history').innerHTML = '<span style="border-color:#1d7a3a;color:#1d7a3a">Start: HEADS</span>' + LAB.hist.map(m => `<span class="arrow">→</span><span class="${m}">${CARDS[m].name}</span>`).join('');
+  document.querySelectorAll('#lab-hand button, #presets button, #lab-open, #lab-reset').forEach(b => b.disabled = LAB.busy);
+}
+function labRun(moves) {
+  if (LAB.busy) return; LAB.busy = true; const frames = [];
+  let s = LAB.s;
+  moves.forEach(m => { const fr = GC.moveFrames(s, m); fr.forEach((f, i) => frames.push({ f, m, first: i === 0 })); const last = fr[fr.length - 1]; s = { H: last.H, T: last.T }; });
+  let k = 0;
+  const tick = () => {
+    if (k >= frames.length) { LAB.s = s; LAB.frame = null; LAB.busy = false; renderLab(); return; }
+    const x = frames[k++]; if (x.first) LAB.hist.push(x.m);
+    LAB.frame = x.f; $('#lab-event').textContent = x.f.caption; renderLab();
+    setTimeout(tick, x.f.settled ? 1000 : 1500);
+  };
+  tick();
+}
+function labOpen() {
+  const o = GC.outcome(LAB.s);
+  if (o === 'toss') { const r = rand2() ? 'HEADS' : 'TAILS'; $('#lab-event').textContent = `Chips in both boxes, so we toss a real coin… it landed on ${r}. (Opening the box ends the ghost: start over to keep playing.)`; LAB.s = r === 'HEADS' ? { H: [1], T: [] } : { H: [], T: [1] }; }
+  else $('#lab-event').textContent = `Only ${o === 'H' ? 'HEADS' : 'TAILS'} has chips, so the coin is ${o === 'H' ? 'HEADS' : 'TAILS'} for sure.`;
+  LAB.frame = null; renderLab();
+}
+function labReset() { LAB = { s: START(), hist: [], queue: [], busy: false, frame: null }; $('#lab-event').textContent = 'The coin starts as one green chip on HEADS. Click a card.'; renderLab(); }
+const PRESETS = [['ghost', 'ghost'], ['ghost', 'flip', 'ghost'], ['ghost', 'sign', 'ghost'], ['flip', 'ghost', 'ghost'], ['ghost', 'sign', 'flip', 'sign', 'ghost']];
+
+/* ----- wiring ----- */
+function setTab(t) { document.body.dataset.tab = t; $('#tab-play').setAttribute('aria-pressed', String(t === 'play')); $('#tab-lab').setAttribute('aria-pressed', String(t === 'lab'));
+  if (t === 'lab') { $('#status').textContent = 'Chip lab: try the cards and watch the chips split and cancel.'; $('#status').className = ''; $('#turn-badge').className = 'badge done'; $('#turn-badge').textContent = 'Chip lab'; renderLab(); } else render(); }
+$('#levels').innerHTML = LEVELS.map(l => `<button data-level="${l.n}" aria-pressed="false"><strong>Level ${l.n}</strong>${l.title}</button>`).join('');
+$('#levels').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.level = +b.dataset.level; newRound(); });
+$('#hand').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled) pick(b.dataset.move); });
+$('#lab-hand').innerHTML = handButtons(ALL, 'lab');
+$('#lab-hand').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled) labRun([b.dataset.move]); });
+$('#presets').innerHTML = PRESETS.map((p, i) => `<button data-i="${i}">${p.map(m => CARDS[m].name).join(' → ')}</button>`).join('');
+$('#presets').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.disabled) return; labReset(); labRun(PRESETS[+b.dataset.i]); });
+$('#reveal').onclick = reveal; $('#step').onclick = step; $('#autoplay').onclick = autoplay; $('#open').onclick = openBox; $('#toss').onclick = toss;
+$('#next-round').onclick = newRound; $('#restart').onclick = newRound;
+$('#reset-score').onclick = () => { LEVELS.forEach(l => S.score[l.n] = { r: 0, a: 0, b: 0 }); render(); };
+$('#cpu-b').onchange = render; $('#show-cards').onchange = render;
+$('#lab-open').onclick = labOpen; $('#lab-reset').onclick = labReset;
+$('#tab-play').onclick = () => setTab('play'); $('#tab-lab').onclick = () => setTab('lab');
+$('#fullscreen').onclick = () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); };
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toUpperCase();
+  if (document.body.dataset.tab === 'play') {
+    if (S.phase === 'pick') { const m = ALL.find(x => CARDS[x].key === k); if (m && !(ORDER[S.slot] === 'B' && $('#cpu-b').checked)) { e.preventDefault(); pick(m); } }
+    else if (S.phase === 'playing' && e.key === 'ArrowRight') { e.preventDefault(); step(); }
+  } else { const m = ALL.find(x => CARDS[x].key === k); if (m) { e.preventDefault(); labRun([m]); } }
+});
+labReset(); render();
+</script>
+</body>
+</html>
