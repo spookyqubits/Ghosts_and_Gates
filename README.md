@@ -1,8 +1,18 @@
-# Ghosts and Gates · SpookyQubits
+# SpookyQubits · Ghosts and Gates + Spooky Signals
 
-Games focused on quantum computing gates and related quantum ideas: interference, superposition, search, and error correction. A browser playground and classroom collection for grades 6–8.
+Two collections of browser games and classroom resources. **Ghosts and Gates** explores quantum computing and related ideas. **Spooky Signals** explores quantum communication, starting with **Ghost Mail**, made for phones and shared-device play.
 
-## Explore the collection
+Live playground: https://spookyqubits.github.io/Ghosts_and_Gates/
+
+## Spooky Signals · Collection 02
+
+[Explore Spooky Signals](https://spookyqubits.github.io/Ghosts_and_Gates/spooky-signals/) · [Play Ghost Mail](https://spookyqubits.github.io/Ghosts_and_Gates/spooky-signals/ghost-mail.html)
+
+Ghost Mail is a four-packet BB84 teaching game. Spend retained bits on tests, then deliver or discard the remaining key; or play the Spy and decide how much to intercept. Solo Courier, Solo Spy, and Pass & Play for 2–3 people are included. Calm Night and Noisy Night change how players interpret mismatches. The built-in Signal Lab compares repeated preparations and measurement bases.
+
+One phone is enough for group play; private planning uses handoff screens and an honor system. No accounts, server, or installation are required. Download the self-contained HTML game for offline play. The printable facilitator guide explains setup, scoring, model limits, discussion prompts, and sources. Game points are teaching mechanics, not a cryptographic security test; the game does not create real keys.
+
+## Ghosts and Gates · Collection 01
 
 | Game | Explore | Available formats |
 | --- | --- | --- |
@@ -12,7 +22,7 @@ Games focused on quantum computing gates and related quantum ideas: interference
 | Ghost Hunt | Grover’s search through flip-and-reflect arithmetic | Browser game, tracker, printables |
 | Ghost Guard | Parity checks and the three-qubit bit-flip code | Browser game, labs, printable kit |
 
-All five game families have a facilitator guide. The site includes a downloadable classroom ZIP containing seven browser versions, guides, and selected printables. The games use teaching models with different scopes; their resource panels explain the connections to quantum physics and the limits of each model.
+All five original game families have a facilitator guide. The downloadable classroom ZIP contains all eight browser versions across both collections, guides, and selected printables. The games use teaching models with different scopes; their resource panels explain the connections to quantum physics and the limits of each model.
 
 ## Run locally
 
@@ -22,7 +32,7 @@ This repository contains the ready-to-host site, with `index.html` at its root. 
 python3 -m http.server 8080
 ```
 
-Open `http://localhost:8080`. The game launcher includes concept filters, version selection, full-screen controls, and offline downloads. Game boards are designed for classroom screens; phones can scroll across their wider layouts.
+Open `http://localhost:8080`. The original game launcher includes concept filters, version selection, full-screen controls, and offline downloads. Ghosts and Gates boards are designed for classroom screens; phones can scroll across their wider layouts. Ghost Mail has a dedicated portrait layout and opens directly from the second collection.
 
 ## Publish with GitHub Pages
 
@@ -31,3 +41,5 @@ In this repository’s **Settings → Pages**, choose **Deploy from a branch**, 
 ## Credits
 
 Developed and adapted using QCaMP classroom materials. Ghost Grid draws on Allan Goff’s quantum tic-tac-toe (2006). Original credits are retained in the games and facilitator guides; the collection does not assign a new blanket license to those materials or claim to be an official QCaMP website.
+
+Ghost Mail models Bennett and Brassard’s BB84 protocol. Primary references and educational precedents are linked in its game rules and facilitator guide. Design and code prepared for SpookyQubits, 2 November 2026.
