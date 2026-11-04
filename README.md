@@ -1,8 +1,10 @@
 # SpookyQubits playground
 
-The Ghosts and Gates collection contains five game families, seven browser versions, five facilitator guides, and classroom printables. Its homepage links to two independent collections: Spooky Signals (`spooky-signals-playground`) and Spooky Utilities (`spooky-utilities-playground`).
+The Ghosts and Gates collection contains five game families, seven browser versions, five facilitator guides, and classroom printables. Its homepage links to three independent collections: Spooky Signals (`spooky-signals-playground`), Spooky Utilities (`spooky-utilities-playground`), and Spooky Action.
 
 Spooky Utilities groups Bloch Sphere and Ghost Numbers (complex-number arithmetic) in the separate `spookyqubits/Spooky-Utilities` repository, alongside `Ghosts_and_Gates` and `SpookySignals`.
+
+Spooky Action is collection 04, for short classroom activities. Its separate repository is `spookyqubits/SpookyAction`, at https://spookyqubits.github.io/SpookyAction/. The main page links directly to Ghost Trio first, then Ghost Twins. Both support Solo and shared-phone play and include printable facilitator guides.
 
 ## Preview
 
