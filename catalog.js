@@ -8,13 +8,13 @@ window.GAME_CATALOG = [
     "question": "Can you make light disappear?",
     "description": "Play a wave. Brighten your detector. Cancel your opponent’s. Then see who catches the photon.",
     "time": "10 min",
-    "players": "2 players",
+    "players": "1–2 players",
     "mode": "Browser + tabletop",
     "guide": "resources/catch-the-photon/guide.pdf",
     "learn": "Predict how waves add or cancel, then connect amplitude to the probability of detecting a photon.",
     "prompt": "Why can adding one more wave make your detector darker?",
-    "materials": "For tabletop play: A–10 playing cards, the Wave Board, two tokens, and colored chips or paper slips.",
-    "note": "Four card suits represent four phases. The game builds relative amplitudes; it is a teaching model, not a simulation of an optical apparatus.",
+    "materials": "For tabletop play: 40 numbered wave cards (seven 1s and three 2s per direction), the Wave Board, two tokens, and up to 32 colored chips or paper slips per detector.",
+    "note": "Four arrow directions represent four phases; numbers 1 and 2 give amplitude. The game builds relative amplitudes and normalizes brightness weights across the detectors. It is a teaching model, not a simulation of an optical apparatus.",
     "variants": [
       {
         "name": "Play the game + Wave Lab",
@@ -25,6 +25,18 @@ window.GAME_CATALOG = [
       {
         "name": "Wave Board",
         "file": "resources/catch-the-photon/wave-board.pdf"
+      },
+      {
+        "name": "Wave cards · printable PDF",
+        "file": "resources/catch-the-photon/wave-cards.pdf"
+      },
+      {
+        "name": "Wave cards · browser print",
+        "file": "games/CatchThePhoton_Wave_Cards.html"
+      },
+      {
+        "name": "Guide · accessible HTML",
+        "file": "resources/catch-the-photon/guide.html"
       }
     ]
   },

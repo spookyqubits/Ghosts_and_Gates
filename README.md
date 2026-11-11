@@ -42,6 +42,20 @@ The builder recreates only `dist/` and the upload ZIP. It copies the existing `L
 
 The classroom ZIP inside `dist/downloads/` contains only Ghosts and Gates games and resources. Spooky Signals has its own classroom ZIP in its independent site. It excludes the website source, personal documents, draft conference files, research corpora, and verification data. The outdated superposition-only Ghost Grid handout identified in its source README is omitted; the current facilitator guide is included instead.
 
+## Catch the Photon wave cards
+
+Catch the Photon uses a 40-card wave deck: seven strength-1 and three strength-2 cards per direction. The number is amplitude and moves the token that many squares. Up cards are blue, down red, right purple, and left gold. The hand, board labels, Wave Lab, sound, and computer player share the same model. Solo quick play resolves both choices and advances each round directly. Restarting cancels any pending photon animation and restores the Fire control.
+
+The resource panel includes the printable wave cards, arrow-labeled board, and updated PDF/HTML facilitator guide. Brightness is an unnormalized probability weight; the game divides each detector's weight by their sum before the photon draw.
+
+Run the focused regression checks from this repository:
+
+```sh
+node --test tests/catch-the-photon.test.cjs
+```
+
+Regenerate the browser-printable deck with `node tools/build-photon-cards.cjs`. The PDF resource builder is `tools/build-photon-pdfs.py`; it accepts the classroom output directory, requires ReportLab, and currently uses the standard macOS Arial and Comic Sans font files. The offline source in the QCaMP workspace is `CatchThePhoton/CatchThePhoton_Offline.html`; the playground builder copies that source and the explicit resources listed in its catalog.
+
 ## Credits and model scope
 
 Credits in original games and guides are retained. The collection uses QCaMP classroom materials; the site does not claim to be an official QCaMP website. Ghost Grid draws on Allan Goff’s quantum tic-tac-toe. No new blanket license is assigned to source material.

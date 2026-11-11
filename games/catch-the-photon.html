@@ -8,9 +8,9 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%20role=%22img%22%20aria-label=%22Ghost%22%3E%3Cdefs%3E%3ClinearGradient%20id=%22ghostMist%22%20x1=%220.6%22%20y1=%220%22%20x2=%220%22%20y2=%221%22%3E%3Cstop%20offset=%220.55%22%20stop-color=%22%23fff%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22%23fbd6dd%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath%20d=%22M18.5%2018%20C19.5%2010.5%2025%205.5%2031.5%205.5%20C39%205.5%2044.5%2011.5%2045%2019%20C45.2%2022.5%2045.5%2025%2047%2026%20C50%2027.5%2055.5%2025.5%2058.5%2027.5%20C62%2030%2059.5%2035.5%2055%2036%20C51.5%2036.5%2048.5%2036.5%2046.5%2038.5%20C43.5%2045.5%2036%2051.5%2026%2053.5%20C19%2055%2012%2055.5%208%2054%20C5.5%2053%207.5%2050.5%2010.5%2048.5%20C12.5%2047%2013%2045.5%2013%2044%20C14%2040.5%2014.3%2037%2014%2034%20C11%2034.2%206.5%2033.5%204.2%2030.5%20C2%2027.5%203.5%2023%208%2022.5%20C12%2022%2016%2021%2018.5%2018%20Z%22%20fill=%22url%28%23ghostMist%29%22%20stroke=%22%23d3061c%22%20stroke-width=%222.5%22%20stroke-linejoin=%22round%22/%3E%3Cellipse%20cx=%2229%22%20cy=%2217.5%22%20rx=%222.6%22%20ry=%223.6%22%20transform=%22rotate%28-10%2029%2017.5%29%22%20fill=%22%231b1b1f%22/%3E%3Cellipse%20cx=%2237.5%22%20cy=%2219.5%22%20rx=%222.3%22%20ry=%223.3%22%20transform=%22rotate%28-10%2037.5%2019.5%29%22%20fill=%22%231b1b1f%22/%3E%3Cpath%20d=%22M30.2%2024.6%20Q33.4%2025.8%2036.6%2024.9%20Q36%2029.2%2033%2029%20Q30.6%2028.6%2030.2%2024.6%20Z%22%20fill=%22%231b1b1f%22/%3E%3C/svg%3E">
 <style>
 :root { color-scheme: light; font-family: Arial, Helvetica, sans-serif; color: #202435; background: #fff;
-  --brand: #b41524; --a: #154c9c; --b: #6c2f9e; --gold: #8c6000; --ink: #1f2a44; --red: #c0182a; }
+  --paper: #faf7f1; --brand: #b41524; --a: #154c9c; --b: #6c2f9e; --gold: #8c6000; --ink: #1f2a44; --red: #c0182a; }
 * { box-sizing: border-box; }
-body { margin: 0; }
+body { margin: 0; background: var(--paper); }
 .app { max-width: 1600px; min-width: 650px; margin: auto; padding: 16px 20px 30px; }
 header { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
 h1 { margin: 0; color: var(--brand); font-size: clamp(26px, 3vw, 40px); }
@@ -56,29 +56,32 @@ h2 { font-size: 21px; margin: 0 0 8px; }
 .hear { padding: 5px 9px; font-size: 13px; }
 .det-cards { font-size: 18px; min-height: 24px; letter-spacing: 2px; word-break: break-all; }
 .det-cards .r, .red { color: var(--red); } .det-cards .k, .black { color: #111; }
-/* hand */
+/* wave cards */
 #hand-area { margin-top: 12px; border: 2px dashed #c9ccd5; border-radius: 12px; padding: 10px; min-height: 120px; }
 .hand-title { font-size: 18px; font-weight: bold; margin: 0 0 8px; }
 .hand-title.A { color: var(--a); } .hand-title.B { color: var(--b); }
-.hand { display: flex; gap: 10px; flex-wrap: wrap; }
-.pc { width: 92px; height: 128px; border-radius: 10px; border: 3px solid #202435; background: #fff; position: relative; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.pc .rk { position: absolute; top: 4px; left: 7px; font-size: 18px; font-weight: 800; line-height: 1; text-align: center; }
-.pc .big { font-size: 40px; line-height: 1; margin-top: -10px; }
-.pc svg { width: 70px; height: 26px; margin-top: 4px; }
-.pc.red { color: var(--red); } .pc.black { color: #111; }
-.pc.sel { background: #fff0c9; box-shadow: 0 0 0 4px var(--gold); }
-.pc.back { background: repeating-linear-gradient(45deg, #202435 0 10px, #2d3452 10px 20px); color: #fff; }
+.hand { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.hand > span { grid-column: 1 / -1; }
+.pc { width: 100%; max-width: 144px; height: auto; aspect-ratio: 2 / 3; padding: 0; border: 0; background: transparent; border-radius: 14px; flex: 0 0 auto; }
+.pc:hover:enabled { background: transparent; transform: translateY(-3px); }
+.pc > svg { width: 100%; height: 100%; display: block; }
+.pc.sel { outline: 4px solid var(--gold); outline-offset: 3px; }
+.pc:disabled { opacity: .6; }
+.pc.back { display: grid; place-items: center; background: #1f2a44; border: 3px solid #1f2a44; color: white; }
+.pc.back svg { width: 55px; height: 55px; }
+.wave-chip { display: inline-block; padding: 2px 5px; margin: 2px; border: 1px solid currentColor; border-radius: 5px; font-weight: bold; letter-spacing: 0; }
 .targets { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
 .targets button { padding: 10px 12px; font-size: 16px; text-align: left; line-height: 1.25; }
-.targets button small { display: block; font-size: 13px; color: #535969; }
+.targets button small { font-size: 13px; color: #535969; display: block; }
 .targets button.A { border-color: var(--a); } .targets button.B { border-color: var(--b); }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
 .actions button { padding: 11px 15px; font-size: 17px; }
-.primary { background: var(--brand) !important; border-color: var(--brand) !important; color: #fff !important; }
+.primary { background: var(--brand) !important; border-color: var(--brand) !important; color: white !important; }
 .primary:hover:enabled { background: #95111e !important; }
 .options { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px; font-size: 16px; }
 #event { min-height: 50px; font-size: 18px; line-height: 1.4; margin: 12px 0 0; }
 .hint { color: #535969; font-size: 15px; line-height: 1.45; margin: 8px 0 0; }
+.text-link { color: var(--brand); font-weight: bold; }
 /* side */
 .side { padding: 12px; border-left: 2px solid #d7bd68; background: #fffcf2; border-radius: 0 12px 12px 0; }
 .side h2 { color: #6b4700; font-size: 18px; margin-bottom: 8px; }
@@ -102,10 +105,10 @@ h2 { font-size: 21px; margin: 0 0 8px; }
 body[data-tab="lab"] #lab-view { display: block; }
 body[data-tab="lab"] #play-view { display: none; }
 .lab-area { display: grid; grid-template-columns: minmax(330px, 1fr) minmax(330px, 1fr); gap: 20px; align-items: start; }
-.suit-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-.suit-buttons button { font-size: 42px; padding: 8px 0 4px; background: #fff; border-width: 3px; line-height: 1; }
-.suit-buttons button small { display: block; font-size: 13px; margin-top: 4px; color: #535969; }
-.suit-buttons .red { color: var(--red); border-color: var(--red); } .suit-buttons .black { color: #111; border-color: #111; }
+.wave-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.wave-buttons button { font-size: 42px; padding: 8px 0 4px; background: #fff; border-width: 3px; line-height: 1; }
+.wave-buttons button small { display: block; font-size: 13px; margin-top: 4px; color: #535969; }
+.wave-buttons .red { color: var(--red); border-color: var(--red); } .wave-buttons .black { color: #111; border-color: #111; }
 .lab-curve { width: 100%; height: auto; border: 2px solid #d9dce4; border-radius: 12px; background: #fff; margin-top: 12px; display: block; }
 #lab-waves { font-size: 22px; min-height: 30px; margin: 10px 0 4px; letter-spacing: 3px; word-break: break-all; }
 #lab-note { font-size: 19px; font-weight: bold; padding: 10px; background: #f0f3f8; border-radius: 8px; }
@@ -159,6 +162,7 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
           <button id="show-hand" class="primary" hidden>Show my cards</button>
           <button id="reveal" class="primary" hidden>Reveal both cards</button>
           <button id="next" class="primary" hidden>Next ▶</button>
+          <button id="solo" class="primary">Solo quick play</button>
           <button id="new-game">New game</button>
           <button id="fullscreen">Full screen</button>
         </div>
@@ -174,7 +178,7 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
         <p id="round"></p>
         <div class="odds-label"><span class="A" id="pa-label">A 50%</span><span class="B" id="pb-label">B 50%</span></div>
         <div class="bar-wrap"><div class="photon" id="photon"></div><div class="oddsbar"><div class="pa" id="pa" style="width:50%"></div><div class="pb" id="pb" style="width:50%"></div></div></div>
-        <p class="small">The photon lands at a random spot on this bar. Each player's share of the bar is their share of the total brightness.</p>
+        <p class="small">Brightness is a probability weight. Each chance is that detector’s brightness divided by the total. With both dark, no photon can be drawn yet.</p>
         <button id="fire" hidden>Fire the photon</button>
         <p id="result" aria-live="polite"></p>
         <h2>Games won</h2>
@@ -192,7 +196,7 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
       </section>
       <section aria-label="Lab controls">
         <h2>Add a wave</h2>
-        <div class="suit-buttons" id="lab-buttons"></div>
+        <div class="wave-buttons" id="lab-buttons"></div>
         <div id="lab-waves" aria-label="Waves added"></div>
         <svg class="lab-curve" id="lab-curve" viewBox="0 0 640 220" aria-label="The waves and their sum"></svg>
         <p id="lab-note" aria-live="polite"></p>
@@ -210,73 +214,120 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
 
   <details><summary>How to play</summary>
     <p><b>Goal.</b> Make your detector bright and your opponent's dark, then catch the photon.</p>
-    <p><b>Cards.</b> The four suits are four waves: ♠ starts at a crest, ♥ peaks a quarter later, ♣ starts at a trough, ♦ peaks three quarters later. Card numbers do not matter. Same color, opposite suit (♠ and ♣, or ♥ and ♦) cancel. Black with red: a quarter-step apart.</p>
-    <p><b>Each round (8 rounds).</b> Both players secretly choose one card and place it face-down on a detector: their own (to brighten it) or their opponent's (to cancel it). Reveal both. Each card moves that detector's token one square: ♠ up, ♣ down, ♥ right, ♦ left. The square shows the real summed wave, and its number is the brightness.</p>
+    <p><a class="text-link" href="CatchThePhoton_Wave_Cards.html" target="_blank" rel="noopener">Print the 40 wave cards ↗</a></p>
+    <p><b>Cards.</b> The arrow gives the direction; the number is wave strength (amplitude) and tells you how many squares to move. ↑ up is blue, ↓ down red, → right purple, and ← left gold. There are 40 cards: seven strength-1 and three strength-2 cards per direction. The small plots all use the same scale and frequency.</p>
+    <p><b>Each round (8 rounds).</b> Deal three cards each. Both players secretly choose a card and a detector: their own to build brightness, or their opponent’s to reduce it. Reveal both. Move each chosen detector by the full number of squares in the arrow’s direction, then refill hands. ↑2 and ↓1 leave ↑1; ↑2 and ↓2 cancel completely. Resolve Player A’s card first, then Player B’s.</p>
     <p><b>Catch the photon.</b> After 8 rounds, fire the photon. It lands at a random spot on the bar, and each detector's share of the bar equals its share of the total brightness. If both detectors are dark (0), play one more round.</p>
+    <p><b>Solo quick play.</b> Click “Solo quick play” to show your hand and play against the computer. Each choice resolves both cards and starts the next round. “New game” keeps your play mode for an easy replay.</p>
     <p><b>Passing one screen.</b> Before each turn, the other player looks away, then the player clicks "Show my cards". On a projector, use "Open hands" so the class can discuss each move, or tick "Computer plays B".</p>
     <p><b>Edge of the board.</b> A card cannot push a token off the board. If both cards push the same token off the edge in one round, the second card is lost.</p>
   </details>
   <details><summary>Why it works</summary>
-    <p>Every wave can be drawn as a clock hand: its direction says where the crest is (the <b>phase</b>). Adding waves is adding hands tip to tail, which is exactly what moving the token does. Hands that point the same way make a taller wave. Opposite hands cancel. Hands at right angles make a wave about 1.4 times taller.</p>
-    <p>Brightness is the wave's height squared. Put 3 ♥ and 4 ♠ on one detector and the brightness is 25, because 3² + 4² = 5². In quantum physics, this squared height is the chance of finding the photon there. Quantum computers use the same trick: they arrange for the waves of wrong answers to cancel.</p>
+    <p>The arrow is a direction on the amplitude board, not the photon’s travel direction. It represents the <b>phase</b>: where a wave starts in its cycle. The number gives its <b>amplitude</b>. Up starts at a crest, down at a trough, right at zero rising, and left at zero falling. Adding these waves means adding their arrows tip to tail.</p>
+    <p>In-step amplitudes add. Opposite phases subtract; equal opposites cancel completely. Two equal waves a quarter-cycle apart have a combined amplitude about 1.4 times either one. The plots show a wave value over time, not the path of a photon.</p>
+    <p>At board position (x, y), brightness is x² + y². A total of 3 squares right and 4 up gives 25. This is an <b>unnormalized probability weight</b>, not a probability by itself. If the other detector has brightness 9, the chances are 25/34 and 9/34. Dividing each weight by the total normalizes the probabilities. Quantum computers use interference to reduce unwanted outcomes and increase desired ones.</p>
   </details>
   <details><summary>For teachers</summary>
     <table><tr><th>In the game</th><th>Math or science idea</th></tr>
       <tr><td>The board is a grid around a center</td><td>Coordinate plane, four quadrants (CCSS 6.NS.C.8)</td></tr>
-      <tr><td>♠ cancels ♣, ♥ cancels ♦</td><td>Opposite quantities combine to make 0 (CCSS 7.NS.A.1a)</td></tr>
+      <tr><td>↑1 + ↓1 = 0; →2 + ←2 = 0</td><td>Opposite quantities combine to make 0 (CCSS 7.NS.A.1a)</td></tr>
       <tr><td>Brightness = height × height</td><td>Whole-number exponents (CCSS 6.EE.A.1)</td></tr>
       <tr><td>Brightness = distance² from the center</td><td>Pythagorean theorem and distance in the coordinate plane (CCSS 8.G.B.7–8)</td></tr>
       <tr><td>The photon bar</td><td>Probability models (CCSS 7.SP.C.7); the Born rule of quantum physics</td></tr>
       <tr><td>Twice the height, four times the brightness</td><td>Wave amplitude and energy (NGSS MS-PS4-1; that standard's assessment excludes light, so you can call these sound or water waves)</td></tr></table>
-    <p><b>Simplification.</b> Real light keeps its total brightness fixed, so brightening one detector must dim the other. In this game both can grow. The four suits stand for four phases; real waves can have any phase.</p>
+    <p><b>Simplification.</b> In an ideal fixed-input, lossless two-output optical setup, the total detection probability is conserved: increasing one output’s probability decreases the other’s. This game instead lets you build two relative amplitudes independently and then normalizes their squared magnitudes. It does not simulate that optical apparatus. Real waves can have any phase; the cards use four.</p>
     <p><b>Background.</b> The arrow method comes from Feynman's <i>QED</i> (1985). Choudhary and Blair's "phasor wheels" (<i>European Journal of Physics</i>, 2021) use the same idea as a hands-on tool for middle school and up.</p>
   </details>
   <p class="credit">Catch the Photon · developed using QCaMP material · works offline in any browser.</p>
 </main>
 
 <script id="logic">
-/* ---------- Pure game logic (no page access) ---------- */
+/* Pure wave model: directions encode phase; strength encodes amplitude. */
 (function (root) {
-  const SUITS = { S: { sym: '♠', d: [0, 1], red: false, dir: 'up' }, H: { sym: '♥', d: [1, 0], red: true, dir: 'right' },
-                  C: { sym: '♣', d: [0, -1], red: false, dir: 'down' }, D: { sym: '♦', d: [-1, 0], red: true, dir: 'left' } };
+  const WAVES = {
+    U: { sym: '↑', d: [0, 1], dir: 'up', color: '#154c9c', tint: '#e4edf9', phase: 'crest first' },
+    R: { sym: '→', d: [1, 0], dir: 'right', color: '#6c2f9e', tint: '#f0e6f8', phase: 'zero rising' },
+    D: { sym: '↓', d: [0, -1], dir: 'down', color: '#c0182a', tint: '#fbe5e8', phase: 'trough first' },
+    L: { sym: '←', d: [-1, 0], dir: 'left', color: '#8c6000', tint: '#f6edcf', phase: 'zero falling' }
+  };
   const N = 4;
   const bright = p => p[0] * p[0] + p[1] * p[1];
-  const winp = (a, b) => (a + b === 0 ? 0.5 : a / (a + b));
-  const step = (p, s) => [p[0] + SUITS[s].d[0], p[1] + SUITS[s].d[1]];
+  const winp = (a, b) => a + b === 0 ? 0.5 : a / (a + b);
+  const vector = c => WAVES[c.direction].d.map(v => v * c.strength);
+  const step = (p, c) => { const d = vector(c); return [p[0] + d[0], p[1] + d[1]]; };
   const onBoard = p => Math.abs(p[0]) <= N && Math.abs(p[1]) <= N;
+  function shuffle(cards, rand) {
+    for (let i = cards.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [cards[i], cards[j]] = [cards[j], cards[i]]; }
+    return cards;
+  }
   function newDeck(rand) {
-    const d = []; for (const s of ['S', 'H', 'C', 'D']) for (let r = 1; r <= 10; r++) d.push({ suit: s, rank: r });
-    for (let i = d.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [d[i], d[j]] = [d[j], d[i]]; }
-    return d;
+    const cards = [];
+    for (const direction of ['U', 'R', 'D', 'L']) for (let i = 0; i < 10; i++) cards.push({ direction, strength: i < 7 ? 1 : 2 });
+    return shuffle(cards, rand);
   }
-  function relation(p, s) { if (p[0] === 0 && p[1] === 0) return 'first'; const d = SUITS[s].d, dot = d[0] * p[0] + d[1] * p[1]; return dot > 0 ? 'add' : dot < 0 ? 'cancel' : 'quarter'; }
-  /* Careful player: best immediate photon odds; ties -> brighter own detector. Same order as the simulation (suits sorted C, D, H, S; targets 0 then 1). */
-  function careful(me, pos, hand, useBoard) {
-    const suits = [...new Set(hand.map(c => c.suit))].sort(); let best = null;
-    for (const s of suits) for (const t of [0, 1]) {
-      const np = [pos[0], pos[1]]; np[t] = step(pos[t], s);
-      if (useBoard !== false && !onBoard(np[t])) continue;
-      const k0 = winp(bright(np[me]), bright(np[1 - me])), k1 = bright(np[me]);
-      if (!best || k0 > best.k0 || (k0 === best.k0 && k1 > best.k1)) best = { k0, k1, suit: s, target: t };
-    }
-    if (!best) return { idx: 0, target: -1, suit: hand[0].suit };
-    return { idx: hand.findIndex(c => c.suit === best.suit), target: best.target, suit: best.suit };
+  function careful(me, pos, hand) {
+    let best = null;
+    const seen = new Set();
+    hand.forEach((card, idx) => {
+      const key = card.direction + card.strength; if (seen.has(key)) return; seen.add(key);
+      for (const target of [0, 1]) {
+        const np = pos.slice(); np[target] = step(pos[target], card); if (!onBoard(np[target])) continue;
+        const own = bright(np[me]), odds = winp(own, bright(np[1 - me]));
+        if (!best || odds > best.odds || (odds === best.odds && own > best.own)) best = { idx, target, odds, own };
+      }
+    });
+    return best || { idx: 0, target: -1 };
   }
-  const photon = (bA, bB, u) => (u < bA / (bA + bB) ? 0 : 1);
-  const waveY = (x, y, s) => y * Math.cos(2 * Math.PI * s) + x * Math.sin(2 * Math.PI * s);
-  root.CP = { SUITS, N, bright, winp, step, onBoard, newDeck, relation, careful, photon, waveY };
+  const photon = (a, b, u) => u < a / (a + b) ? 0 : 1;
+  const waveY = (x, y, t) => y * Math.cos(2 * Math.PI * t) + x * Math.sin(2 * Math.PI * t);
+  root.CP = { WAVES, N, bright, winp, vector, step, onBoard, shuffle, newDeck, careful, photon, waveY };
 })(window);
+</script>
+<script id="card-art">
+/* Shared scalable artwork for the live hand and printable deck. */
+(function (CP) {
+  function cardSVG(card, id) {
+    const W = CP.WAVES[card.direction], [x, y] = CP.vector(card), n = card.strength;
+    let curve = '';
+    for (let i = 0; i <= 64; i++) curve += `${i ? 'L' : 'M'}${(38 + 132 * i / 64).toFixed(2)} ${(234 - 10 * CP.waveY(x, y, i / 64)).toFixed(2)} `;
+    const sy = 234 - 10 * y;
+    const arrows = { U: 'M100 113L120 136H109V160H91V136H80Z', D: 'M91 114H109V138H120L100 161L80 138H91Z', R: 'M77 128H102V117L126 137L102 157V146H77Z', L: 'M123 128H98V117L74 137L98 157V146H123Z' };
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" aria-hidden="true">
+      <defs><path id="title-${id}" d="M18 35 Q100 16 182 35"/></defs>
+      <rect x="2" y="2" width="196" height="296" rx="18" fill="#faf7f1" stroke="${W.color}" stroke-width="2"/>
+      <path d="M23 31 Q100 13 177 31" fill="none" stroke="${W.tint}" stroke-width="18" stroke-linecap="round"/>
+      <g fill="${W.color}" font-family="Chalkboard SE, Comic Sans MS, Trebuchet MS, cursive" font-style="italic" font-weight="bold">
+        <text font-size="12" text-anchor="middle"><textPath href="#title-${id}" startOffset="50%">CATCH THE PHOTON</textPath></text>
+        <path d="M14 24l2-5 2 5 5 2-5 2-2 5-2-5-5-2z M182 17l2-5 2 5 5 2-5 2-2 5-2-5-5-2z" fill="none" stroke="${W.color}" stroke-width="1.4"/>
+      </g>
+      <text x="100" y="104" text-anchor="middle" font-family="Chalkboard SE, Comic Sans MS, Trebuchet MS, sans-serif" font-size="77" font-weight="bold" fill="#242622">${n}</text>
+      <path d="${arrows[card.direction]}" fill="${W.color}" stroke="${W.color}" stroke-linejoin="round"/>
+      <g font-family="Chalkboard SE, Comic Sans MS, Trebuchet MS, sans-serif" fill="#242622" text-anchor="middle">
+        <text x="100" y="182" font-size="15" font-weight="bold">Move ${n} ${W.dir}</text>
+        <path d="M38 208V260 M35 214H38 M35 234H177 M35 254H38" fill="none" stroke="#90918c" stroke-width=".8"/>
+        <g font-size="9" text-anchor="end"><text x="32" y="217">+2</text><text x="32" y="237">0</text><text x="32" y="257">−2</text></g>
+        <path d="${curve}" fill="none" stroke="${W.color}" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="38" cy="${sy}" r="2.5" fill="${W.color}"/>
+        <text x="40" y="${sy + (y < 0 ? 10 : -6)}" text-anchor="start" fill="${W.color}" font-size="8" font-weight="bold">START</text>
+        <text x="178" y="265" text-anchor="end" font-size="8">Time →</text>
+        <text x="100" y="277" font-size="11" font-style="italic">In step: add.</text>
+        <text x="100" y="290" font-size="10" font-style="italic">Opposite phase: subtract.</text>
+      </g>
+    </svg>`;
+  }
+  CP.cardSVG = cardSVG;
+})(window.CP);
 </script>
 
 <script>
 /* ---------- Page ---------- */
 const $ = s => document.querySelector(s);
-const { SUITS, N, bright, winp, step, onBoard, newDeck, relation, careful, photon, waveY } = CP;
+const { WAVES, N, bright, winp, vector, step, onBoard, shuffle, newDeck, careful, photon, waveY, cardSVG } = CP;
 const rand = () => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] / 4294967296; };
 const RREF = Math.sqrt(2) * N;
 const NAMES = ['A', 'B'];
-const RANK = r => (r === 1 ? 'A' : String(r));
-const suitSpan = s => `<span class="${SUITS[s].red ? 'r' : 'k'}">${SUITS[s].sym}</span>`;
+const cardName = c => `${c.strength}${WAVES[c.direction].sym}`;
+const waveChip = c => `<span class="wave-chip" style="color:${WAVES[c.direction].color}" title="Strength ${c.strength}, ${WAVES[c.direction].dir}">${cardName(c)}</span>`;
 
 /* colors for brightness glow */
 const STOPS = [[0, [244, 244, 246]], [1 / 3, [255, 244, 194]], [2 / 3, [255, 213, 74]], [1, [255, 176, 0]]];
@@ -296,8 +347,8 @@ function buildBoard(svg) {
     h += `<rect x="${x0 + 3}" y="${y0 + 3}" width="${b >= 10 ? 27 : 17}" height="19" rx="3" fill="#fff" opacity=".85"/><text x="${x0 + 6}" y="${y0 + 18}" class="bn">${b}</text>`;
   }
   h += `<rect x="${M + N * C}" y="${M + N * C}" width="${C}" height="${C}" fill="none" stroke="#1f2a44" stroke-width="5"/><text x="${M + N * C + 50}" y="${M + N * C + 93}" class="startlbl">START</text>`;
-  h += `<text x="500" y="36" class="axis" text-anchor="middle" fill="#111">♠ up</text><text x="500" y="990" class="axis" text-anchor="middle" fill="#111">♣ down</text>`;
-  h += `<text x="25" y="505" class="axis" text-anchor="middle" fill="#c0182a">♦</text><text x="975" y="505" class="axis" text-anchor="middle" fill="#c0182a">♥</text>`;
+  h += `<text x="500" y="36" class="axis" text-anchor="middle" fill="#154c9c">↑ up</text><text x="500" y="990" class="axis" text-anchor="middle" fill="#c0182a">↓ down</text>`;
+  h += `<text x="25" y="505" class="axis" text-anchor="middle" fill="#8c6000">←</text><text x="975" y="505" class="axis" text-anchor="middle" fill="#6c2f9e">→</text>`;
   h += '<g class="tokens"></g>';
   svg.innerHTML = h;
 }
@@ -315,220 +366,210 @@ function renderTokens(svg, list) {   // list: [{pos, cls, label}]
 }
 
 /* ----- game state ----- */
-let G;
+let G, fireTimer = null, quickMode = false;
 const score = [0, 0];
 function newGame() {
-  G = { deck: newDeck(rand), hands: [[], []], pos: [[0, 0], [0, 0]], round: 1, maxRounds: 8, phase: 'hidden', who: 0, picks: [null, null], sel: null, played: [[], []], steps: [], stepIdx: -1, result: null, firing: false };
+  clearTimeout(fireTimer); fireTimer = null;
+  $('#fire').disabled = false; $('#photon').classList.remove('fly');
+  G = { deck: newDeck(rand), discard: [], hands: [[], []], pos: [[0, 0], [0, 0]], round: 1, maxRounds: 8,
+    phase: openHands() ? 'choose' : 'hidden', who: 0, picks: [null, null], sel: null, played: [[], []], steps: [], stepIdx: -1, result: null, firing: false };
   for (let k = 0; k < 3; k++) for (const p of [0, 1]) G.hands[p].push(G.deck.pop());
-  if ($('#open-hands').checked) G.phase = 'choose';
-  $('#event').textContent = 'New game. Both detectors start dark.'; $('#result').textContent = ''; $('#result').className = '';
-  render();
+  $('#event').textContent = quickMode ? 'Solo quick play: choose a wave and a detector.' : 'New game. Both detectors start dark.';
+  $('#result').textContent = ''; $('#result').className = ''; render();
 }
 const cpuB = () => $('#cpu-b').checked;
 const openHands = () => $('#open-hands').checked;
-function legal(p, s, t) { return onBoard(step(G.pos[t], s)); }
+const legal = (card, t) => onBoard(step(G.pos[t], card));
 function showHand() { if (G.phase === 'hidden') { G.phase = 'choose'; render(); } }
-function selectCard(i) { if (G.phase !== 'choose') return; G.sel = i; render(); }
+function selectCard(i) { if (G.phase === 'choose') { G.sel = i; render(); } }
+function computerPick() {
+  const mv = careful(1, G.pos, G.hands[1]);
+  G.picks[1] = { card: G.hands[1].splice(mv.idx, 1)[0], target: mv.target }; G.phase = 'ready';
+}
 function chooseTarget(t) {
   if (G.phase !== 'choose' || G.sel === null) return;
-  const p = G.who, card = G.hands[p][G.sel];
-  if (t >= 0 && !legal(p, card.suit, t)) return;
+  const p = G.who, card = G.hands[p][G.sel]; if (t >= 0 && !legal(card, t)) return;
   G.picks[p] = { card, target: t }; G.hands[p].splice(G.sel, 1); G.sel = null;
-  $('#event').textContent = t >= 0 ? `Player ${NAMES[p]} placed a card face-down on ${t === p ? 'their own' : 'the other'} detector.` : `Player ${NAMES[p]} had no legal move and discarded a card.`;
-  if (p === 0) {
-    G.who = 1;
-    if (cpuB()) { const mv = careful(1, G.pos, G.hands[1]); const card1 = G.hands[1][mv.idx]; G.picks[1] = { card: card1, target: mv.target }; G.hands[1].splice(mv.idx, 1); G.phase = 'ready'; $('#event').textContent += ' The computer placed its card too.'; }
-    else G.phase = openHands() ? 'choose' : 'hidden';
-  } else G.phase = 'ready';
-  render();
+  $('#event').textContent = t >= 0 ? `Player ${NAMES[p]} chose a wave for ${t === p ? 'their own' : 'the other'} detector.` : `Player ${NAMES[p]} had no legal move and discarded a card.`;
+  if (p === 0) { G.who = 1; if (cpuB()) computerPick(); else G.phase = openHands() ? 'choose' : 'hidden'; }
+  else G.phase = 'ready';
+  if (G.phase === 'ready' && quickMode && cpuB()) {
+    G.phase = 'resolve'; G.steps = [applyPick(0), applyPick(1)]; G.stepIdx = 1;
+    const message = G.steps.map(caption).join(' '); next(); $('#event').textContent = message + ' ' + $('#event').textContent;
+  } else render();
 }
 function applyPick(p) {
-  const pk = G.picks[p], s = pk.card.suit, t = pk.target;
-  if (t < 0) return { p, s, rank: pk.card.rank, t, lost: true, before: null, after: null };
-  const before = G.pos[t], after = step(before, s);
-  if (!onBoard(after)) return { p, s, rank: pk.card.rank, t, lost: true, before, after: before };
-  const rel = relation(before, s); G.pos[t] = after; G.played[t].push(s);
-  return { p, s, rank: pk.card.rank, t, lost: false, before, after, rel };
+  const {card, target: t} = G.picks[p]; G.discard.push(card);
+  if (t < 0) return { p, card, t, lost: true };
+  const before = G.pos[t], after = step(before, card);
+  if (!onBoard(after)) return { p, card, t, lost: true, before, after: before };
+  G.pos[t] = after; G.played[t].push(card); return { p, card, t, lost: false, before, after };
 }
 function caption(st) {
-  if (st.t < 0) return `Player ${NAMES[st.p]} discarded a card.`;
-  const who = `Player ${NAMES[st.p]} played ${RANK(st.rank)}${SUITS[st.s].sym} on ${st.t === st.p ? 'their own' : `Player ${NAMES[st.t]}'s`} detector`;
-  if (st.lost) return `${who}, but it would push the token off the board, so the card is lost.`;
+  if (st.t < 0) return `Player ${NAMES[st.p]} discarded a wave.`;
+  const who = `Player ${NAMES[st.p]} played ${cardName(st.card)} on ${st.t === st.p ? 'their own' : `Player ${NAMES[st.t]}'s`} detector.`;
+  if (st.lost) return `${who} The full move would leave the board, so the card is lost.`;
   const b0 = bright(st.before), b1 = bright(st.after);
-  const why = { first: 'It is the first wave there.', add: 'It is in step with the wave already there, so the wave grows.',
-    quarter: 'It is a quarter-step from the wave already there, so the wave grows a little.',
-    cancel: b1 === 0 ? 'It is opposite to the wave already there: they cancel completely. Dark!' : 'It is opposite to part of the wave already there, so they partly cancel.' }[st.rel];
-  return `${who}. ${why} Brightness ${b0} → ${b1}.`;
+  const why = b1 === 0 ? 'Equal opposite amplitudes cancel completely. Dark!' : b1 < b0 ? 'The waves partly cancel.' : b1 === b0 ? 'The phase changes; brightness stays the same.' : b0 === 0 ? 'The first wave builds brightness.' : 'The combined wave grows.';
+  return `${who} ${why} Brightness ${b0} → ${b1}.`;
 }
 function reveal() {
   if (G.phase !== 'ready') return;
-  G.phase = 'resolve'; G.steps = [applyPick(0)]; G.stepIdx = 0;
-  $('#event').textContent = caption(G.steps[0]); render();
+  G.phase = 'resolve'; G.steps = [applyPick(0)]; G.stepIdx = 0; $('#event').textContent = caption(G.steps[0]); render();
 }
 function next() {
   if (G.phase !== 'resolve') return;
   if (G.stepIdx === 0) { G.steps.push(applyPick(1)); G.stepIdx = 1; $('#event').textContent = caption(G.steps[1]); render(); return; }
-  for (const p of [0, 1]) while (G.hands[p].length < 3 && G.deck.length) G.hands[p].push(G.deck.pop());
+  for (const p of [0, 1]) while (G.hands[p].length < 3) {
+    if (!G.deck.length) G.deck = shuffle(G.discard.splice(0), rand);
+    if (!G.deck.length) break;
+    G.hands[p].push(G.deck.pop());
+  }
   G.picks = [null, null]; G.steps = []; G.stepIdx = -1; G.round++; G.who = 0;
-  if (G.round > G.maxRounds) {
-    if (bright(G.pos[0]) + bright(G.pos[1]) === 0) { G.maxRounds++; G.phase = openHands() ? 'choose' : 'hidden'; $('#event').textContent = 'Both detectors are dark, so nobody can catch the photon. Play one more round!'; }
-    else { G.phase = 'photon'; $('#event').textContent = 'All rounds played. Fire the photon!'; }
-  } else { G.phase = openHands() ? 'choose' : 'hidden'; $('#event').textContent = `Round ${G.round} of ${G.maxRounds}.`; }
+  if (G.round > G.maxRounds && bright(G.pos[0]) + bright(G.pos[1]) > 0) { G.phase = 'photon'; $('#event').textContent = 'All rounds played. Fire the photon!'; }
+  else {
+    if (G.round > G.maxRounds) { G.maxRounds++; $('#event').textContent = 'Both detectors are dark. Play one more round!'; }
+    else $('#event').textContent = `Round ${G.round} of ${G.maxRounds}.`;
+    G.phase = openHands() ? 'choose' : 'hidden';
+  }
   render();
 }
 function fire() {
   if (G.phase !== 'photon' || G.firing) return;
-  const bA = bright(G.pos[0]), bB = bright(G.pos[1]), u = rand(), w = photon(bA, bB, u);
+  const bA = bright(G.pos[0]), bB = bright(G.pos[1]); if (bA + bB === 0) return;
+  const u = rand(), w = photon(bA, bB, u), id = G;
   G.firing = true; $('#fire').disabled = true;
-  const ph = $('#photon'), wrap = ph.parentElement.getBoundingClientRect();
-  const W = wrap.width || 200;
+  const ph = $('#photon'), W = ph.parentElement.getBoundingClientRect().width || 200;
   ph.style.setProperty('--x0', (W * rand()).toFixed(0) + 'px'); ph.style.setProperty('--x1', (W * u).toFixed(0) + 'px');
   ph.classList.remove('fly'); void ph.offsetWidth; ph.classList.add('fly');
-  const id = G;
-  setTimeout(() => { if (G !== id) return; G.firing = false; $('#fire').disabled = false; G.result = w; G.phase = 'done'; score[w]++;
-    $('#result').className = NAMES[w]; $('#result').textContent = `The photon landed on Player ${NAMES[w]}'s detector. Player ${NAMES[w]} wins!`;
-    $('#event').textContent = `The photon had a ${Math.round(100 * (w === 0 ? bA : bB) / (bA + bB))}% chance of landing there.`; render(); }, 1450);
+  fireTimer = setTimeout(() => {
+    if (G !== id) return; fireTimer = null; G.firing = false; G.result = w; G.phase = 'done'; score[w]++;
+    $('#result').className = NAMES[w]; $('#result').textContent = `Player ${NAMES[w]} caught the photon!`;
+    $('#event').textContent = `Achieved chances: A ${Math.round(100 * bA / (bA + bB))}%, B ${Math.round(100 * bB / (bA + bB))}%. The draw samples those chances; a good strategy can still lose one trial.`;
+    render();
+  }, 1450);
 }
-
-/* ----- drawing ----- */
 function drawDetCurve(svg, pos, st, color) {
   const amp = 44 / RREF; let h = '<line x1="10" x2="310" y1="58" y2="58" stroke="#c9ccd5" stroke-width="1.5"/>';
   if (st && !st.lost && st.before) {
     h += `<path d="${pathFor(st.before[0], st.before[1], 10, 300, 58, amp, 2)}" fill="none" stroke="#8a8f9c" stroke-width="2.5" stroke-dasharray="6 5"/>`;
-    const d = SUITS[st.s].d; h += `<path d="${pathFor(d[0], d[1], 10, 300, 58, amp, 2)}" fill="none" stroke="${SUITS[st.s].red ? '#c0182a' : '#111'}" stroke-width="2"/>`;
+    const d = vector(st.card); h += `<path d="${pathFor(d[0], d[1], 10, 300, 58, amp, 2)}" fill="none" stroke="${WAVES[st.card.direction].color}" stroke-width="2"/>`;
   }
-  h += `<path d="${pathFor(pos[0], pos[1], 10, 300, 58, amp, 2)}" fill="none" stroke="${color}" stroke-width="4.5" stroke-linecap="round"/>`;
-  svg.innerHTML = h;
+  h += `<path d="${pathFor(pos[0], pos[1], 10, 300, 58, amp, 2)}" fill="none" stroke="${color}" stroke-width="4.5" stroke-linecap="round"/>`; svg.innerHTML = h;
 }
 function cardHTML(c, i, sel, back) {
-  if (back) return `<div class="pc back" aria-label="face-down card"><span class="big" style="margin:0"><svg style="width:46px;height:46px" aria-hidden="true"><use href="#ghost"/></svg></span></div>`;
-  const S = SUITS[c.suit], d = S.d;
-  return `<button class="pc ${S.red ? 'red' : 'black'} ${sel ? 'sel' : ''}" data-i="${i}" aria-label="${RANK(c.rank)} of ${S.sym}, moves ${S.dir}"><span class="rk">${RANK(c.rank)}<br>${S.sym}</span><span class="big">${S.sym}</span><svg viewBox="0 0 70 26" aria-hidden="true"><line x1="2" x2="68" y1="13" y2="13" stroke="#c9ccd5"/><path d="${pathFor(d[0], d[1], 2, 66, 13, 10, 1)}" fill="none" stroke="#1f2a44" stroke-width="2"/></svg></button>`;
+  if (back) return '<div class="pc back" aria-label="face-down wave card"><svg aria-hidden="true"><use href="#ghost"/></svg></div>';
+  return `<button class="pc ${sel ? 'sel' : ''}" data-i="${i}" aria-label="Strength ${c.strength}, move ${c.strength} ${WAVES[c.direction].dir}" aria-pressed="${!!sel}">${cardSVG(c, `hand-${i}`)}</button>`;
 }
 function render() {
   if (document.body.dataset.tab !== 'play') return;
   renderTokens($('#board'), [{ pos: G.pos[0], cls: 'A', label: 'A' }, { pos: G.pos[1], cls: 'B', label: 'B' }]);
   const st = G.phase === 'resolve' ? G.steps[G.stepIdx] : null;
   for (const t of [0, 1]) {
-    $('#b' + t).textContent = bright(G.pos[t]);
-    drawDetCurve($('#curve' + t), G.pos[t], st && st.t === t ? st : null, t ? '#6c2f9e' : '#154c9c');
-    $('#cards' + t).innerHTML = G.played[t].map(suitSpan).join('') || '<span style="color:#9aa0ad;font-size:14px;letter-spacing:0">no waves yet</span>';
-    const placed = [0, 1].filter(p => G.picks[p] && G.picks[p].target === t && (G.phase === 'ready' || G.phase === 'choose' || G.phase === 'hidden' || (G.phase === 'resolve' && G.stepIdx < p)));
-    $('#placed' + t).innerHTML = placed.map(() => '<div class="mini-back" title="face-down card"></div>').join('');
+    $('#b' + t).textContent = bright(G.pos[t]); drawDetCurve($('#curve' + t), G.pos[t], st && st.t === t ? st : null, t ? '#6c2f9e' : '#154c9c');
+    $('#cards' + t).innerHTML = G.played[t].map(waveChip).join('') || '<span style="color:#697080;font-size:14px">no waves yet</span>';
+    const placed = [0, 1].filter(p => G.picks[p] && G.picks[p].target === t && (['ready','choose','hidden'].includes(G.phase) || (G.phase === 'resolve' && G.stepIdx < p)));
+    $('#placed' + t).innerHTML = placed.map(() => '<div class="mini-back" title="face-down wave card"></div>').join('');
   }
-  // hand area
-  const ha = $('#hand'), ta = $('#targets'), title = $('#hand-title'); ha.innerHTML = ''; ta.innerHTML = '';
-  title.className = 'hand-title'; title.textContent = '';
+  const ha = $('#hand'), ta = $('#targets'), title = $('#hand-title'); ha.innerHTML = ''; ta.innerHTML = ''; title.className = 'hand-title';
   if (G.phase === 'hidden' || G.phase === 'choose') {
     const p = G.who; title.classList.add(NAMES[p]);
-    if (G.phase === 'hidden') { title.textContent = `Player ${NAMES[p]}'s cards are hidden. Player ${NAMES[1 - p]}, look away!`; ha.innerHTML = G.hands[p].map((c, i) => cardHTML(c, i, false, true)).join(''); }
-    else {
-      title.textContent = `Player ${NAMES[p]}: pick a card, then pick a detector.`;
-      ha.innerHTML = G.hands[p].map((c, i) => cardHTML(c, i, G.sel === i, false)).join('');
-      if (openHands() && p === 0 && !cpuB()) ha.innerHTML += `<span style="align-self:center;color:#535969;font-weight:bold;margin-left:8px">Player B's hand: ${G.hands[1].map(c => suitSpan(c.suit)).join(' ')}</span>`;
-      const anyLegal = G.hands[p].some(c => legal(p, c.suit, 0) || legal(p, c.suit, 1));
+    title.textContent = G.phase === 'hidden' ? `Player ${NAMES[p]}'s cards are hidden. Other player, look away!` : `Player ${NAMES[p]}: pick a wave, then a detector.`;
+    ha.innerHTML = G.hands[p].map((c, i) => cardHTML(c, i, G.sel === i, G.phase === 'hidden')).join('');
+    if (G.phase === 'choose') {
+      if (openHands() && p === 0 && !cpuB()) ha.innerHTML += `<span style="align-self:center">Player B’s hand: ${G.hands[1].map(waveChip).join(' ')}</span>`;
+      const any = G.hands[p].some(c => legal(c, 0) || legal(c, 1));
       if (G.sel !== null) {
-        const s = G.hands[p][G.sel].suit;
+        const card = G.hands[p][G.sel];
         ta.innerHTML = [p, 1 - p].map(t => {
-          const ok = legal(p, s, t), b0 = bright(G.pos[t]), b1 = ok ? bright(step(G.pos[t], s)) : b0;
-          const hint = !ok ? 'cannot: off the board' : $('#hints').checked ? `brightness ${b0} → ${b1}` : '';
+          const ok = legal(card, t), b0 = bright(G.pos[t]), b1 = ok ? bright(step(G.pos[t], card)) : b0;
+          const hint = !ok ? 'cannot: full move leaves board' : $('#hints').checked ? `brightness ${b0} → ${b1}` : '';
           return `<button class="${NAMES[t]}" data-t="${t}" ${ok ? '' : 'disabled'}>${t === p ? 'On my detector' : `On Player ${NAMES[t]}'s detector`}<small>${hint}</small></button>`;
         }).join('');
-      } else if (!anyLegal) ta.innerHTML = '<button data-t="-1">No legal move: discard the first card</button>';
+      } else if (!any) ta.innerHTML = '<button data-t="-1">No legal move: discard the first card</button>';
+      ha.querySelectorAll('.pc').forEach(b => { const c = G.hands[p][+b.dataset.i]; b.disabled = !(legal(c, 0) || legal(c, 1)); });
     }
-  } else if (G.phase === 'ready') { title.textContent = 'Both cards are face-down. Reveal them!'; }
-  else if (G.phase === 'resolve') { title.textContent = 'Cards played this round:'; ha.innerHTML = G.steps.map(s => cardHTML({ suit: s.s, rank: s.rank }, -1, false, false)).join(''); ha.querySelectorAll('button').forEach(b => b.disabled = true); }
-  else if (G.phase === 'photon') title.textContent = 'All rounds played. Fire the photon on the right!';
-  else if (G.phase === 'done') title.textContent = 'Game over. Click "New game" to play again.';
-  if (G.sel === null && G.phase === 'choose' && G.hands[G.who].some(c => legal(G.who, c.suit, 0) || legal(G.who, c.suit, 1))) {
-    ha.querySelectorAll('.pc').forEach(b => { const c = G.hands[G.who][+b.dataset.i]; if (!(legal(G.who, c.suit, 0) || legal(G.who, c.suit, 1))) b.disabled = true; });
-  }
+  } else if (G.phase === 'ready') title.textContent = 'Both waves chosen. Reveal them!';
+  else if (G.phase === 'resolve') { title.textContent = 'Waves played this round:'; ha.innerHTML = G.steps.map((st, i) => cardHTML(st.card, i, false, false)).join(''); ha.querySelectorAll('button').forEach(b => b.disabled = true); }
+  else if (G.phase === 'photon') title.textContent = 'All rounds played. Fire the photon!';
+  else if (G.phase === 'done') title.textContent = 'Try again: keep the strategy, or change your moves.';
   $('#show-hand').hidden = G.phase !== 'hidden'; $('#show-hand').textContent = `Show Player ${NAMES[G.who]}'s cards`;
-  $('#reveal').hidden = G.phase !== 'ready';
-  $('#next').hidden = G.phase !== 'resolve'; $('#next').textContent = G.stepIdx === 0 ? 'Next card ▶' : 'Next round ▶';
-  $('#fire').hidden = G.phase !== 'photon';
-  // side
-  const bA = bright(G.pos[0]), bB = bright(G.pos[1]), pA = bA + bB ? bA / (bA + bB) : 0.5;
+  $('#reveal').hidden = G.phase !== 'ready'; $('#next').hidden = G.phase !== 'resolve'; $('#next').textContent = G.stepIdx === 0 ? 'Next wave ▶' : 'Next round ▶';
+  $('#fire').hidden = G.phase !== 'photon'; $('#fire').disabled = G.firing;
+  $('#new-game').textContent = G.phase === 'done' ? 'Play again' : 'New game';
+  const bA = bright(G.pos[0]), bB = bright(G.pos[1]), total = bA + bB, pA = winp(bA, bB);
   $('#pa').style.width = (100 * pA) + '%'; $('#pb').style.width = (100 * (1 - pA)) + '%';
-  $('#pa-label').textContent = `A ${Math.round(100 * pA)}%`; $('#pb-label').textContent = `B ${Math.round(100 * (1 - pA))}%`;
-  $('#round').textContent = G.phase === 'photon' || G.phase === 'done' ? 'Photon time!' : `Round ${Math.min(G.round, G.maxRounds)} of ${G.maxRounds}`;
+  $('#pa-label').textContent = total ? `A ${Math.round(100 * pA)}%` : 'A — dark'; $('#pb-label').textContent = total ? `B ${Math.round(100 * (1 - pA))}%` : 'B — dark';
+  $('#round').textContent = ['photon','done'].includes(G.phase) ? 'Photon time!' : `Round ${Math.min(G.round, G.maxRounds)} of ${G.maxRounds}`;
   $('#score').innerHTML = `<span style="color:var(--a)">Player A: ${score[0]}</span> · <span style="color:var(--b)">Player B: ${score[1]}</span>`;
-  // status
-  const stEl = $('#status'), badge = $('#turn-badge'); stEl.className = ''; badge.className = 'badge';
-  if (G.phase === 'hidden' || G.phase === 'choose') { const p = NAMES[G.who]; stEl.textContent = G.phase === 'hidden' ? `Player ${p}'s turn. Player ${NAMES[1 - G.who]}, look away!` : `Player ${p}: choose a card and a detector`; stEl.classList.add(p); badge.classList.add(p); badge.textContent = `Player ${p}'s turn`; }
-  else if (G.phase === 'ready') { stEl.textContent = 'Both cards are placed. Reveal them!'; badge.classList.add('done'); badge.textContent = 'Reveal'; }
-  else if (G.phase === 'resolve') { stEl.textContent = `Round ${G.round}: card ${G.stepIdx + 1} of 2`; badge.classList.add('done'); badge.textContent = 'Waves adding'; }
-  else if (G.phase === 'photon') { stEl.textContent = `Fire the photon! A has ${Math.round(100 * pA)}% of the brightness, B has ${Math.round(100 * (1 - pA))}%.`; badge.classList.add('done'); badge.textContent = 'Photon time'; }
-  else if (G.phase === 'done') { const w = NAMES[G.result]; stEl.textContent = `Player ${w} caught the photon!`; stEl.classList.add(w); badge.classList.add(w); badge.textContent = `Player ${w} wins`; }
+  const status = $('#status'), badge = $('#turn-badge'); status.className = ''; badge.className = 'badge';
+  if (['hidden','choose'].includes(G.phase)) { const name = NAMES[G.who]; status.textContent = G.phase === 'hidden' ? `Player ${name}'s turn. Other player, look away!` : `Player ${name}: choose a wave and a detector`; status.classList.add(name); badge.classList.add(name); badge.textContent = `Player ${name}'s turn`; }
+  else if (G.phase === 'ready') { status.textContent = 'Both cards are placed. Reveal them!'; badge.textContent = 'Reveal'; }
+  else if (G.phase === 'resolve') { status.textContent = `Round ${G.round}: wave ${G.stepIdx + 1} of 2`; badge.textContent = 'Waves adding'; }
+  else if (G.phase === 'photon') { status.textContent = `Achieved chances: A ${Math.round(100 * pA)}%, B ${Math.round(100 * (1 - pA))}%. Fire the photon!`; badge.textContent = 'Photon time'; }
+  else { status.textContent = `Player ${NAMES[G.result]} caught the photon!`; badge.textContent = `Player ${NAMES[G.result]} wins`; }
 }
-
-/* ----- sound: every wave is its own tone, started at the same instant ----- */
+/* Every card contributes its amplitude and phase to a simultaneous sound. */
 let actx = null;
-function hear(suits) {
+function hear(cards) {
   const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
   actx = actx || new AC(); if (actx.state === 'suspended') actx.resume();
-  const t0 = actx.currentTime + 0.06, dur = 1.4, f = 330;
-  const master = actx.createGain(); master.gain.setValueAtTime(0, t0); master.gain.linearRampToValueAtTime(1, t0 + 0.05);
-  master.gain.setValueAtTime(1, t0 + dur - 0.12); master.gain.linearRampToValueAtTime(0, t0 + dur); master.connect(actx.destination);
-  for (const s of suits) {
-    const d = SUITS[s].d;   // wave = y*cos + x*sin  -> cosine part d[1], sine part d[0]
-    const pw = actx.createPeriodicWave(new Float32Array([0, d[1]]), new Float32Array([0, d[0]]), { disableNormalization: true });
-    const o = actx.createOscillator(); o.setPeriodicWave(pw); o.frequency.value = f;
-    const g = actx.createGain(); g.gain.value = 0.08; o.connect(g); g.connect(master); o.start(t0); o.stop(t0 + dur + 0.02);
+  const t0 = actx.currentTime + .06, dur = 1.4, master = actx.createGain();
+  master.gain.setValueAtTime(0, t0); master.gain.linearRampToValueAtTime(1, t0 + .05); master.gain.setValueAtTime(1, t0 + dur - .12); master.gain.linearRampToValueAtTime(0, t0 + dur); master.connect(actx.destination);
+  const scale = .4 / Math.max(5, cards.reduce((n, c) => n + c.strength, 0));
+  for (const card of cards) {
+    const d = vector(card), pw = actx.createPeriodicWave(new Float32Array([0, d[1]]), new Float32Array([0, d[0]]), { disableNormalization: true });
+    const o = actx.createOscillator(), g = actx.createGain(); o.setPeriodicWave(pw); o.frequency.value = 330; g.gain.value = scale; o.connect(g); g.connect(master); o.start(t0); o.stop(t0 + dur + .02);
   }
   return true;
 }
-
-/* ----- wave lab ----- */
 let LAB = [];
-const labPos = () => LAB.reduce((p, s) => step(p, s), [0, 0]);
+const labPos = () => LAB.reduce((p, card) => step(p, card), [0, 0]);
 function renderLab() {
-  const p = labPos(), b = bright(p);
-  renderTokens($('#lab-board'), [{ pos: p, cls: 'L', label: '' }]);
-  $('#lab-waves').innerHTML = LAB.length ? LAB.map(suitSpan).join(' ') : '<span style="color:#9aa0ad;font-size:16px;letter-spacing:0">No waves yet. Click a suit.</span>';
+  const p = labPos(), b = bright(p); renderTokens($('#lab-board'), [{ pos: p, cls: 'L', label: '' }]);
+  $('#lab-waves').innerHTML = LAB.length ? LAB.map(waveChip).join(' ') : '<span style="font-size:16px">No waves yet. Choose a direction and strength.</span>';
   const amp = 70 / RREF; let h = '<line x1="10" x2="630" y1="110" y2="110" stroke="#c9ccd5" stroke-width="1.5"/>';
-  LAB.forEach(s => { const d = SUITS[s].d; h += `<path d="${pathFor(d[0], d[1], 10, 620, 110, amp, 2)}" fill="none" stroke="#9aa0ad" stroke-width="1.6" opacity=".8"/>`; });
-  h += `<path d="${pathFor(p[0], p[1], 10, 620, 110, amp, 2)}" fill="none" stroke="#b41524" stroke-width="5" stroke-linecap="round"/>`;
-  $('#lab-curve').innerHTML = h;
+  LAB.forEach(card => { const d = vector(card); h += `<path d="${pathFor(d[0], d[1], 10, 620, 110, amp, 2)}" fill="none" stroke="#9aa0ad" stroke-width="1.6" opacity=".8"/>`; });
+  h += `<path d="${pathFor(p[0], p[1], 10, 620, 110, amp, 2)}" fill="none" stroke="#b41524" stroke-width="5"/>`; $('#lab-curve').innerHTML = h;
   const height = Math.sqrt(b);
-  $('#lab-note').textContent = LAB.length === 0 ? 'Flat line: no waves, brightness 0.' : b === 0 ? `${LAB.length} waves that cancel completely: flat line, brightness 0.`
-    : `Total wave height ${Number.isInteger(height) ? height : height.toFixed(2)} → brightness ${b} (${p[0] ? Math.abs(p[0]) + '² ' : ''}${p[0] && p[1] ? '+ ' : ''}${p[1] ? Math.abs(p[1]) + '²' : ''}${p[0] && p[1] ? ' = ' + b : ''}).`;
+  $('#lab-note').textContent = !LAB.length ? 'Flat line: no waves, brightness 0.' : b === 0 ? 'Equal opposite amplitudes: complete cancellation, brightness 0.' : `Total amplitude ${Number.isInteger(height) ? height : height.toFixed(2)}; brightness (probability weight) ${b} = (${p[0]})² + (${p[1]})².`;
   $('#lab-undo').disabled = !LAB.length; $('#lab-clear').disabled = !LAB.length;
 }
-function labAdd(s) { const np = step(labPos(), s); if (!onBoard(np)) { $('#lab-note').textContent = 'That wave would push the token off the board.'; return; } LAB.push(s); renderLab(); }
-const PRESETS = [{ t: '♠ + ♠: in step', w: ['S', 'S'] }, { t: '♠ + ♣: cancel', w: ['S', 'C'] }, { t: '♠ + ♥: a quarter apart', w: ['S', 'H'] },
-  { t: '3♥ + 4♠: brightness 25', w: ['H', 'H', 'H', 'S', 'S', 'S', 'S'] }, { t: '♠ ♥ ♣ ♦: all cancel', w: ['S', 'H', 'C', 'D'] }];
-
-/* ----- wiring ----- */
+function labAdd(card) { if (!onBoard(step(labPos(), card))) { $('#lab-note').textContent = 'The full move would leave the board.'; return; } LAB.push(card); renderLab(); }
+const wave = (direction, strength = 1) => ({ direction, strength });
+const PRESETS = [
+  { t: '↑2 + ↓1: partly cancel', w: [wave('U',2),wave('D')] },
+  { t: '↑2 + ↓2: completely cancel', w: [wave('U',2),wave('D',2)] },
+  { t: '↑1 + →1: a quarter apart', w: [wave('U'),wave('R')] },
+  { t: '3 right + 4 up: brightness 25', w: [wave('R'),wave('R',2),wave('U',2),wave('U',2)] },
+  { t: '↑2 + ↓1 + ↓2: phase reverses', w: [wave('U',2),wave('D'),wave('D',2)] }
+];
 function setTab(t) {
   document.body.dataset.tab = t; $('#tab-play').setAttribute('aria-pressed', String(t === 'play')); $('#tab-lab').setAttribute('aria-pressed', String(t === 'lab'));
-  if (t === 'lab') { $('#status').textContent = 'Wave lab: add waves and see (and hear) them add up or cancel.'; $('#status').className = ''; $('#turn-badge').className = 'badge done'; $('#turn-badge').textContent = 'Wave lab'; renderLab(); }
-  else render();
+  if (t === 'lab') { $('#status').textContent = 'Wave lab: add waves and see (and hear) them reinforce or cancel.'; $('#status').className = ''; $('#turn-badge').className = 'badge'; $('#turn-badge').textContent = 'Wave lab'; renderLab(); } else render();
 }
 buildBoard($('#board')); buildBoard($('#lab-board'));
-$('#lab-buttons').innerHTML = ['S', 'H', 'C', 'D'].map(s => `<button class="${SUITS[s].red ? 'red' : 'black'}" data-s="${s}" aria-label="Add a ${SUITS[s].sym} wave">${SUITS[s].sym}<small>${{ S: 'crest first', H: 'crest ¼ later', C: 'trough first', D: 'crest ¾ later' }[s]}</small></button>`).join('');
-$('#lab-buttons').addEventListener('click', e => { const b = e.target.closest('button'); if (b) labAdd(b.dataset.s); });
-$('#presets').innerHTML = PRESETS.map((p, i) => `<button data-i="${i}">${p.t}</button>`).join('');
-$('#presets').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; LAB = PRESETS[+b.dataset.i].w.slice(); renderLab(); });
-$('#lab-undo').onclick = () => { LAB.pop(); renderLab(); };
-$('#lab-clear').onclick = () => { LAB = []; renderLab(); };
+$('#lab-buttons').innerHTML = [1,2].flatMap(strength => ['U','D','R','L'].map(direction => { const w = WAVES[direction]; return `<button data-direction="${direction}" data-strength="${strength}" style="color:${w.color};border-color:${w.color}" aria-label="Add strength ${strength} ${w.dir}">${strength}${w.sym}<small>${w.phase}</small></button>`; })).join('');
+$('#lab-buttons').addEventListener('click', e => { const b = e.target.closest('button'); if (b) labAdd(wave(b.dataset.direction, +b.dataset.strength)); });
+$('#presets').innerHTML = PRESETS.map((p,i) => `<button data-i="${i}">${p.t}</button>`).join('');
+$('#presets').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { LAB = PRESETS[+b.dataset.i].w.slice(); renderLab(); } });
+$('#lab-undo').onclick = () => { LAB.pop(); renderLab(); }; $('#lab-clear').onclick = () => { LAB = []; renderLab(); };
 $('#lab-hear').onclick = () => { if (!hear(LAB)) $('#lab-note').textContent = 'This browser cannot play sound.'; };
 document.querySelectorAll('.hear').forEach(b => b.onclick = () => hear(G.played[+b.dataset.det]));
-$('#hand').addEventListener('click', e => { const b = e.target.closest('.pc'); if (b && !b.disabled && b.dataset.i !== undefined && +b.dataset.i >= 0) selectCard(+b.dataset.i); });
-$('#targets').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled) { if (+b.dataset.t < 0) { G.sel = 0; } chooseTarget(+b.dataset.t); } });
-$('#show-hand').onclick = showHand; $('#reveal').onclick = reveal; $('#next').onclick = next; $('#fire').onclick = fire;
-$('#new-game').onclick = newGame;
+$('#hand').addEventListener('click', e => { const b = e.target.closest('.pc'); if (b && !b.disabled && +b.dataset.i >= 0) selectCard(+b.dataset.i); });
+$('#targets').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled) { if (+b.dataset.t < 0) G.sel = 0; chooseTarget(+b.dataset.t); } });
+$('#show-hand').onclick = showHand; $('#reveal').onclick = reveal; $('#next').onclick = next; $('#fire').onclick = fire; $('#new-game').onclick = newGame;
+$('#solo').onclick = () => { quickMode = true; $('#cpu-b').checked = true; $('#open-hands').checked = true; setTab('play'); newGame(); };
 $('#reset-score').onclick = () => { score[0] = score[1] = 0; render(); };
-$('#cpu-b').onchange = () => { if (G.who === 1 && (G.phase === 'hidden' || G.phase === 'choose') && cpuB()) { const mv = careful(1, G.pos, G.hands[1]); G.picks[1] = { card: G.hands[1][mv.idx], target: mv.target }; G.hands[1].splice(mv.idx, 1); G.phase = 'ready'; } render(); };
-$('#open-hands').onchange = () => { if (G.phase === 'hidden' && openHands()) G.phase = 'choose'; render(); };
-$('#hints').onchange = render;
-$('#tab-play').onclick = () => setTab('play'); $('#tab-lab').onclick = () => setTab('lab');
+$('#cpu-b').onchange = () => { if (!cpuB()) quickMode = false; if (G.who === 1 && ['hidden','choose'].includes(G.phase) && cpuB()) computerPick(); render(); };
+$('#open-hands').onchange = () => { if (!openHands()) quickMode = false; if (G.phase === 'hidden' && openHands()) G.phase = 'choose'; render(); };
+$('#hints').onchange = render; $('#tab-play').onclick = () => setTab('play'); $('#tab-lab').onclick = () => setTab('lab');
 $('#fullscreen').onclick = () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); };
 document.addEventListener('keydown', e => {
-  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.ctrlKey || e.metaKey || e.altKey || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
   const k = e.key.toUpperCase();
-  if (document.body.dataset.tab === 'lab') { if ('SHCD'.includes(k) && k.length === 1) { e.preventDefault(); labAdd(k); } return; }
-  if (G.phase === 'choose' && '123'.includes(k) && k.length === 1 && +k <= G.hands[G.who].length) { e.preventDefault(); selectCard(+k - 1); }
+  if (document.body.dataset.tab === 'lab') { const key = {ArrowUp:'U',ArrowDown:'D',ArrowRight:'R',ArrowLeft:'L'}[e.key]; if (key) { e.preventDefault(); labAdd(wave(key,e.shiftKey?2:1)); } return; }
+  if (G.phase === 'choose' && /^[123]$/.test(k) && +k <= G.hands[G.who].length) { e.preventDefault(); selectCard(+k - 1); }
   else if (G.phase === 'choose' && G.sel !== null && (k === 'M' || k === 'O')) { e.preventDefault(); chooseTarget(k === 'M' ? G.who : 1 - G.who); }
   else if (G.phase === 'resolve' && e.key === 'ArrowRight') { e.preventDefault(); next(); }
 });
