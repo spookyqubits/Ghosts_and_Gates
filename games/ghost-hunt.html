@@ -140,6 +140,7 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
           </div>
         </div>
         <div class="actions">
+          <button id="solo" class="primary">Solo quick play</button>
           <button id="go" class="primary" hidden>Lock in</button>
           <button id="step" class="primary" hidden>Next step ▶</button>
           <button id="flip-coins" class="goldbtn" hidden>Flip the 7 coins</button>
@@ -157,7 +158,9 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
           <label><input type="checkbox" id="vs-cpu"> Player 2 is the computer</label>
           <label><input type="checkbox" id="practice-on"> Type the answers first (math practice)</label>
           <label><input type="checkbox" id="show-ref"> Show the catch-chance table</label>
+          <label><input type="checkbox" id="quick-play"> Resolve chosen rounds together</label>
         </div>
+        <p id="strategy-goal" class="small" aria-live="polite"></p>
         <div id="ref" hidden></div>
         <p class="small">A catch scores 1 point. Players swap hider and hunter each night. 6 nights.</p>
       </aside>
@@ -183,7 +186,7 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
         <p id="lab-event" aria-live="polite"></p>
       </section>
       <section aria-label="Readouts">
-        <div class="readout"><div>rounds<b id="lab-k">0</b></div><div>chance to catch<b id="lab-p">12.5%</b></div><div>squares add to<b id="lab-c">128</b></div></div>
+        <div class="readout"><div>rounds<b id="lab-k">0</b></div><div><span id="lab-chance-label">chance to catch</span><b id="lab-p">12.5%</b></div><div>squares add to<b id="lab-c">128</b></div></div>
         <h2 style="margin-top:14px">The sweet spot</h2>
         <svg class="bars" id="lab-curve" viewBox="0 0 520 240" aria-label="Chance to catch a ghost after each number of rounds"></svg>
         <p class="hotel-note">Each dot is the chance to catch a ghost if you look after that many rounds. The ring marks where you are now.</p>
@@ -212,6 +215,7 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
   </section>
 
   <details><summary>How to play</summary>
+    <p><b>Solo quick play.</b> Play a six-night duel against the computer. On your hunts, choosing a round count runs those rounds together; then LOOK. On your hiding nights, pick rooms and lock them in. The tracker keeps the arithmetic available. Turn off “Resolve chosen rounds together” or enable math practice to take every step yourself. New duel keeps your settings.</p>
     <p><b>The idea.</b> A ghost hides in one of 8 rooms, numbered in binary from 000 to 111. A quantum computer spreads a search wave over every room (4 in each room). It cannot look at the wave, but it can change it.</p>
     <p><b>One round = flip, then reflect.</b> 1. FLIP: the ghost room's wave changes sign (only the hider knows which room). 2. AVERAGE: add all 8 rooms and divide by 8. 3. REFLECT: every room's new wave = 2 × average − old wave. 4. CHECK: the squares of all 8 waves still add up to 128.</p>
     <p><b>Two numbers are enough.</b> Every empty room always has the same wave, so you only track G (each ghost room) and E (each empty room). With M ghosts: average = (M × (−G) + (8 − M) × E) ÷ 8, new G = 2 × average + G, new E = 2 × average − E.</p>
@@ -219,7 +223,7 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
     <p><b>Ghost Duel.</b> The hider secretly picks 1, 2 or 3 ghost rooms. The hunter then picks 0 to 3 rounds without knowing how many ghosts there are. The game reveals the number of ghosts (not where they are), runs the rounds, and the hunter looks. Swap roles each night; 6 nights.</p>
   </details>
   <details><summary>Why it works</summary>
-    <p>This is Grover's quantum search algorithm (1996). The flip is the "oracle", which marks the answer. Reflecting around the average is the "diffusion" step. Each round moves a little more of the wave into the ghost room, but too many rounds push it back out again. With a million rooms the best number of rounds is 804, while a normal computer would need to open about half a million rooms. A real quantum computer does the flip and reflect with gates on qubits; here you do the same arithmetic by hand.</p>
+    <p>This is Grover's quantum search algorithm (1996). The flip is the "oracle", which marks the answer. Reflecting around the average is the "diffusion" step. Each round moves a little more of the wave into the ghost room, but too many rounds push it back out again. With 1,000,000 rooms and one ghost, the first peak is at 785 rounds; with 1,048,576 rooms (2²⁰), it is at 804 rounds. A normal search needs about half the rooms on average. A real quantum computer does the flip and reflect with gates on qubits; here you do the same arithmetic by hand.</p>
   </details>
   <details><summary>For teachers</summary>
     <table><tr><th>In the game</th><th>Math or computer-science idea</th></tr>
@@ -314,15 +318,16 @@ function newNight() {
   render();
 }
 const cpu = () => $('#vs-cpu').checked;
-function cpuRounds() { D.k = pick(...CPU_ROUNDS); D.phase = 'reveal'; $('#event').textContent = `The computer chose ${D.k} round${D.k === 1 ? '' : 's'}.`; }
+function cpuRounds() { D.k = pick(...CPU_ROUNDS); D.phase = 'reveal'; $('#event').textContent = `The computer chose ${D.k} round${D.k === 1 ? '' : 's'}.`; if (quickPlay()) startCompute(); }
 function toggleRoom(i) { if (D.phase !== 'hide') return; const j = D.ghosts.indexOf(i); if (j >= 0) D.ghosts.splice(j, 1); else if (D.ghosts.length < 3) D.ghosts.push(i); render(); }
 function lockGhosts() { if (D.phase !== 'hide' || !D.ghosts.length) return; D.M = D.ghosts.length; D.phase = 'rounds'; $('#event').textContent = `${NAMES[D.hider]} hid the ghosts. ${NAMES[D.hunter]}, you may look now.`; if (cpu() && D.hunter === 1) cpuRounds(); render(); }
-function chooseRounds(k) { if (D.phase !== 'rounds') return; D.k = k; render(); }
+const quickPlay = () => $('#quick-play').checked && !$('#practice-on').checked;
+function chooseRounds(k) { if (D.phase !== 'rounds') return; D.k = k; if (quickPlay()) lockRounds(); else render(); }
 function lockRounds() {
   if (D.phase !== 'rounds' || D.k === null) return;
-  D.phase = 'reveal'; $('#event').textContent = `Reveal: ${NAMES[D.hider]} hid ${D.M} ghost${D.M > 1 ? 's' : ''}. ${NAMES[D.hunter]} chose ${D.k} round${D.k === 1 ? '' : 's'}.`; render();
+  D.phase = 'reveal'; $('#event').textContent = `Reveal: ${NAMES[D.hider]} hid ${D.M} ghost${D.M > 1 ? 's' : ''}. ${NAMES[D.hunter]} chose ${D.k} round${D.k === 1 ? '' : 's'}.`; if (quickPlay()) startCompute(); else render();
 }
-function startCompute() { D.rows = GH.track(8, D.M, 4, D.k); D.step = 0; D.sub = 0; D.practiceOk = !$('#practice-on').checked; D.phase = D.k === 0 ? 'look' : 'compute'; if (D.k === 0) $('#event').textContent = 'No rounds: the wave is still spread evenly. Looking now is a normal guess.'; render(); }
+function startCompute() { D.rows = GH.track(8, D.M, 4, D.k); D.step = quickPlay() ? D.k : 0; D.sub = 0; D.practiceOk = !$('#practice-on').checked; D.phase = D.k === 0 || quickPlay() ? 'look' : 'compute'; if (D.k === 0) $('#event').textContent = 'No rounds: the wave is still spread evenly. Looking now is a normal guess.'; else if (quickPlay()) $('#event').textContent = `${D.M} ghost${D.M > 1 ? 's' : ''}, ${D.k} round${D.k > 1 ? 's' : ''} resolved. The tracker shows each round. Compare your catch chance, then LOOK.`; render(); }
 function nextStep() {
   if (D.phase === 'reveal') { startCompute(); return; }
   if (D.phase !== 'compute') return;
@@ -385,6 +390,7 @@ function render(keepPractice) {
     G = r.G; E = r.E; title = D.step === 0 ? 'Start: 4 in every room' : `After round ${D.step}`;
     if (D.phase === 'compute' && D.sub === 1) { const nx = D.rows[D.step + 1]; G = nx.flipG; avg = nx.avg; title = `Round ${nx.k}: ghost rooms flipped`; }
   }
+  if (D.phase === 'result') title = 'Before LOOK: amplitudes used for the draw';
   barsSVG($('#duel-bars'), [{ label: 'each ghost room', value: G, color: '#b41524', mult: showM ? `× ${D.M}` : '× ?' }, { label: 'each empty room', value: E, color: '#154c9c', mult: showM ? `× ${8 - D.M}` : '× ?' }], { max: 12, avg, title });
   const rowsShown = (D.phase === 'compute' || D.phase === 'look' || D.phase === 'result') ? D.rows.slice(0, D.step + 1) : [{ k: 0, G: 4, E: 4, avg: null }];
   $('#duel-track').innerHTML = '<tr><th>round</th><th>G (ghost)</th><th>E (empty)</th><th>average</th><th>check</th></tr>' + rowsShown.map((r, i) => `<tr class="${i === rowsShown.length - 1 ? 'cur' : ''}"><td>${r.k === 0 ? 'start' : r.k}</td><td>${fmt(r.G)}</td><td>${fmt(r.E)}</td><td>${r.avg === null ? '—' : fmt(r.avg)}</td><td>${showM ? fmt(D.M * r.G * r.G + (8 - D.M) * r.E * r.E) : '128'}</td></tr>`).join('');
@@ -407,6 +413,9 @@ function render(keepPractice) {
   // side
   $('#score').innerHTML = `<span class="p1">Player 1: ${score[0]}</span><br><span class="p2">${cpu() ? 'Computer' : 'Player 2'}: ${score[1]}</span>`;
   $('#nightlog').innerHTML = D.log.map(l => `<li>${l}</li>`).join('');
+  const chance = D.k !== null && ['look', 'result'].includes(D.phase) ? GH.chance(8, D.M, 4, D.k) : null;
+  $('#strategy-goal').textContent = chance === null ? 'Challenge: reach at least a 75% catch chance on a hunt. Good odds count even if one LOOK misses.' :
+    `Chance before LOOK: ${pct(chance)}. ${chance >= .75 ? 'Challenge met: at least 75%!' : 'Try a different round count next time to reach 75%.'}`;
   $('#ref').hidden = !$('#show-ref').checked;
   // status
   if (D.phase === 'hide') { st.textContent = cpu() && D.hider === 1 ? 'The computer is hiding ghosts…' : `${NAMES[D.hider]}: hide 1, 2 or 3 ghosts. ${NAMES[D.hunter]}, look away!`; st.classList.add(D.hider ? 'P2' : 'P1'); badge.classList.add(D.hider ? 'P2' : 'P1'); badge.textContent = `${NAMES[D.hider]} hides`; }
@@ -424,24 +433,26 @@ function buildRef() {
 }
 
 /* ----- wave lab ----- */
-let L;
-function labNew() { const N = +$('#lab-n').value, M = Math.min(+$('#lab-m').value, N - 1), s = GH.START[N]; const rooms = [...Array(N).keys()], g = []; while (g.length < M) g.push(rooms.splice(randInt(rooms.length), 1)[0]); L = { N, M, s, ghosts: g, vals: Array(N).fill(s), k: 0, flipped: false, avg: null, looked: null }; $('#lab-event').textContent = `${N} rooms, ${M} ghost${M > 1 ? 's' : ''} (shown in red, so you can watch). Every room starts at ${s}.`; renderLab(); }
+let L, labTimer = null;
+function cancelLabRound() { clearTimeout(labTimer); labTimer = null; }
+function labNew() { cancelLabRound(); const N = +$('#lab-n').value, M = Math.min(+$('#lab-m').value, N - 1), s = GH.START[N]; const rooms = [...Array(N).keys()], g = []; while (g.length < M) g.push(rooms.splice(randInt(rooms.length), 1)[0]); L = { N, M, s, ghosts: g, vals: Array(N).fill(s), k: 0, flipped: false, avg: null, looked: null }; $('#lab-event').textContent = `${N} rooms, ${M} ghost${M > 1 ? 's' : ''} (shown in red, so you can watch). Every room starts at ${s}.`; renderLab(); }
 function labFlip() { if (L.flipped || L.looked !== null) return; L.ghosts.forEach(i => L.vals[i] = -L.vals[i]); L.flipped = true; L.avg = L.vals.reduce((a, b) => a + b, 0) / L.N; $('#lab-event').textContent = `FLIP: the ghost room${L.M > 1 ? 's turn' : ' turns'} negative. The average of all ${L.N} rooms is now ${fmt(L.avg)} (gold line).`; renderLab(); }
-function labReflect() { if (!L.flipped || L.looked !== null) return; const a = L.avg; L.vals = L.vals.map(v => 2 * a - v); L.flipped = false; L.avg = null; L.k++; $('#lab-event').textContent = `REFLECT: every bar is mirrored across the average ${fmt(a)} (new = 2 × ${fmt(a)} − old). Round ${L.k} done.`; renderLab(); }
-function labRound() { if (L.looked !== null) return; if (!L.flipped) labFlip(); setTimeout(labReflect, 650); }
+function labReflect() { if (!L.flipped || L.looked !== null) return; cancelLabRound(); const a = L.avg; L.vals = L.vals.map(v => 2 * a - v); L.flipped = false; L.avg = null; L.k++; $('#lab-event').textContent = `REFLECT: every bar is mirrored across the average ${fmt(a)} (new = 2 × ${fmt(a)} − old). Round ${L.k} done.`; renderLab(); }
+function labRound() { if (L.looked !== null || labTimer !== null) return; if (!L.flipped) labFlip(); const hotel = L; labTimer = setTimeout(() => { if (L !== hotel) return; labTimer = null; labReflect(); }, 650); }
 function labLook() {
-  if (L.looked !== null) return;
+  if (L.looked !== null || L.flipped) return;
   const tot = L.vals.reduce((a, v) => a + v * v, 0); let u = rand() * tot, i = 0; for (; i < L.N - 1; i++) { u -= L.vals[i] * L.vals[i]; if (u < 0) break; }
   L.looked = i; const g = L.ghosts.includes(i);
-  $('#lab-event').textContent = `LOOK: the wave landed in room ${bin(i, Math.log2(L.N))}: ${g ? 'a ghost! Caught.' : 'empty.'} Each room's chance was its wave squared ÷ ${tot}. Press "Start over" to try again.`; renderLab();
+  $('#lab-event').textContent = `LOOK: the wave landed in room ${bin(i, Math.log2(L.N))}: ${g ? 'a ghost! Caught.' : 'empty.'} Each room's chance was its wave squared ÷ ${tot}. The bars preserve the state BEFORE measurement; gold marks the sampled room. They do not show the collapsed state. Press "Start over" to try again.`; renderLab();
 }
-function labReset() { L.vals = Array(L.N).fill(L.s); L.k = 0; L.flipped = false; L.avg = null; L.looked = null; $('#lab-event').textContent = `Back to ${L.s} in every room.`; renderLab(); }
+function labReset() { cancelLabRound(); L = {...L, vals:Array(L.N).fill(L.s), k:0, flipped:false, avg:null, looked:null}; $('#lab-event').textContent = `Back to ${L.s} in every room.`; renderLab(); }
 function renderLab() {
   if (document.body.dataset.tab !== 'lab') return;
   const bits = Math.log2(L.N);
-  barsSVG($('#lab-bars'), L.vals.map((v, i) => ({ label: bin(i, bits), value: v, color: L.looked === i ? '#e09a00' : (L.ghosts.includes(i) ? '#b41524' : '#154c9c') })), { max: L.s * 3, avg: L.avg, title: L.looked !== null ? 'After the look' : L.flipped ? 'Flipped: now reflect around the average' : (L.k ? `After ${L.k} round${L.k > 1 ? 's' : ''}` : 'Start') });
+  barsSVG($('#lab-bars'), L.vals.map((v, i) => ({ label: bin(i, bits), value: v, color: L.looked === i ? '#e09a00' : (L.ghosts.includes(i) ? '#b41524' : '#154c9c') })), { max: L.s * 3, avg: L.avg, title: L.looked !== null ? 'Before LOOK: gold marks the sampled room' : L.flipped ? 'Flipped: now reflect around the average' : (L.k ? `After ${L.k} round${L.k > 1 ? 's' : ''}` : 'Start') });
   const tot = L.vals.reduce((a, v) => a + v * v, 0), p = L.ghosts.reduce((a, i) => a + L.vals[i] * L.vals[i], 0) / tot;
   $('#lab-k').textContent = L.k; $('#lab-p').textContent = L.flipped ? '…' : pct(p); $('#lab-c').textContent = fmt(tot);
+  $('#lab-chance-label').textContent = L.looked === null ? 'chance to catch' : 'chance before LOOK';
   const pts = []; for (let k = 0; k <= 12; k++) pts.push([k, GH.chance(L.N, L.M, L.s, k)]);
   curveSVG($('#lab-curve'), pts, L.flipped ? null : [Math.min(L.k, 12), GH.chance(L.N, L.M, L.s, Math.min(L.k, 12))], 'rounds of flip and reflect');
   ['#lab-flip', '#lab-round'].forEach(s => $(s).disabled = L.flipped || L.looked !== null);
@@ -479,6 +490,7 @@ $('#rounds-choice').addEventListener('click', e => { const b = e.target.closest(
 $('#practice').addEventListener('click', e => { if (e.target.id === 'pr-check') checkPractice(); });
 $('#lock').onclick = lockGhosts; $('#go').onclick = lockRounds; $('#step').onclick = nextStep; $('#flip-coins').onclick = flipCoins; $('#next-night').onclick = nextNight;
 $('#new-duel').onclick = newDuel; $('#vs-cpu').onchange = newDuel; $('#practice-on').onchange = () => { D.practiceOk = !$('#practice-on').checked; render(); }; $('#show-ref').onchange = () => render();
+$('#solo').onclick = () => { $('#vs-cpu').checked = true; $('#quick-play').checked = true; $('#practice-on').checked = false; setTab('duel'); newDuel(); };
 $('#lab-new').onclick = labNew; $('#lab-n').onchange = labNew; $('#lab-m').onchange = labNew;
 $('#lab-flip').onclick = labFlip; $('#lab-reflect').onclick = labReflect; $('#lab-round').onclick = labRound; $('#lab-look').onclick = labLook; $('#lab-reset').onclick = labReset;
 $('#big-go').onclick = bigGo; $('#big-n').addEventListener('keydown', e => { if (e.key === 'Enter') bigGo(); });
@@ -488,6 +500,7 @@ document.addEventListener('keydown', e => {
   if (document.body.dataset.tab === 'duel') { if (D.phase === 'rounds' && '0123'.includes(e.key) && e.key.length === 1) chooseRounds(+e.key); else if (e.key === 'ArrowRight' && (D.phase === 'reveal' || D.phase === 'compute')) { e.preventDefault(); nextStep(); } }
 });
 buildRef(); buildBigTable(); newDuel(); labNew();
+if (new URLSearchParams(location.search).get('solo') === '1') $('#solo').onclick();
 </script>
 </body>
 </html>

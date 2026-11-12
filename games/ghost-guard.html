@@ -32,6 +32,8 @@ button:disabled { cursor: default; opacity: .42; }
 #levels button[aria-pressed="true"] { background: #202435; border-color: #202435; color: #fff; }
 #status { font-size: clamp(20px, 2.1vw, 27px); font-weight: bold; margin: 14px 0; padding: 13px 18px; background: #f0f3f8; border-left: 6px solid var(--brand); border-radius: 6px; }
 #status.G { border-left-color: var(--g); } #status.R { border-left-color: var(--r); }
+#diagnosis select { font: inherit; max-width: 100%; margin-top: 5px; padding: 6px; }
+#diagnosis label { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .play-area { display: grid; grid-template-columns: minmax(340px, 1.15fr) minmax(300px, 1fr) minmax(230px, 290px); gap: 20px; align-items: start; }
 h2 { font-size: 22px; margin: 0 0 8px; }
 /* ghost box */
@@ -151,11 +153,22 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
   <div id="levels" role="group" aria-label="Level">
     <button data-level="0"><strong>Level 0 · Classical message</strong>Plain HHH or TTT. Peeking is fine.</button>
     <button data-level="1"><strong>Level 1 · Ghost Guard duel</strong>A ghost in two rows. Check, don't look.</button>
-    <button data-level="2"><strong>Level 2 · The Sign Gremlin</strong>The Gremlin has one Sign card. Can checks see it?</button>
+    <button data-level="2"><strong>Level 2 · Diagnose a sign error</strong>Find the limit of this code. An unscored challenge.</button>
   </div>
 
   <section id="play-view" class="view">
     <div id="status" role="status" aria-live="polite"></div>
+    <section id="diagnosis" hidden aria-labelledby="diagnosis-title" style="margin-bottom:18px;line-height:1.45">
+      <h2 id="diagnosis-title">Challenge: explain the invisible error</h2>
+      <p>One Sign card changes the secret in a way these Check and Flip cards cannot repair. Your goal is to explain why and name the missing capability. This level does not count toward the duel score.</p>
+      <div class="actions"><button id="sign-example">Inspect one Sign + Check</button></div>
+      <div id="diagnosis-questions" hidden>
+        <p><label>Why can a Sign error escape these checks? <select id="diagnosis-why"><option value="">Choose a reason</option><option value="coins">It changes chip colours without changing the coin matches</option><option value="speed">The Guardian needs to check faster</option><option value="peek">The Guardian needs to peek at the secret</option></select></label></p>
+        <p><label>What would a code need to handle both error types? <select id="diagnosis-need"><option value="">Choose a capability</option><option value="flips">More of the same Flip cards</option><option value="phase">Checks for phase errors and corrections for them</option><option value="peek">A way to read the secret first</option></select></label></p>
+        <button id="check-diagnosis" style="padding:8px 12px">Check my explanation</button>
+        <p id="diagnosis-feedback" role="status"></p>
+      </div>
+    </section>
     <div class="play-area">
       <div>
         <h2>The Ghost Box</h2>
@@ -185,13 +198,13 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
         <table class="nights" id="nights"></table>
         <div class="secret hidden" id="secret">Secret card (face down)</div>
         <div id="result" aria-live="polite"></div>
-        <h2 style="margin-top:12px">Score</h2>
+        <h2 style="margin-top:12px">Duel score · Levels 0–1</h2>
         <table class="score">
           <tr><td>Guardian wins</td><td id="s-g">0</td></tr>
           <tr><td>Gremlin wins</td><td id="s-r">0</td></tr>
           <tr><td>Guardian win rate</td><td id="s-rate">–</td></tr>
         </table>
-        <p class="small">With the best play by both sides, each side wins exactly half the games (3 Checks vs 2 Flips over 7 nights). Swap roles after every game.</p>
+        <p class="small">In the Level 1 duel, best play gives each side a 50% chance (3 Checks vs 2 Flips over 7 nights). Level 2 is an unscored diagnosis. Swap roles for a new duel.</p>
         <button id="reset-score" style="margin-top:8px;padding:6px 10px;font-size:14px">Reset score</button>
       </aside>
     </div>
@@ -271,8 +284,9 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
       <tr><td>match</td><td>don't match</td><td>coin 3</td></tr>
     </table>
     <p><b>End.</b> After night 7 there is one free final Check and Fix. Then the box opens. Same chips, same colours, same rows: the Guardian wins.</p>
+    <p><b>Level 2 is a diagnosis.</b> The single Sign error cannot be repaired by the available Check and Flip cards. Try the short Sign + Check example, compare the chip colours with the secret, then explain what is missing. You can also explore all seven nights. Neither route adds a duel win or loss.</p>
     <p><b>The physics.</b> The two rows are the two parts of one qubit stored in three qubits (the 3-qubit bit-flip code). Chips are amplitudes, colours are signs. Flip is a bit-flip error (X), Sign is a phase error (Z), Check measures the parities Z₁Z₂ and Z₂Z₃, and Peek is a measurement that collapses the superposition. Two flips between checks make the Guardian "fix" the wrong coin and swap the rows: a logical error.</p>
-    <p class="credit">Ghost Guard · QCaMP classroom materials · Works offline. Physics model and game balance verified by exact simulation; the computer plays the exact optimal (equilibrium) strategy.</p>
+    <p class="credit">Ghost Guard · QCaMP classroom materials · Works offline. The Level 1 computer uses equilibrium strategies. Level 2 explores the limits of the bit-flip code through an unscored diagnosis.</p>
   </details>
   <pre id="selftest"></pre>
 </main>
@@ -387,15 +401,20 @@ function synWords(syn) {
 function fixWords(syn) { const k = FIX[syn]; return k === null ? 'Check table: no fix needed.' : `Check table: coin ${k+1} is the odd one out.`; }
 
 /* ---------------- Play view ---------------- */
-let level = 1, S = null, phase = 'r', changed = [], eventMsg = '', score = {g:0, r:0};
+let level = 1, S = null, phase = 'r', changed = [], eventMsg = '', score = {g:0, r:0}, cpuTimer = null;
 const mode = () => $('#mode').value;
 function newGame() {
+  clearTimeout(cpuTimer); cpuTimer = null;
   S = makeState(level, ri(8), ri(2)); phase = 'r'; changed = []; eventMsg = ''; $('#result').textContent = ''; $('#result').className = '';
+  $('#diagnosis-feedback').textContent = ''; $('#diagnosis-why').value = ''; $('#diagnosis-need').value = '';
   advance();
 }
 function advance() {
   if (!S.over && phase === 'r' && mode() === 'cpuR') { S.rCard = cpuGremlin(S); phase = 'g'; eventMsg = 'The Gremlin played a card face-down.'; }
-  if (!S.over && phase === 'g' && mode() === 'cpuG') { setTimeout(() => { if (S && phase === 'g' && !S.over) guardianPlays(cpuGuardian(S)); }, 450); }
+  if (!S.over && phase === 'g' && mode() === 'cpuG' && cpuTimer === null) {
+    const game = S;
+    cpuTimer = setTimeout(() => { if (S !== game) return; cpuTimer = null; if (phase === 'g' && !S.over && mode() === 'cpuG') guardianPlays(cpuGuardian(S)); }, 450);
+  }
   render();
 }
 function gremlinPlays(card) { S.rCard = card; phase = mode() === 'two' ? 'handG' : 'g'; eventMsg = 'The Gremlin played a card face-down.'; advance(); }
@@ -436,22 +455,24 @@ function guardianPeek(k) {
   finish();
 }
 function finish() {
+  if (S.over) return;
+  clearTimeout(cpuTimer); cpuTimer = null;
   S.over = true; phase = 'over';
   const j = judge(S);
-  if (j.win) score.g++; else score.r++;
+  if (S.level !== 2) { if (j.win) score.g++; else score.r++; }
   const why = { safe: S.level === 0 ? 'The message is back to ' + (S.msg ? 'TTT' : 'HHH') + '.' : 'Same chips, same colours, same rows.',
     flipped: 'The message came back wrong: two flips hid in one gap.',
     collapsed: 'The Guardian peeked, so the ghost collapsed to one row.',
     swapped: 'Two flips hid between checks, the fix turned the wrong coin, and the rows swapped chips.',
     soured: 'A Sign error changed chip colours. Checks cannot see sign errors.',
     'swapped and soured': 'Two flips swapped the rows and a Sign error changed colours.', broken: 'The ghost is broken.' }[j.why];
-  $('#result').className = j.win ? 'G' : 'R';
-  $('#result').innerHTML = (j.win ? 'Guardian wins! ' : 'Gremlin wins! ') + '<br><span style="font-weight:normal;font-size:16px">' + why + '</span>';
+  $('#result').className = S.level === 2 ? '' : j.win ? 'G' : 'R';
+  $('#result').innerHTML = (S.level === 2 ? 'Evidence ready. Explain the error below the challenge.' : j.win ? 'Guardian wins! ' : 'Gremlin wins! ') + '<br><span style="font-weight:normal;font-size:16px">' + why + '</span>';
   render();
 }
 function badge() {
   const b = $('#turn-badge');
-  if (!S || S.over) { b.className = 'badge done'; b.textContent = 'Game over'; return; }
+  if (!S || S.over) { b.className = 'badge done'; b.textContent = S && S.level === 2 ? 'Diagnosis' : 'Game over'; return; }
   const who = (phase === 'r' || phase === 'handR') ? 'R' : 'G';
   b.className = 'badge ' + who; b.textContent = `Night ${Math.min(S.t+1, N)} of ${N} · ${who === 'G' ? 'Guardian' : 'Gremlin'}`;
 }
@@ -481,7 +502,7 @@ function handBtn(cls, icon, nm, rl, fn, dis) { return `<button class="${cls}" ${
 function renderHands() {
   const h = $('#hands'); let html = '';
   const R = S.rCards, G = S.gCards;
-  if (S.over) { h.innerHTML = '<div class="hand-title">Game over. Press New game and swap roles.</div>'; return; }
+  if (S.over) { h.innerHTML = `<div class="hand-title">${S.level === 2 ? 'Compare the colours with the secret, then check your explanation above.' : 'Game over. Press Play again to try another strategy.'}</div>`; return; }
   if (phase === 'handG') { h.innerHTML = `<div class="handoff G">Gremlin's card is down.<br>Guardian, your turn.<br><button class="primary" data-fn="toG">I am the Guardian — show my cards</button></div>`; return; }
   if (phase === 'handR') { h.innerHTML = `<div class="handoff">Night ${S.t+1}. Pass to the Gremlin.<br><button class="primary" data-fn="toR">I am the Gremlin — show my cards</button></div>`; return; }
   if (phase === 'r') {
@@ -521,8 +542,11 @@ function renderNights() {
 }
 function render() {
   badge(); statusText(); renderBox(); renderHands(); renderNights();
+  $('#diagnosis').hidden = S.level !== 2;
+  $('#diagnosis-questions').hidden = S.level !== 2 || !S.over;
+  $('#new-game').textContent = S.over ? 'Play again' : 'New game';
   $('#event').textContent = eventMsg;
-  $('#hand-hint').textContent = S.level === 2 ? 'Level 2: the Gremlin has one Sign card. Watch the check answers: can they ever spot it?' :
+  $('#hand-hint').textContent = S.level === 2 ? 'Goal: explain why a sign error is invisible to these checks, and what a code would need to correct it.' :
     S.level === 0 ? 'Level 0: a plain message. Peeking is harmless; majority vote fixes one flip.' : 'Tip: the Gremlin wins by sneaking two Flips into the same gap between checks.';
 }
 $('#hands').addEventListener('click', e => {
@@ -539,6 +563,22 @@ $('#hands').addEventListener('click', e => {
 });
 document.querySelectorAll('#levels button').forEach(b => b.addEventListener('click', () => { level = +b.dataset.level; document.querySelectorAll('#levels button').forEach(x => x.setAttribute('aria-pressed', x === b)); newGame(); }));
 $('#new-game').addEventListener('click', newGame);
+$('#sign-example').addEventListener('click', () => {
+  clearTimeout(cpuTimer); cpuTimer = null;
+  S = makeState(2, 0, 0); changed = []; $('#diagnosis-feedback').textContent = '';
+  $('#diagnosis-why').value = ''; $('#diagnosis-need').value = '';
+  applyNoise(S, {type:'sign', k:0}); S.syn = guardianAct(S, 'check');
+  S.log.push({g:'check', r:{type:'sign', k:0}, syn:S.syn, fix:null}); S.t = 1;
+  eventMsg = 'One Sign on coin 1, then Check: both pairs still match. Compare the TTT chips with the secret card.';
+  finish();
+});
+$('#check-diagnosis').addEventListener('click', () => {
+  if (S.level !== 2 || !S.over) return;
+  const why = $('#diagnosis-why').value, need = $('#diagnosis-need').value;
+  $('#diagnosis-feedback').textContent = !why || !need ? 'Choose a reason and a capability first.' :
+    why === 'coins' && need === 'phase' ? 'Challenge complete! Sign changes chip colours, not coin matches. A code that handles both error types needs phase-sensitive checks and phase corrections as well as bit-flip protection.' :
+    'Try again: compare the chip colours with the secret and the coin matches with the Check answers. More of the same checks cannot reveal a change of sign, and peeking destroys the superposition.';
+});
 $('#mode').addEventListener('change', newGame);
 ['#opt-hints', '#opt-teacher'].forEach(s => $(s).addEventListener('change', render));
 $('#reset-score').addEventListener('click', () => { score = {g:0, r:0}; render(); });

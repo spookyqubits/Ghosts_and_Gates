@@ -574,6 +574,7 @@ document.addEventListener('keydown', e => {
   else if (G.phase === 'resolve' && e.key === 'ArrowRight') { e.preventDefault(); next(); }
 });
 newGame(); renderLab();
+if (new URLSearchParams(location.search).get('solo') === '1') $('#solo').onclick();
 </script>
 </body>
 </html>

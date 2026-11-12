@@ -159,6 +159,7 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
         <div class="slots" id="slots"></div>
         <div id="hand-wrap"><p class="hand-title" id="hand-title"></p><div class="hand" id="hand"></div></div>
         <div class="actions">
+          <button id="solo" class="primary">Solo quick play</button>
           <button id="reveal" class="primary" hidden>Reveal the cards</button>
           <button id="step" class="primary" hidden>Next step ▶</button>
           <button id="autoplay" hidden>Play all</button>
@@ -171,7 +172,10 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
         <div class="options">
           <label><input type="checkbox" id="cpu-b"> Computer plays B</label>
           <label><input type="checkbox" id="show-cards"> Show cards when picked</label>
+          <label><input type="checkbox" id="quick-play"> Resolve moves together</label>
         </div>
+        <p id="challenge-goal" class="hint"></p>
+        <p id="odds" aria-live="polite"></p>
         <p id="event" aria-live="polite"></p>
         <p class="hint" id="hint"></p>
       </section>
@@ -210,6 +214,7 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
   </div>
 
   <details><summary>How to play</summary>
+    <p><b>Solo quick play.</b> Start at Level 2 against the computer. Pick your two cards; the game resolves the full sequence and opens the box. The challenge is to make HEADS certain. Turn off “Resolve moves together” to reveal and step through each chip move yourself. Next round keeps your settings.</p>
     <p><b>Goal.</b> The coin starts as one green chip on HEADS. Player A wins if the coin ends on HEADS. Player B wins if it ends on TAILS.</p>
     <p><b>Turns.</b> A, then B, then A each pick one card in secret. The cards stay face-down. Then reveal them and do the moves in order.</p>
     <table><tr><th>Card</th><th>What happens to the chips</th></tr>
@@ -318,7 +323,8 @@ const START = () => ({ H: [1], T: [] });
 const rand2 = () => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % 2; };
 const randInt = n => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
 
-let S = { roundId: 0, level: 1, phase: 'pick', slot: 0, picks: [null, null, null], frames: [], fi: -1, frameSlot: [], result: null, timer: null, score: {} };
+let S = { roundId: 0, level: 1, phase: 'pick', slot: 0, picks: [null, null, null], frames: [], fi: -1, frameSlot: [], result: null, timer: null, score: {}, odds: null };
+let cpuTimer = null, tossTimer = null;
 LEVELS.forEach(l => S.score[l.n] = { r: 0, a: 0, b: 0 });
 const lvl = () => LEVELS[S.level - 1];
 
@@ -384,13 +390,20 @@ function render() {
   else if (S.phase === 'toss') { st.textContent = 'Chips in both boxes: toss the real coin!'; badge.classList.add('done'); badge.textContent = 'Toss'; }
   else if (S.phase === 'done') { const w = S.result === 'H' ? 'A' : 'B'; st.textContent = `${S.result === 'H' ? 'HEADS' : 'TAILS'}: Player ${w} wins!`; st.classList.add(w); badge.classList.add(w); badge.textContent = `Player ${w} wins`; }
   $('#hint').textContent = `Level ${L.n}: ${L.q} Player A has ${L.A.map(m => CARDS[m].name).join(', ')}. Player B has ${L.B.map(m => CARDS[m].name).join(', ')}.`;
+  $('#challenge-goal').textContent = S.level === 2 ? 'Challenge: make HEADS certain with your two cards, whichever card B plays.' :
+    S.level === 3 ? 'Challenge: try the quantum trick again. How can B’s Sign card change its chance?' :
+    S.level === 4 ? 'Challenge: build a sequence that makes your chosen result certain.' : 'Challenge: predict HEADS or TAILS from the three moves.';
+  const p = S.odds;
+  $('#odds').textContent = p === null ? '' : `Chance before opening: HEADS ${Math.round(100*p)}%, TAILS ${Math.round(100*(1-p))}%.` +
+    (S.level === 2 ? (p === 1 ? ' Challenge met: HEADS was certain.' : ' Try again: aim for 100% HEADS.') : ' A sampled win is one result of those chances.');
   // score
   $('#score').innerHTML = '<tr><th>Level</th><th>Rounds</th><th>A wins</th><th>B wins</th><th>A %</th></tr>' + LEVELS.map(l => {
     const s = S.score[l.n]; return `<tr class="${l.n === S.level ? 'current' : ''}"><td>${l.n}. ${l.title}</td><td>${s.r}</td><td>${s.a}</td><td>${s.b}</td><td>${s.r ? Math.round(100 * s.a / s.r) + '%' : '–'}</td></tr>`;
   }).join('');
   if (S.phase === 'pick' && ORDER[S.slot] === 'B' && $('#cpu-b').checked && !S.cpuPending) {
     S.cpuPending = true;
-    setTimeout(() => { S.cpuPending = false; if (S.phase === 'pick' && ORDER[S.slot] === 'B' && $('#cpu-b').checked) { const opts = lvl().B; pick(opts[randInt(opts.length)], true); } }, 800);
+    const roundId = S.roundId;
+    cpuTimer = setTimeout(() => { if (S.roundId !== roundId) return; cpuTimer = null; S.cpuPending = false; if (S.phase === 'pick' && ORDER[S.slot] === 'B' && $('#cpu-b').checked) { const opts = lvl().B; pick(opts[randInt(opts.length)], true); } }, $('#quick-play').checked ? 200 : 800);
   }
 }
 function pick(move, cpu) {
@@ -399,6 +412,13 @@ function pick(move, cpu) {
   S.picks[S.slot] = move;
   $('#event').textContent = `✓ ${cpu ? 'Computer' : 'Player ' + p} placed card ${S.slot + 1} face-down.` + (S.slot < 2 ? ` Pass to Player ${ORDER[S.slot + 1]}.` : '');
   S.slot++; if (S.slot > 2) S.phase = 'ready';
+  if (S.phase === 'ready' && $('#quick-play').checked) {
+    reveal();
+    S.fi = S.frames.length - 1; S.phase = 'open';
+    const sequence = S.picks.map(m => CARDS[m].name).join(' → ');
+    $('#event').textContent = sequence + '. ' + currentFrame().caption;
+    openBox(); return;
+  }
   render();
 }
 function reveal() {
@@ -416,18 +436,23 @@ function step() {
 function stopAuto() { if (S.timer) { clearInterval(S.timer); S.timer = null; } }
 function autoplay() { if (S.timer) { stopAuto(); render(); return; } S.timer = setInterval(step, 1300); render(); step(); }
 function openBox() {
+  if (S.phase !== 'open') return;
   const f = currentFrame(), o = GC.outcome(f);
-  if (o === 'toss') { S.phase = 'toss'; $('#result').className = ''; $('#result').textContent = 'Chips are in both boxes. It could go either way!'; render(); return; }
+  const h = f.H.reduce((a, c) => a + c, 0), t = f.T.reduce((a, c) => a + c, 0);
+  S.odds = h*h / (h*h + t*t);
+  if (o === 'toss') { S.phase = 'toss'; $('#result').className = ''; $('#result').textContent = 'Chips are in both boxes. It could go either way!'; render(); if ($('#quick-play').checked) toss(); return; }
   finish(o, o === 'H' ? 'Only HEADS has chips.' : 'Only TAILS has chips.');
 }
 function toss() {
+  if (S.phase !== 'toss' || $('#toss').disabled) return;
   const coin = $('#toss-coin'); $('#toss').disabled = true;
   const r = rand2() ? 'H' : 'T';
   coin.classList.remove('spin'); void coin.offsetWidth; coin.classList.add('spin'); coin.textContent = '';
   const id = S.roundId;
-  setTimeout(() => { $('#toss').disabled = false; if (id !== S.roundId) return; coin.textContent = r === 'H' ? 'HEADS' : 'TAILS'; finish(r, 'The real coin landed on ' + (r === 'H' ? 'HEADS.' : 'TAILS.'), true); }, 1300);
+  tossTimer = setTimeout(() => { if (id !== S.roundId) return; tossTimer = null; $('#toss').disabled = false; coin.textContent = r === 'H' ? 'HEADS' : 'TAILS'; finish(r, 'The real coin landed on ' + (r === 'H' ? 'HEADS.' : 'TAILS.'), true); }, 1300);
 }
 function finish(o, why, collapsed) {
+  if (S.phase === 'done') return;
   if (collapsed) { const f = currentFrame(), c = o === 'H' ? f.H[0] : f.T[0];
     S.frames.push({ H: o === 'H' ? [c] : [], T: o === 'T' ? [c] : [], mH: o === 'H' ? ['new'] : [], mT: o === 'T' ? ['new'] : [], caption: '', settled: true }); S.frameSlot.push(2); S.fi = S.frames.length - 1;
     $('#event').textContent = `Opening the box ends the ghost: the coin is now just ${o === 'H' ? 'HEADS' : 'TAILS'}.`; }
@@ -439,7 +464,9 @@ function finish(o, why, collapsed) {
   render();
 }
 function newRound() {
-  stopAuto(); S.roundId = (S.roundId || 0) + 1; Object.assign(S, { phase: 'pick', slot: 0, picks: [null, null, null], frames: [], fi: -1, frameSlot: [], result: null });
+  stopAuto(); clearTimeout(cpuTimer); clearTimeout(tossTimer); cpuTimer = tossTimer = null;
+  $('#toss').disabled = false; $('#toss-coin').classList.remove('spin');
+  S.roundId = (S.roundId || 0) + 1; Object.assign(S, { phase: 'pick', slot: 0, picks: [null, null, null], frames: [], fi: -1, frameSlot: [], result: null, cpuPending: false, odds: null });
   $('#event').textContent = ''; $('#result').textContent = ''; $('#result').className = ''; $('#toss-coin').textContent = '?';
   render();
 }
@@ -487,6 +514,7 @@ $('#presets').innerHTML = PRESETS.map((p, i) => `<button data-i="${i}">${p.map(m
 $('#presets').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.disabled) return; labReset(); labRun(PRESETS[+b.dataset.i]); });
 $('#reveal').onclick = reveal; $('#step').onclick = step; $('#autoplay').onclick = autoplay; $('#open').onclick = openBox; $('#toss').onclick = toss;
 $('#next-round').onclick = newRound; $('#restart').onclick = newRound;
+$('#solo').onclick = () => { $('#cpu-b').checked = true; $('#quick-play').checked = true; S.level = 2; setTab('play'); newRound(); };
 $('#reset-score').onclick = () => { LEVELS.forEach(l => S.score[l.n] = { r: 0, a: 0, b: 0 }); render(); };
 $('#cpu-b').onchange = render; $('#show-cards').onchange = render;
 $('#lab-open').onclick = labOpen; $('#lab-reset').onclick = labReset;
@@ -501,6 +529,7 @@ document.addEventListener('keydown', e => {
   } else { const m = ALL.find(x => CARDS[x].key === k); if (m) { e.preventDefault(); labRun([m]); } }
 });
 labReset(); render();
+if (new URLSearchParams(location.search).get('solo') === '1') $('#solo').onclick();
 </script>
 </body>
 </html>

@@ -16,7 +16,7 @@ function load(full = false) {
   }
   const nodes = new Map(), timers = new Map(); let timerId = 0;
   const document = {body:{dataset:{tab:'play'}}, querySelector(s){if(!nodes.has(s)) nodes.set(s,new Element()); return nodes.get(s);},querySelectorAll(){return [];},createElementNS(){return new Element();},addEventListener(){}};
-  const ctx = vm.createContext({window:{},document,crypto:require('node:crypto').webcrypto,Float32Array,Uint32Array,
+  const ctx = vm.createContext({window:{},document,location:{search:''},URLSearchParams,crypto:require('node:crypto').webcrypto,Float32Array,Uint32Array,
     setTimeout(fn){timers.set(++timerId,fn);return timerId;},clearTimeout(id){timers.delete(id);}});
   vm.runInContext(scripts[0],ctx); ctx.CP = ctx.window.CP; vm.runInContext(scripts[1],ctx);
   if (full) vm.runInContext(scripts[2],ctx);

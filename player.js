@@ -33,11 +33,12 @@
       area.replaceChildren();
       const frame = document.createElement('iframe');
       frame.title = `${game.name}: ${item.name}`;
-      frame.src = item.file;
+      const target = item.file + (params.get('solo') === '1' && game.quickPlay ? '?solo=1' : '');
+      frame.src = target;
       frame.allow = 'fullscreen';
       frame.setAttribute('allowfullscreen', '');
       area.append(frame);
-      standalone.href = item.file;
+      standalone.href = target;
       announce.textContent = `${game.name} · ${item.name}`;
       frame.addEventListener('load', () => { area.classList.add('is-ready'); }, {once:true});
     }

@@ -14,7 +14,7 @@ Open `dist/index.html` directly, or serve the site locally:
 python3 -m http.server 8080 --directory dist
 ```
 
-Then open `http://localhost:8080`. The site does not need a build server, database, accounts, or external scripts/fonts. Original games are copied without editing their code. Existing game layouts may be easier to use on a tablet or desktop; the launcher includes full screen and a standalone view.
+Then open `http://localhost:8080`. The site does not need a build server, database, accounts, or external scripts/fonts. The builder copies the current offline game sources byte for byte. Existing game layouts may be easier to use on a tablet or desktop; the launcher includes full screen and a standalone view.
 
 ## Host publicly
 
@@ -55,6 +55,24 @@ node --test tests/catch-the-photon.test.cjs
 ```
 
 Regenerate the browser-printable deck with `node tools/build-photon-cards.cjs`. The PDF resource builder is `tools/build-photon-pdfs.py`; it accepts the classroom output directory, requires ReportLab, and currently uses the standard macOS Arial and Comic Sans font files. The offline source in the QCaMP workspace is `CatchThePhoton/CatchThePhoton_Offline.html`; the playground builder copies that source and the explicit resources listed in its catalog.
+
+## Assessment improvements
+
+Ghost Coin and Ghost Hunt now support solo quick play and direct `?solo=1` links. Their shared-screen and step-by-step paths remain available. Ghost Coin begins its solo challenge at Level 2 and reports the probability before opening. Ghost Hunt keeps its six-night role swap, shows the chosen-round arithmetic, and gives credit for reaching a 75% catch chance even if the sampled result misses.
+
+Ghost Guard Level 2 is an unscored diagnostic challenge. Inspecting one Sign + Check reveals the changed chips with unchanged parity answers; the learner explains the missing phase checks and corrections. Seven-night exploration remains available, while Levels 0 and 1 retain duel scoring. Computer callbacks cannot act on a restarted game.
+
+Ghost Hunt explicitly labels its retained bars as the state before LOOK. Its explanation distinguishes 1,000,000 rooms (785 rounds) from 1,048,576 rooms (804 rounds), for one ghost. Resetting or manually reflecting cancels a pending automatic reflection.
+
+Run all gameplay regressions from the published repository:
+
+```sh
+node --test tests/*.test.cjs
+```
+
+These tests execute the shipped scripts, verify the restart races and quick-play paths, exhaust all 793,800 Level 2 schedules using the check table, and finish 120 seeded games in each Ghost Grid variant. The small DOM stand-in does not verify browser rendering; inspect the UI separately when changing layouts.
+
+For the underlying science, see IBM Quantum Learning on [Grover iteration counts](https://quantum.cloud.ibm.com/learning/en/courses/fundamentals-of-quantum-algorithms/grover-algorithm/number-of-iterations) and [the three-qubit bit-flip code](https://quantum.cloud.ibm.com/learning/en/courses/tools-for-quantum-advantage/error-correction-ii).
 
 ## Credits and model scope
 

@@ -38,7 +38,8 @@ window.GAME_CATALOG = [
         "name": "Guide · accessible HTML",
         "file": "resources/catch-the-photon/guide.html"
       }
-    ]
+    ],
+    "quickPlay": true
   },
   {
     "id": "ghost-coin",
@@ -62,7 +63,8 @@ window.GAME_CATALOG = [
         "file": "games/ghost-coin.html"
       }
     ],
-    "resources": []
+    "resources": [],
+    "quickPlay": true
   },
   {
     "id": "ghost-grid",
@@ -110,7 +112,7 @@ window.GAME_CATALOG = [
     "question": "Which room is hiding the ghost?",
     "description": "Flip a sign. Reflect around the average. Build up a search wave—and learn when to stop.",
     "time": "45 min",
-    "players": "2 players or teams",
+    "players": "1–2 players or teams",
     "mode": "Browser + tabletop",
     "guide": "resources/ghost-hunt/guide.pdf",
     "learn": "Explore Grover’s search using signed numbers, averages, and probability, including why extra rounds can hurt.",
@@ -128,7 +130,8 @@ window.GAME_CATALOG = [
         "name": "Wave Tracker and printables",
         "file": "resources/ghost-hunt/printables.pdf"
       }
-    ]
+    ],
+    "quickPlay": true
   },
   {
     "id": "ghost-guard",
@@ -145,7 +148,7 @@ window.GAME_CATALOG = [
     "learn": "Explore parity checks, bit-flip errors, and why measuring a secret differs from checking for an error.",
     "prompt": "What can a match-or-no-match question tell you without revealing the secret itself?",
     "materials": "For tabletop play: the printable kit, six coins, green and red chips, a ten-sided die, and a folder. Roles: Guardian, Gremlin, and Keeper.",
-    "note": "The game introduces the three-qubit bit-flip code. That code protects against a single bit flip; it does not correct every kind of quantum error.",
+    "note": "The game introduces the three-qubit bit-flip code. That code protects against a single bit flip; it does not correct every kind of quantum error. Level 2 is an unscored diagnosis: a Sign error escapes these checks and cannot be repaired by the available Flip cards. Explain the missing phase checks and corrections instead of trying to win.",
     "variants": [
       {
         "name": "Play + Ghost Box and Noise Labs",
@@ -160,6 +163,10 @@ window.GAME_CATALOG = [
       {
         "name": "Teacher handout",
         "file": "resources/ghost-guard/teacher-handout.pdf"
+      },
+      {
+        "name": "Level 2 diagnosis · facilitator notes (HTML)",
+        "file": "resources/ghost-guard/diagnosis.html"
       }
     ]
   }
