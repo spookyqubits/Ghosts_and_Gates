@@ -13,8 +13,8 @@ window.GAME_CATALOG = [
     "guide": "resources/catch-the-photon/guide.pdf",
     "learn": "Predict how waves add or cancel, then connect amplitude to the probability of detecting a photon.",
     "prompt": "Why can adding one more wave make your detector darker?",
-    "materials": "For tabletop play: 40 numbered wave cards (seven 1s and three 2s per direction), the Wave Board, two tokens, and up to 32 colored chips or paper slips per detector.",
-    "note": "Four arrow directions represent four phases; numbers 1 and 2 give amplitude. The game builds relative amplitudes and normalizes brightness weights across the detectors. It is a teaching model, not a simulation of an optical apparatus.",
+    "materials": "For tabletop play: 40 numbered wave cards, the Wave Board, two tokens, an opaque cup, and a stock of 32 blue A, 32 purple B and 64 gray missed slips. Prepare exactly 64 slips per game.",
+    "note": "A lossy detection model: a 50:50 source splitter feeds branches with transmissions A brightness / 32 and B brightness / 32. Each photon has probabilities A / 64, B / 64 and missed = the rest. Replacing missed slips and sending new photons preserves the eventual-win odds A / (A + B). Cards compute the settings; they are not literal optical paths or physical gates.",
     "variants": [
       {
         "name": "Play the game + Wave Lab",
@@ -37,6 +37,10 @@ window.GAME_CATALOG = [
       {
         "name": "Guide · accessible HTML",
         "file": "resources/catch-the-photon/guide.html"
+      },
+      {
+        "name": "Detection slips · A, B and missed (PDF)",
+        "file": "resources/catch-the-photon/detection-slips.pdf"
       }
     ],
     "quickPlay": true

@@ -46,7 +46,7 @@ The classroom ZIP inside `dist/downloads/` contains only Ghosts and Gates games 
 
 Catch the Photon uses a 40-card wave deck: seven strength-1 and three strength-2 cards per direction. The number is amplitude and moves the token that many squares. Up cards are blue, down red, right purple, and left gold. The hand, board labels, Wave Lab, sound, and computer player share the same model. Solo quick play resolves both choices and advances each round directly. Restarting cancels any pending photon animation and restores the Fire control.
 
-The resource panel includes the printable wave cards, arrow-labeled board, and updated PDF/HTML facilitator guide. Brightness is an unnormalized probability weight; the game divides each detector's weight by their sum before the photon draw.
+The resource panel includes the printable wave cards, arrow-labeled board, and updated PDF/HTML facilitator guide. The 64-slip lossy model assigns each photon probabilities A brightness / 64, B brightness / 64 and missed = the remainder. The bar shows all three outcomes; the separate eventual-win readout uses A / (A + B). A miss is followed by a new photon with unchanged settings. The browser shows the first miss and compresses further replacement trials with an exact geometric waiting-time draw, avoiding long waits at low brightness. Restart cancels every pending stage. The kit includes 64 gray missed slips and 32 slips for each detector; select exactly 64 for the cup and replace gray before retrying.
 
 Run the focused regression checks from this repository:
 
@@ -78,4 +78,4 @@ For the underlying science, see IBM Quantum Learning on [Grover iteration counts
 
 Credits in original games and guides are retained. The collection uses QCaMP classroom materials; the site does not claim to be an official QCaMP website. Ghost Grid draws on Allan Goff’s quantum tic-tac-toe. No new blanket license is assigned to source material.
 
-Each game’s resource panel describes its model and limitations. In particular, Ghost Grid is a metaphor, Catch the Photon constructs relative amplitudes rather than modeling a physical optical system’s evolution, and Ghost Guard’s bit-flip code does not correct every kind of quantum error.
+Each game’s resource panel describes its model and limitations. In particular, Ghost Grid is a metaphor, Catch the Photon uses wave arithmetic to set an ideal lossy detection setup: a 50:50 splitter and two independently controlled loss channels; cards are not literal optical paths or physical gates, and Ghost Guard’s bit-flip code does not correct every kind of quantum error.

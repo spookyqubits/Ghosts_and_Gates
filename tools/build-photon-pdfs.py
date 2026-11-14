@@ -69,16 +69,18 @@ for start in range(0,40,6):
 c.save()
 
 sections=[
-('Goal and materials','Make your detector bright and the other detector dark, then sample one photon. For two players, allow about 10 minutes. Use the 40 printed wave cards, the Wave Board, two tokens, and blue/purple chips or paper slips. The board can require up to 32 slips of each color. Use identical opaque card backs or sleeves.'),
+('Goal and materials','Make your detector bright and the other detector dark, then send photons until one is caught. Allow about 10 minutes. Use the 40 wave cards, Wave Board, two tokens, an opaque cup, and a stock of 32 blue A slips, 32 purple B slips and 64 gray missed slips. All slips must have identical size, shape and feel. The cup holds exactly 64 slips, selected from this stock. Use identical opaque card backs or sleeves.'),
 ('Read a card','The number is wave strength (amplitude): move that many squares in the arrow direction. Blue ↑ is up, red ↓ down, purple → right, gold ← left. Each direction has seven strength-1 and three strength-2 cards. All plots use the same scale and frequency. The arrow describes a board move, not a photon’s travel.'),
 ('Set up and play eight rounds','Put both detector tokens at START (brightness 0). Shuffle and deal three cards each. Each player secretly chooses one card and a target detector. Reveal both, resolve A’s card first and then B’s, and draw back to three cards. Apply the full 1- or 2-square move. Keep used cards in a discard pile; reshuffle them if the draw pile runs out.'),
 ('Edges and simultaneous moves','A player cannot choose a card that would leave the board on the selected detector. If the first revealed move makes the second move leave the board, the second card is lost. If no card is legal on either detector, discard one instead. A 2-square move cannot be shortened to fit.'),
-('Catch the photon and replay','After eight rounds, read the brightness under each token. Put that many chips of each player’s color in a cup and draw one. A brighter detector is more likely to win, but can lose a trial. If both are dark, play another round. In the browser, Solo quick play starts the computer game with open hands and resolves rounds in fewer clicks. New game or Play again keeps that mode.'),
+('Catch the photon and replay','After eight rounds, put A brightness blue slips and B brightness purple slips in the cup. Add gray slips until the total is exactly 64. Mix and draw without looking. Blue or purple wins. Gray means neither detector caught this photon: REPLACE the gray slip, mix, and send a NEW photon with unchanged settings. Repeat until caught. If both are dark, play one more round instead. The browser shows the first attempt, then advances retries automatically after a miss. New game or Play again cancels pending photons and keeps the selected play mode.'),
 ('An exact cancellation example','At one square above START, a ↓1 card returns the token to START and makes brightness 0. A ↓2 card instead crosses START and ends one square below it: brightness stays 1. A larger card is not always better.'),
-('Science and probability','At position (x, y), the model’s wave is y cos(2πt/T) + x sin(2πt/T), with amplitude √(x² + y²). The board number x² + y² is brightness: an unnormalized probability weight. Divide each detector’s weight by their sum to obtain the detection probabilities. Weights 25 and 9 give chances 25/34 and 9/34. When both weights are zero, the game has no photon draw.'),
+('Science and probability','At position (x, y), the model’s wave is y cos(2πt/T) + x sin(2πt/T), with amplitude √(x² + y²). Brightness is x² + y². Each coordinate runs from -4 to +4, so each detector reaches at most 32 and their sum cannot exceed 64. PER PHOTON: P(A) = A brightness / 64, P(B) = B brightness / 64, and P(missed) = (64 - A brightness - B brightness) / 64. EVENTUAL WIN: with positive total brightness, A wins with A brightness / total brightness and B with B brightness / total brightness.'),
+('A 64 slip example','For brightnesses 25 and 9, put 25 blue, 9 purple and 30 gray slips in the cup. Per photon, the probabilities are 25/64, 9/64 and 30/64. With replacement, among detections the winner probabilities are 25/34 and 9/34. Misses are new trials, not additional turns or lost points. For brightnesses 1 and 0, it takes 64 photons on average to detect one; the browser compresses further misses using the same replacement probabilities. With both dark, detection would never happen, so play another round.'),
 ('Phase and strength','Up begins at a crest, down at a trough, right at zero rising, and left at zero falling. In-step amplitudes add. Opposite phases subtract; complete cancellation requires equal amplitudes. ↑2 + ↓1 leaves ↑1, while ↑2 + ↓2 gives zero. Equal-amplitude waves a quarter-cycle apart combine to an amplitude √2 times either wave. A strength-2 card from START gives brightness 4.'),
-('Scope of the model','In an ideal fixed-input, lossless two-output optical setup, total detection probability is conserved, so increasing one output’s probability decreases the other’s. This game builds the two relative amplitudes independently and then normalizes their squared magnitudes. It does not simulate that apparatus. Real waves can have any phase; the cards use four.'),
-('Facilitation and discussion','Start with one cancellation example, then let learners play. Ask: When is strength 1 better than strength 2? Why can adding a wave make a detector darker? Why can a good strategy lose one trial? Show the achieved chances alongside the sampled result. In Wave Lab, compare partial cancellation, complete cancellation, and a phase reversal. A simple challenge is to reach a dark detector using a strength-2 wave and smaller opposite waves.'),
+('A physical detection setup','An ideal single-photon source feeds a 50:50 splitter. Each branch has an independently adjustable loss channel and an ideal detector. Set the branch transmissions to A brightness / 32 and B brightness / 32. Multiplying each transmission by the branch probability 1/2 gives exactly A brightness / 64 and B brightness / 64. Undetected photons leave through loss channels. Both detectors can brighten when losses decrease.'),
+('What the cards model','Cards add wave contributions on an amplitude board; the calculated brightness sets each branch transmission. This matches the final detection probabilities, not a literal optical path opened by every card. Card moves are not physical gates. Interference can redirect light to other outputs; cancellation alone does not prove absorption. The animation is a probability sample, not a photon trajectory. Real waves can have any phase; the cards use four.'),
+('Facilitation and discussion','Start with one cancellation example, then let learners play. Ask: When is strength 1 better than strength 2? Why can adding a wave make a detector darker? Why can a good strategy lose one game? What is the difference between one photon and the eventual winner? Show both sets of probabilities alongside the sampled result. In Wave Lab, compare partial cancellation, complete cancellation, and a phase reversal. A simple challenge is to reach a dark detector using a strength-2 wave and smaller opposite waves.'),
 ('Credits','Developed using QCaMP material. The arrow addition model is related to the phasor method described in Feynman’s QED (1985). The wave board and card game are classroom teaching models.')]
 styles={
  'title':ParagraphStyle('title',fontName='Body',fontSize=23,leading=28,spaceAfter=12),
@@ -91,7 +93,7 @@ for i,(heading,body) in enumerate(sections):
     story.extend([Paragraph(heading,styles['head']),Paragraph(escape(body),styles['body'])])
 SimpleDocTemplate(str(out/'CatchThePhoton_Facilitator_Guide.pdf'),pagesize=(612,792),leftMargin=48,rightMargin=48,topMargin=44,bottomMargin=44,title='Catch the Photon facilitator guide').build(story)
 body=''.join(f'<h2>{escape(h)}</h2><p>{escape(p)}</p>' for h,p in sections)
-(out/'CatchThePhoton_Facilitator_Guide.html').write_text('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Catch the Photon facilitator guide</title><style>@page{size:letter;margin:.65in}body{font:16px/1.55 Arial,sans-serif;background:#faf7f1;color:#242622;margin:40px auto;padding:0 24px;max-width:800px}h1{color:#b41524}h2{font-size:19px;margin-bottom:5px}p{margin-top:0}@media print{body{background:white;margin:0}h1{color:black}}</style><h1>Catch the Photon</h1><p>Facilitator guide for numbered wave cards</p>'+body+'</html>')
+(out/'CatchThePhoton_Facilitator_Guide.html').write_text('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Catch the Photon facilitator guide</title><style>@page{size:letter;margin:.65in}body{font:16px/1.55 Arial,sans-serif;background:#faf7f1;color:#242622;margin:40px auto;padding:0 24px;max-width:800px}h1{color:#000}h2{font-size:19px;margin-bottom:5px}p{margin-top:0}@media print{body{background:white;margin:0}h1{color:black}}</style><h1>Catch the Photon</h1><p>Facilitator guide for numbered wave cards</p>'+body+'</html>')
 
 c=canvas.Canvas(str(out/'catch_the_photon_board.pdf'),pagesize=(612,792));c.setTitle('Catch the Photon wave board');c.setFillColor(ink);c.setFont('Body',24);c.drawCentredString(306,744,'Catch the Photon')
 c.setFont('Body',11);c.drawCentredString(306,722,'Move in the arrow direction by the card’s strength. Read brightness at the token.')
@@ -109,6 +111,26 @@ for gy in range(-4,5):
 c.setStrokeColor(ink);c.setLineWidth(2);c.rect(left+4*cell,bottom+4*cell,cell,cell);c.setFont('Body',6);c.drawCentredString(306,bottom+4*cell+5,'START')
 for x,y,t,color in [(306,666,'↑ up','#154c9c'),(306,180,'↓ down','#c0182a'),(59,420,'←','#8c6000'),(550,420,'→','#6c2f9e')]:c.setFillColor(HexColor(color));c.setFont('Body',16);c.drawCentredString(x,y,t)
 c.setFillColor(ink);c.setFont('Body',11)
-for i,line in enumerate(['Blue ↑ · Red ↓ · Purple → · Gold ←','Board brightness = x² + y². This is a probability weight.','Chance of A = brightness A / (brightness A + brightness B).','If both detectors are dark, play another round.','A strength-2 card moves two squares; it cannot be shortened.']):c.drawCentredString(306,143-i*19,line)
+for i,line in enumerate(['Blue ↑ · Red ↓ · Purple → · Gold ←','Brightness = x² + y². Each photon: A / 64, B / 64, missed = rest.','Cup: 64 slips total. Replace gray, mix, send a NEW photon.','Eventual A win: A / (A + B). Both dark: play another round.','A strength-2 card moves two squares; it cannot be shortened.']):c.drawCentredString(306,143-i*19,line)
+c.save()
+
+# Stock slips: select exactly 64 of these for the cup after each game.
+c=canvas.Canvas(str(out/'CatchThePhoton_Detection_Slips.pdf'),pagesize=(612,792))
+c.setTitle('Catch the Photon detection slips')
+for page in range(2):
+    c.setFillColor(ink);c.setFont('Body',19);c.drawString(54,746,'Catch the Photon detection slips')
+    c.setFont('Body',10);c.drawString(54,724,'Stock sheet: 64 gray slips, 32 blue A slips and 32 purple B slips across two pages.')
+    c.drawString(54,708,'Cup = A brightness blue + B brightness purple + gray to make exactly 64.')
+    for i in range(64):
+        label,color = ('MISSED','#dde0e5') if page==0 else ('A','#e4edf9') if i<32 else ('B','#f0e6f8')
+        x=66+(i%8)*60;y=632-(i//8)*60
+        c.setFillColor(HexColor(color));c.setStrokeColor(HexColor('#6b7080'));c.setLineWidth(.6);c.rect(x,y,48,48,fill=1,stroke=1)
+        c.setFillColor(ink);c.setFont('Body',8 if page==0 else 14);c.drawCentredString(x+24,y+21,label)
+    c.setFont('Body',10)
+    for j,line in enumerate(['Cut identical squares. Use opaque paper and draw without looking.',
+                              'On gray: REPLACE the slip, mix, and send a NEW photon with the same settings.',
+                              'Blue A or purple B wins. Both dark: play one more round instead of drawing.']):
+        c.drawString(54,126-j*18,line)
+    c.showPage()
 c.save()
 print('Generated wave cards (7 pages), facilitator guide, HTML guide, and board in',out)

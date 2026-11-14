@@ -20,7 +20,7 @@ function load(full = false) {
     setTimeout(fn){timers.set(++timerId,fn);return timerId;},clearTimeout(id){timers.delete(id);}});
   vm.runInContext(scripts[0],ctx); ctx.CP = ctx.window.CP; vm.runInContext(scripts[1],ctx);
   if (full) vm.runInContext(scripts[2],ctx);
-  return {ctx, CP:ctx.CP, nodes, timers, run:code=>vm.runInContext(code,ctx)};
+  return {ctx, CP:ctx.CP, nodes, timers, run:code=>vm.runInContext(code,ctx), tick(){const [id,fn]=timers.entries().next().value||[];if(fn){timers.delete(id);fn();}}, random(u){ctx.crypto={getRandomValues(a){a[0]=Math.floor(u*4294967296);return a;}};}};
 }
 const arr = x => Array.from(x);
 test('40-card deck has seven 1s and three 2s per direction',()=>{
@@ -53,15 +53,78 @@ test('computer can prefer a 1-step cancellation over an available 2',()=>{
 });
 test('reset during firing cancels the old result and restores Fire for later games',()=>{
   const app=load(true);
+  app.random(0);
   for(let i=0;i<4;i++) {
     app.run("G.pos=[[0,2],[1,0]];G.phase='photon';fire()"); assert.equal(app.nodes.get('#fire').disabled,true); assert.equal(app.timers.size,1);
     const stale=[...app.timers.values()][0]; app.run('newGame()'); assert.equal(app.timers.size,0); assert.equal(app.nodes.get('#fire').disabled,false);
     stale(); assert.equal(app.run('G.result'),null); assert.equal(app.run('score[0]+score[1]'),0);
   }
   app.run("G.pos=[[0,2],[1,0]];G.phase='photon';fire()");
-  const finish=[...app.timers.values()][0]; app.timers.clear(); finish(); assert.equal(app.run('G.phase'),'done'); assert.equal(app.nodes.get('#fire').disabled,false);
+  const finish=[...app.timers.values()][0]; app.timers.clear(); finish(); finish(); assert.equal(app.run('G.phase'),'done'); assert.equal(app.nodes.get('#fire').disabled,false);
   assert(app.nodes.get('#event').textContent.includes('A 80%, B 20%'));
+  assert.equal(app.run('score[0]+score[1]'),1);
   app.run('newGame()'); assert.equal(app.nodes.get('#fire').disabled,false);
+});
+test('the 64 replacement slips reproduce exact A, B and missed probabilities at every board pair',()=>{
+  const {CP}=load();
+  const weights=[...new Set(Array.from({length:9},(_,i)=>i-4).flatMap(x=>Array.from({length:9},(_,i)=>x*x+(i-4)**2)))];
+  for(const a of weights)for(const b of weights){
+    const counts=[0,0,0];for(let slip=0;slip<64;slip++)counts[CP.photon(a,b,(slip+.5)/64)]++;
+    assert.deepEqual(counts,[a,b,64-a-b]);
+  }
+  assert.equal(CP.photon(25,9,25/64),1);assert.equal(CP.photon(25,9,34/64),2);
+  assert.equal(CP.retryRun(0,0,.5,.5),null);
+  assert.equal(CP.retryRun(32,32,.999,.25).misses,0);
+});
+test('automatic retries use geometric replacement trials and preserve conditional winner odds',()=>{
+  const {CP}=load();
+  for(const [a,b]of [[1,0],[0,1],[25,9],[32,32]]){
+    const p=(a+b)/64;
+    for(const k of [0,1,2,10,100]){
+      if(p===1 && k)continue;
+      const lo=1-(1-p)**k, hi=1-(1-p)**(k+1), u=(lo+hi)/2;
+      if(u===1 || hi===lo)continue;
+      assert.equal(CP.retryRun(a,b,u,0).misses,k);
+    }
+    let winsA=0;for(let i=0;i<a+b;i++)winsA+=CP.retryRun(a,b,.5,(i+.5)/(a+b)).winner===0;
+    assert.equal(winsA,a);
+  }
+});
+test('a visible miss advances automatically, counts compressed retries, and awards one win',()=>{
+  const app=load(true);app.random(.75);
+  app.run("G.pos=[[1,0],[0,0]];G.phase='photon';fire()");app.tick();
+  assert.equal(app.run('G.missed'),1);assert.equal(app.run('G.phase'),'photon');
+  assert(app.nodes.get('#result').textContent.includes('Missed'));assert.equal(app.run('score[0]+score[1]'),0);
+  assert.equal(app.timers.size,1);app.tick();
+  assert(app.run('G.missed')>1);assert.equal(app.run('G.attempts'),app.run('G.missed+1'));
+  app.tick();assert.equal(app.run('G.phase'),'done');assert.equal(app.run('G.result'),0);assert.equal(app.run('score[0]'),1);
+  assert.equal(app.timers.size,0);
+});
+test('B can detect immediately or after misses, and a full cup has no missed outcome',()=>{
+  for(const [positions,u,expectedMisses] of [[[[4,4],[4,4]],.75,false],[[[0,0],[4,4]],.25,false],[[[0,0],[1,0]],.9,true]]){
+    const app=load(true);app.random(u);
+    app.run(`G.pos=${JSON.stringify(positions)};G.phase='photon';fire()`);
+    let ticks=0;while(app.timers.size && ticks++<4)app.tick();
+    assert.equal(app.run('G.phase'),'done');assert.equal(app.run('G.result'),1);assert.equal(app.run('score[1]'),1);
+    assert.equal(app.run('G.missed>0'),expectedMisses);assert.equal(app.run('G.attempts'),app.run('G.missed+1'));
+  }
+});
+test('reset cancels retries both after a miss and during the final detected-photon animation',()=>{
+  for(const ticks of [1,2]){
+    const app=load(true);app.random(.9);
+    app.run("G.pos=[[1,0],[0,0]];G.phase='photon';fire()");for(let i=0;i<ticks;i++)app.tick();
+    const stale=[...app.timers.values()][0];app.run('newGame()');assert.equal(app.timers.size,0);stale();
+    assert.equal(app.run('G.result'),null);assert.equal(app.run('score[0]+score[1]'),0);assert.equal(app.run('G.attempts'),0);
+    assert.equal(app.nodes.get('#fire').disabled,false);
+  }
+});
+test('both-dark never starts a retry loop and the readout does not invent 50/50 odds',()=>{
+  const app=load(true);app.run("G.phase='photon';fire();render()");
+  assert.equal(app.timers.size,0);assert.equal(app.nodes.get('#pm').style.width,'100%');
+  assert(app.nodes.get('#eventual-odds').textContent.includes('Both dark'));
+  app.run("G.pos=[[0,2],[1,0]];render()");
+  assert.equal(app.nodes.get('#pa').style.width,'6.25%');assert.equal(app.nodes.get('#pb').style.width,'1.5625%');
+  assert(app.nodes.get('#eventual-odds').textContent.includes('A 80%'));
 });
 test('solo quick play completes eight rounds and replays without reveal/transition clicks',()=>{
   const app=load(true); app.nodes.get('#solo').onclick(); assert.equal(app.run('G.phase'),'choose');
