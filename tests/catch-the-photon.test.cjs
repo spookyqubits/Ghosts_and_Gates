@@ -7,10 +7,10 @@ const html = fs.readFileSync(path.join(__dirname, '../games/catch-the-photon.htm
 const scripts = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]);
 function load(full = false) {
   class Element {
-    constructor() { this.dataset = {}; this.style = {setProperty(){}}; this.classList = {add(){},remove(){}}; this.children = new Map(); this.disabled = false; this.checked = false; this.innerHTML = ''; this.textContent = ''; }
+    constructor() { this.dataset = {}; this.attributes = new Map(); this.style = {setProperty(){}}; this.classList = {add(){},remove(){}}; this.children = new Map(); this.disabled = false; this.checked = false; this.innerHTML = ''; this.textContent = ''; }
     querySelector(s) { if (!this.children.has(s)) this.children.set(s, new Element()); return this.children.get(s); }
     querySelectorAll() { return []; }
-    appendChild() {} setAttribute() {} addEventListener() {}
+    appendChild() {} setAttribute(k,v) { this.attributes.set(k,String(v)); } addEventListener() {}
     getBoundingClientRect() { return {width:200}; }
     get parentElement() { return this; }
   }
@@ -248,4 +248,51 @@ test('committing a private card clears its audible comparison before passing to 
   assert.equal(app.nodes.get('#play-sound-status').textContent,'');
   assert.equal(app.run('G.phase'),'hidden');assert.equal(app.run('G.who'),1);
   assert.equal(app.run('audioNodes.length'),0);
+});
+test('cup inventory renders 64 equal slots with exact A, B and missed counts for every legal brightness pair',()=>{
+  const app=load(true);
+  const weights=[...new Set(Array.from({length:9},(_,x)=>x-4).flatMap(x=>Array.from({length:9},(_,y)=>x*x+(y-4)**2)))];
+  for(const a of weights)for(const b of weights){
+    app.run(`renderCup(${a},${b})`);
+    const slots=[...app.nodes.get('#cup-grid').innerHTML.matchAll(/class="slip-cell (A|B|missed)(?: is-drawn)?"/g)].map(m=>m[1]);
+    assert.equal(slots.length,64);
+    assert.deepEqual(['A','B','missed'].map(k=>slots.filter(s=>s===k).length),[a,b,64-a-b]);
+    assert.deepEqual(['#cup-a','#cup-b','#cup-missed'].map(k=>Number(app.nodes.get(k).textContent)),[a,b,64-a-b]);
+    assert(app.nodes.get('#cup-grid').attributes.get('aria-label').includes(`${64-a-b} gray missed`));
+  }
+});
+test('a gray slip is returned before the new photon and its replacement preserves the full cup',()=>{
+  const app=load(true);app.random(.75);
+  app.run("G.pos=[[1,0],[0,0]];G.phase='photon';fire()");
+  assert.equal(app.run('G.cupState'),'drawing');assert.equal(app.nodes.get('#cup-slip-mark').textContent,'?');
+  assert(!app.nodes.get('#cup-grid').innerHTML.includes('is-drawn'));
+  app.tick();assert.equal(app.run('G.cupState'),'missed');
+  assert(app.nodes.get('#cup-message').textContent.includes('Return gray'));
+  assert.equal(app.nodes.get('#cup-slip-face').attributes.get('fill'),'#e3e5e9');
+  assert(app.nodes.get('#cup-grid').innerHTML.includes('missed is-drawn'));
+  app.tick();assert.equal(app.run('G.cupState'),'drawing');
+  assert(app.nodes.get('#cup-message').textContent.includes('Gray replaced. Send a new photon.'));
+  assert.equal(Number(app.nodes.get('#cup-missed').textContent),63);
+  assert.equal((app.nodes.get('#cup-grid').innerHTML.match(/class="slip-cell /g)||[]).length,64);
+  app.tick();assert.equal(app.run('G.cupState'),'A');assert.equal(app.nodes.get('#cup-counts').dataset.winner,'A');
+  assert(app.nodes.get('#cup-grid').innerHTML.includes('A is-drawn'));
+  assert.equal(app.run('G.attempts'),app.run('G.missed+1'));
+});
+test('direct B draws reveal the correct slip and reset clears every cup highlight during any firing stage',()=>{
+  const direct=load(true);direct.random(.75);
+  direct.run("G.pos=[[4,4],[4,4]];G.phase='photon';fire()");direct.tick();
+  assert.equal(direct.run('G.cupSlot'),48);assert.equal(direct.run('G.cupState'),'B');
+  assert.equal(direct.nodes.get('#cup-counts').dataset.winner,'B');
+  assert(direct.nodes.get('#cup-grid').innerHTML.includes('B is-drawn'));
+  assert(direct.nodes.get('#cup-message').textContent.includes('detector B caught'));
+  for(const ticks of [0,1,2]){
+    const app=load(true);app.random(.9);
+    app.run("G.pos=[[1,0],[0,0]];G.phase='photon';fire()");for(let i=0;i<ticks;i++)app.tick();
+    const stale=[...app.timers.values()];app.run('newGame()');stale.forEach(fn=>fn());
+    assert.equal(app.nodes.get('#cup-display').dataset.state,'ready');
+    assert.equal(app.nodes.get('#cup-counts').dataset.winner,'');
+    assert.equal(Number(app.nodes.get('#cup-missed').textContent),64);
+    assert(!app.nodes.get('#cup-grid').innerHTML.includes('is-drawn'));
+    assert.equal(app.run('G.cupSlot'),null);assert.equal(app.timers.size,0);
+  }
 });

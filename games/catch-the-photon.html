@@ -105,6 +105,34 @@ h2 { font-size: 21px; margin: 0 0 8px; }
 #result:empty, #shot-count:empty { display: none; }
 .side .small { font-size: 13px; color: #6b4700; line-height: 1.35; margin: 8px 0 0; }
 #score { font-size: 16px; font-weight: bold; }
+/* A small tabletop model; the inventory expands only when requested. */
+.cup-display { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 8px; margin-top: 8px; }
+.cup-svg { display: block; width: 72px; height: 94px; overflow: visible; }
+.cup-counts { list-style: none; padding: 0; margin: 0; font-size: 13px; color: #535969; }
+.cup-counts li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 2px 4px; border-radius: 3px; }
+.cup-counts strong { font-size: 17px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.cup-counts[data-winner="A"] .count-A { background: #e4edf9; }
+.cup-counts[data-winner="B"] .count-B { background: #f0e6f8; }
+.slip-key { display: inline-block; width: 7px; height: 10px; margin-right: 5px; border-radius: 1px; }
+.slip-key.A { background: var(--a); } .slip-key.B { background: var(--b); } .slip-key.missed { background: #737985; }
+#cup-message { min-height: 34px; margin: 2px 0 0; font-size: 13px; line-height: 1.3; color: #535969; }
+.cup-details { margin: 0 0 7px; padding: 0; border: 0; font-size: 12px; line-height: 1.4; }
+.cup-details summary { font-size: 12px; font-weight: normal; color: #535969; padding: 4px 0; }
+.cup-details p { margin: 6px 0; color: #535969; }
+.slip-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; margin: 8px 1px; }
+.slip-cell { display: grid; place-items: center; aspect-ratio: 1; border: 1px solid transparent; border-radius: 2px; font: bold 10px Arial,sans-serif; }
+.slip-cell.A { color: #fff; background: var(--a); } .slip-cell.B { color: #fff; background: var(--b); }
+.slip-cell.missed { color: #4c525d; background: #e3e5e9; border-color: #c8cdd3; }
+.slip-cell.is-drawn { outline: 2px solid var(--ink); outline-offset: 1px; }
+#cup-slip { opacity: 0; transform: translateY(26px); }
+.cup-display[data-state="drawing"] #cup-slip { animation: slip-draw 1.4s ease-out both; }
+.cup-display[data-state="missed"] #cup-slip { animation: slip-return .65s ease-in both; }
+.cup-display[data-state="A"] #cup-slip, .cup-display[data-state="B"] #cup-slip { opacity: 1; transform: translateY(0); }
+@keyframes slip-draw { 0%, 25% { opacity: 0; transform: translateY(26px); } 65%, 100% { opacity: 1; transform: translateY(0); } }
+@keyframes slip-return { 0%, 25% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(26px); } }
+@media (prefers-reduced-motion: reduce) {
+  .cup-display[data-state="drawing"] #cup-slip, .cup-display[data-state="missed"] #cup-slip { animation: none; opacity: 1; transform: none; }
+}
 /* lab */
 #lab-view { display: none; }
 body[data-tab="lab"] #lab-view { display: block; }
@@ -216,8 +244,26 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
         <p class="small"><b>One photon</b></p>
         <div class="odds-label"><span class="A" id="pa-label">A 0%</span><span class="B" id="pb-label">B 0%</span><span class="missed" id="pm-label">Missed 100%</span></div>
         <div class="bar-wrap"><div class="photon" id="photon"></div><div class="oddsbar" role="img" id="photon-odds"><div class="pa" id="pa" style="width:0%"></div><div class="pb" id="pb" style="width:0%"></div><div class="pm" id="pm" style="width:100%"></div></div></div>
+        <div class="cup-display" id="cup-display" data-state="ready" role="group" aria-label="64-slip cup model">
+          <svg class="cup-svg" viewBox="0 0 80 104" aria-hidden="true" focusable="false">
+            <ellipse cx="40" cy="36" rx="29" ry="7" fill="#fff" stroke="#7b8190" stroke-width="1.7"/>
+            <g id="cup-slip"><rect id="cup-slip-face" x="31" y="6" width="18" height="24" rx="2" fill="#fff" stroke="#7b8190" stroke-width="1.5"/><text id="cup-slip-mark" x="40" y="22" text-anchor="middle" font-size="13" font-weight="bold" fill="#535969">?</text></g>
+            <path d="M11 36L18 90Q40 98 62 90L69 36Q40 49 11 36Z" fill="#fff" stroke="#7b8190" stroke-width="1.7" stroke-linejoin="round"/>
+            <text x="40" y="70" text-anchor="middle" font-size="25" font-weight="bold" fill="#1f2a44">64</text>
+            <text x="40" y="84" text-anchor="middle" font-size="11" fill="#535969">slips</text>
+          </svg>
+          <ul class="cup-counts" id="cup-counts">
+            <li class="count-A"><span><i class="slip-key A" aria-hidden="true"></i>Blue A</span><strong id="cup-a">0</strong></li>
+            <li class="count-B"><span><i class="slip-key B" aria-hidden="true"></i>Purple B</span><strong id="cup-b">0</strong></li>
+            <li><span><i class="slip-key missed" aria-hidden="true"></i>Missed</span><strong id="cup-missed">64</strong></li>
+          </ul>
+        </div>
+        <p id="cup-message" role="status">Each photon uses this 64-slip mix.</p>
+        <details class="cup-details"><summary>See all 64 slips</summary>
+          <div class="slip-grid" id="cup-grid" role="img" aria-label="64 gray missed slips"></div>
+          <p>Each photon uses this mix. Slips have equal chances; the grid shows the inventory, not draw order. Return gray, mix, then send a new photon.</p>
+        </details>
         <p class="small" id="eventual-odds"></p>
-        <p class="small">Each photon draws from the same 64-slip cup: A brightness blue, B brightness purple, the rest gray. Gray means neither detector caught it. Replace the slip, mix, and send a new photon. The browser advances retries automatically.</p>
         <p class="small" id="shot-count" role="status"></p>
         <button id="fire" hidden>Fire the photon</button>
         <p id="result" aria-live="polite"></p>
@@ -441,7 +487,7 @@ function newGame() {
   clearTimeout(fireTimer); fireTimer = null;
   $('#fire').disabled = false; $('#photon').classList.remove('fly', 'missed');
   G = { deck: newDeck(rand), discard: [], hands: [[], []], pos: [[0, 0], [0, 0]], round: 1, maxRounds: 8,
-    phase: openHands() ? 'choose' : 'hidden', who: 0, picks: [null, null], sel: null, played: [[], []], steps: [], stepIdx: -1, result: null, firing: false, attempts: 0, missed: 0 };
+    phase: openHands() ? 'choose' : 'hidden', who: 0, picks: [null, null], sel: null, played: [[], []], steps: [], stepIdx: -1, result: null, firing: false, attempts: 0, missed: 0, cupState: 'ready', cupSlot: null };
   for (let k = 0; k < 3; k++) for (const p of [0, 1]) G.hands[p].push(G.deck.pop());
   $('#event').textContent = quickMode ? 'Solo quick play: choose a wave and a detector.' : 'New game. Both detectors start dark.';
   $('#result').textContent = ''; $('#result').className = ''; render();
@@ -511,7 +557,7 @@ function fire() {
   const bA = bright(G.pos[0]), bB = bright(G.pos[1]); if (bA + bB === 0) return;
   stopSound();
   const u = rand(), w = photon(bA, bB, u), id = G;
-  G.firing = true; G.attempts = 1;
+  G.firing = true; G.attempts = 1; G.cupState = 'drawing'; G.cupSlot = Math.floor(u * CUP);
   function later(fn, delay) {
     fireTimer = setTimeout(() => { if (G !== id || !G.firing) return; fireTimer = null; fn(); }, delay);
   }
@@ -522,7 +568,7 @@ function fire() {
     void ph.offsetWidth; ph.classList.add('fly');
   }
   function finish(winner) {
-    G.firing = false; G.result = winner; G.phase = 'done'; score[winner]++;
+    G.firing = false; G.result = winner; G.phase = 'done'; G.cupState = NAMES[winner]; score[winner]++;
     $('#result').className = NAMES[winner]; $('#result').textContent = `Player ${NAMES[winner]} caught a photon!`;
     $('#event').textContent = `Eventual win odds: A ${percent(bA / (bA + bB))}, B ${percent(bB / (bA + bB))}. ${G.missed} missed photon${G.missed === 1 ? '' : 's'} before detection. A good strategy can still lose one game.`;
     render();
@@ -530,7 +576,7 @@ function fire() {
   animate(u, w === 2); render();
   later(() => {
     if (w !== 2) { finish(w); return; }
-    G.missed = 1;
+    G.missed = 1; G.cupState = 'missed';
     $('#result').className = 'missed'; $('#result').textContent = 'Missed: neither detector caught this photon.';
     $('#event').textContent = 'Replace the gray slip and mix. Sending new photons automatically with the same settings…'; render();
     later(() => {
@@ -539,7 +585,9 @@ function fire() {
       $('#event').textContent = `${G.missed} missed photon${G.missed === 1 ? '' : 's'} in total. Further misses were advanced automatically; now showing the detected photon.`;
       $('#result').textContent = 'A new photon reaches a detector…';
       const start = run.winner === 0 ? 0 : bA / CUP, width = (run.winner === 0 ? bA : bB) / CUP;
-      animate(start + rand() * width, false); render();
+      const landing = start + rand() * width;
+      G.cupState = 'drawing'; G.cupSlot = Math.floor(landing * CUP);
+      animate(landing, false); render();
       later(() => finish(run.winner), 1450);
     }, 750);
   }, 1450);
@@ -555,6 +603,23 @@ function drawDetCurve(svg, pos, st, color) {
 function cardHTML(c, i, sel, back) {
   if (back) return '<div class="pc back" aria-label="face-down wave card"><svg aria-hidden="true"><use href="#ghost"/></svg></div>';
   return `<button class="pc ${sel ? 'sel' : ''}" data-i="${i}" aria-label="Strength ${c.strength}, move ${c.strength} ${WAVES[c.direction].dir}" aria-pressed="${!!sel}">${cardSVG(c, `hand-${i}`)}</button>`;
+}
+function renderCup(a, b) {
+  const missed = CUP - a - b, state = G.cupState;
+  $('#cup-a').textContent = a; $('#cup-b').textContent = b; $('#cup-missed').textContent = missed;
+  $('#cup-display').dataset.state = state;
+  $('#cup-counts').dataset.winner = state === 'A' || state === 'B' ? state : '';
+  const reveal = state === 'A' || state === 'B' || state === 'missed';
+  const color = state === 'A' ? WAVES.U.color : state === 'B' ? WAVES.R.color : state === 'missed' ? '#e3e5e9' : '#fff';
+  $('#cup-slip-face').setAttribute('fill', color);
+  $('#cup-slip-mark').setAttribute('fill', state === 'A' || state === 'B' ? '#fff' : '#535969');
+  $('#cup-slip-mark').textContent = state === 'missed' ? '–' : state === 'A' || state === 'B' ? state : '?';
+  $('#cup-grid').innerHTML = Array.from({length: CUP}, (_, i) => {
+    const type = i < a ? 'A' : i < a + b ? 'B' : 'missed';
+    return `<span class="slip-cell ${type}${reveal && i === G.cupSlot ? ' is-drawn' : ''}" aria-hidden="true">${type === 'missed' ? '–' : type}</span>`;
+  }).join('');
+  $('#cup-grid').setAttribute('aria-label', `64 equally likely slips: ${a} blue A, ${b} purple B, ${missed} gray missed${reveal ? `. Drawn: ${state === 'missed' ? 'gray, replaced before the next photon' : state}` : ''}.`);
+  $('#cup-message').textContent = state === 'drawing' ? (G.missed ? 'Gray replaced. Send a new photon.' : 'Mix, then draw one slip…') : state === 'missed' ? 'Missed. Return gray to the cup.' : state === 'A' ? 'Blue slip: detector A caught it.' : state === 'B' ? 'Purple slip: detector B caught it.' : 'Each photon uses this 64-slip mix.';
 }
 function render() {
   if (document.body.dataset.tab !== 'play') return;
@@ -596,6 +661,7 @@ function render() {
   $('#fire').hidden = G.phase !== 'photon'; $('#fire').disabled = G.firing;
   $('#new-game').textContent = G.phase === 'done' ? 'Play again' : 'New game';
   const bA = bright(G.pos[0]), bB = bright(G.pos[1]), total = bA + bB, pA = winp(bA, bB);
+  renderCup(bA, bB);
   $('#pa').style.width = (100 * bA / CUP) + '%'; $('#pb').style.width = (100 * bB / CUP) + '%'; $('#pm').style.width = (100 * (CUP - total) / CUP) + '%';
   $('#pa-label').textContent = `A ${percent(bA / CUP)}`; $('#pb-label').textContent = `B ${percent(bB / CUP)}`; $('#pm-label').textContent = `Missed ${percent(1 - total / CUP)}`;
   $('#photon-odds').setAttribute('aria-label', `Per photon: A ${percent(bA / CUP)}, B ${percent(bB / CUP)}, missed ${percent(1 - total / CUP)}`);
