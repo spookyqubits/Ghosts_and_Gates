@@ -119,6 +119,24 @@ body[data-tab="lab"] #play-view { display: none; }
 #lab-note { font-size: 17px; font-weight: bold; padding: 8px; margin: 8px 0; background: #f0f3f8; border-radius: 8px; }
 .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .presets button { padding: 8px 10px; font-size: 15px; }
+.sound-panel { margin-top: 10px; padding-top: 8px; font-size: 14px; line-height: 1.4; }
+.sound-panel summary { font-size: 16px; }
+.sound-panel p { margin: 7px 0; }
+.sound-panel button, .sound-stop { padding: 6px 9px; font-size: 14px; min-height: 32px; }
+.sound-panel .actions { gap: 6px; margin-top: 7px; }
+.sound-stages { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 8px; }
+.sound-stage { padding: 5px; border: 2px solid #d9dce4; border-radius: 7px; background: #fff; font-size: 12px; }
+.sound-stage.is-sounding { border-color: var(--brand); background: #fff1ed; }
+.sound-stage svg { width: 100%; height: auto; display: block; }
+.sound-status { font-size: 14px; line-height: 1.4; margin: 7px 0; }
+.sound-status:empty, .sound-stages:empty { display: none; }
+#prediction-choices { border: 0; padding: 0; margin: 8px 0; }
+#prediction-choices legend { font-weight: bold; }
+#challenge-feedback { font-weight: bold; }
+#challenge-feedback:empty { display: none; }
+.challenge-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+.challenge-cards[hidden] { display: none; }
+.challenge-cards button { min-height: 40px; font-size: 20px; background: #fff; }
 details { margin-top: 22px; font-size: 17px; line-height: 1.5; border-top: 1px solid #d9dce4; padding-top: 10px; }
 summary { font-weight: bold; font-size: 19px; cursor: pointer; }
 details table { border-collapse: collapse; margin: 8px 0; }
@@ -170,6 +188,13 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
             <div class="det-cards" id="cards1" aria-label="Cards on Player B's detector"></div></div>
         </div>
         <div id="hand-area"><p class="hand-title" id="hand-title"></p><div class="hand" id="hand"></div><div class="targets" id="targets"></div></div>
+        <details class="sound-panel" id="play-sound">
+          <summary>Sound model of wave interference</summary>
+          <p>Pick a card, then hear the current wave, that card alone, and both together. A and B are played separately.</p>
+          <div class="actions"><button id="preview-a" disabled>Preview on A</button><button id="preview-b" disabled>Preview on B</button><button class="sound-stop" data-sound-stop disabled>Stop sound</button></div>
+          <div class="sound-stages" id="play-sound-stages"></div>
+          <p class="sound-status" id="play-sound-status" role="status"></p>
+        </details>
         <div class="actions">
           <button id="show-hand" class="primary" hidden>Show my cards</button>
           <button id="reveal" class="primary" hidden>Reveal both cards</button>
@@ -217,12 +242,26 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
         <p id="lab-note" aria-live="polite"></p>
         <div class="actions">
           <button id="lab-hear" class="primary">Hear the waves</button>
+          <button class="sound-stop" data-sound-stop disabled>Stop sound</button>
           <button id="lab-undo">Undo</button>
           <button id="lab-clear">Clear</button>
         </div>
+        <p class="sound-status" id="lab-sound-status" role="status"></p>
+        <div class="sound-stages" id="lab-sound-stages"></div>
+        <details class="sound-panel" id="sound-challenge">
+          <summary>Silence the ghost · musical challenges</summary>
+          <p>Choose a challenge. The wave stays visible while you listen and try cards.</p>
+          <div class="actions"><button data-challenge="silence">Silence in 1 card</button><button data-challenge="build">Build in 2 cards</button><button data-challenge="predict">Predict the change</button></div>
+          <p id="challenge-prompt">Free play: add waves above, or start a challenge.</p>
+          <div class="challenge-cards" id="challenge-cards" hidden></div>
+          <fieldset id="prediction-choices" hidden><legend>What will happen to the tune?</legend><div class="actions"><button data-prediction="stronger">Stronger</button><button data-prediction="quieter">Quieter</button><button data-prediction="silent">Silent</button><button data-prediction="same">Same level</button></div></fieldset>
+          <p id="challenge-feedback" role="status"></p>
+          <div class="actions"><button id="challenge-retry" hidden>Try again</button><button id="challenge-exit" hidden>Free play</button></div>
+          <p id="challenge-score">Challenges solved: 0</p>
+        </details>
         <p class="hand-title" style="margin-top:14px">Try these</p>
         <div class="presets" id="presets"></div>
-        <p class="hint">Thin gray curves: each wave on its own. Thick red curve: all of them added together. "Hear the waves" plays every wave as a real tone at the same time, so opposite waves cancel into silence.</p>
+        <p class="hint">Thin gray curves: each wave on its own. Thick red curve: their sum. The sound model plays the same three-note tune for every contribution, with each note’s phase set by the arrow. Equal opposite waves silence the tune. Strength changes amplitude; every card shares the same pitches. Audio level uses a fixed scale; perceived loudness is not a brightness meter.</p>
       </section>
     </div>
   </div>
@@ -238,6 +277,7 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
     <p><b>Edge of the board.</b> A card cannot push a token off the board. If both cards push the same token off the edge in one round, the second card is lost.</p>
   </details>
   <details><summary>Why it works</summary>
+    <p><b>The musical sound model.</b> Every contribution shares the same three notes and timing. The arrow sets phase within each note, and strength sets amplitude. The app adds wave components before playback, using a fixed audio scale. Equal opposite contributions cancel the whole tune. The sound is an audible model of wave interference. Detector A and B are auditioned separately.</p>
     <p>The arrow is a direction on the amplitude board, not the photon’s travel direction. It represents the <b>phase</b>: where a wave starts in its cycle. The number gives its <b>amplitude</b>. Up starts at a crest, down at a trough, right at zero rising, and left at zero falling. Adding these waves means adding their arrows tip to tail.</p>
     <p>In-step amplitudes add. Opposite phases subtract; equal opposites cancel completely. Two equal waves a quarter-cycle apart have a combined amplitude about 1.4 times either one. The plots show a wave value over time, not the path of a photon.</p>
     <p>At board position (x, y), brightness is x² + y². Each detector reaches at most 32, so together they use at most 64 slips. <b>Per photon:</b> A’s chance is A brightness ÷ 64, B’s is B brightness ÷ 64, and the missed chance is the remaining share. Brightnesses 25 and 9 give 25/64, 9/64, and 30/64. <b>Among detections:</b> A wins with chance 25/34 and B with 9/34. Replacing gray slips and sending identical new photons preserves those eventual-win odds. A missed photon is gone; the next attempt uses a new photon.</p>
@@ -303,7 +343,11 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
     return { misses: p === 1 ? 0 : Math.floor(Math.log1p(-uWait) / Math.log1p(-p)), winner: uWinner < a / (a + b) ? 0 : 1 };
   }
   const waveY = (x, y, t) => y * Math.cos(2 * Math.PI * t) + x * Math.sin(2 * Math.PI * t);
-  root.CP = { WAVES, N, CUP, bright, winp, vector, step, onBoard, shuffle, newDeck, careful, photon, retryRun, waveY };
+  const sumWave = cards => cards.reduce((p, c) => step(p, c), [0, 0]);
+  const soundChange = (before, card) => { const b0 = bright(before), b1 = bright(step(before, card)); return b1 === 0 ? 'silent' : b1 > b0 ? 'stronger' : b1 < b0 ? 'quieter' : 'same'; };
+  const TUNE = Object.freeze([261.625565, 329.627557, 391.995436]);
+  const SOUND_GAIN = .055; // Fixed peak scale: maximum legal board wave is below 0.32.
+  root.CP = { WAVES, N, CUP, bright, winp, vector, step, onBoard, shuffle, newDeck, careful, photon, retryRun, waveY, sumWave, soundChange, TUNE, SOUND_GAIN };
 })(window);
 </script>
 <script id="card-art">
@@ -345,7 +389,7 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
 <script>
 /* ---------- Page ---------- */
 const $ = s => document.querySelector(s);
-const { WAVES, N, CUP, bright, winp, vector, step, onBoard, shuffle, newDeck, careful, photon, retryRun, waveY, cardSVG } = CP;
+const { WAVES, N, CUP, bright, winp, vector, step, onBoard, shuffle, newDeck, careful, photon, retryRun, waveY, sumWave, soundChange, TUNE, SOUND_GAIN, cardSVG } = CP;
 const percent = p => `${+(100 * p).toFixed(2)}%`;
 const rand = () => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] / 4294967296; };
 const RREF = Math.sqrt(2) * N;
@@ -393,6 +437,7 @@ function renderTokens(svg, list) {   // list: [{pos, cls, label}]
 let G, fireTimer = null, quickMode = false;
 const score = [0, 0];
 function newGame() {
+  stopSound(); clearSoundView('play');
   clearTimeout(fireTimer); fireTimer = null;
   $('#fire').disabled = false; $('#photon').classList.remove('fly', 'missed');
   G = { deck: newDeck(rand), discard: [], hands: [[], []], pos: [[0, 0], [0, 0]], round: 1, maxRounds: 8,
@@ -405,7 +450,7 @@ const cpuB = () => $('#cpu-b').checked;
 const openHands = () => $('#open-hands').checked;
 const legal = (card, t) => onBoard(step(G.pos[t], card));
 function showHand() { if (G.phase === 'hidden') { G.phase = 'choose'; render(); } }
-function selectCard(i) { if (G.phase === 'choose') { G.sel = i; render(); } }
+function selectCard(i) { if (G.phase === 'choose') { stopSound(); clearSoundView('play'); G.sel = i; render(); } }
 function computerPick() {
   const mv = careful(1, G.pos, G.hands[1]);
   G.picks[1] = { card: G.hands[1].splice(mv.idx, 1)[0], target: mv.target }; G.phase = 'ready';
@@ -413,6 +458,7 @@ function computerPick() {
 function chooseTarget(t) {
   if (G.phase !== 'choose' || G.sel === null) return;
   const p = G.who, card = G.hands[p][G.sel]; if (t >= 0 && !legal(card, t)) return;
+  stopSound(); clearSoundView('play');
   G.picks[p] = { card, target: t }; G.hands[p].splice(G.sel, 1); G.sel = null;
   $('#event').textContent = t >= 0 ? `Player ${NAMES[p]} chose a wave for ${t === p ? 'their own' : 'the other'} detector.` : `Player ${NAMES[p]} had no legal move and discarded a card.`;
   if (p === 0) { G.who = 1; if (cpuB()) computerPick(); else G.phase = openHands() ? 'choose' : 'hidden'; }
@@ -439,10 +485,12 @@ function caption(st) {
 }
 function reveal() {
   if (G.phase !== 'ready') return;
+  stopSound();
   G.phase = 'resolve'; G.steps = [applyPick(0)]; G.stepIdx = 0; $('#event').textContent = caption(G.steps[0]); render();
 }
 function next() {
   if (G.phase !== 'resolve') return;
+  stopSound();
   if (G.stepIdx === 0) { G.steps.push(applyPick(1)); G.stepIdx = 1; $('#event').textContent = caption(G.steps[1]); render(); return; }
   for (const p of [0, 1]) while (G.hands[p].length < 3) {
     if (!G.deck.length) G.deck = shuffle(G.discard.splice(0), rand);
@@ -461,6 +509,7 @@ function next() {
 function fire() {
   if (G.phase !== 'photon' || G.firing) return;
   const bA = bright(G.pos[0]), bB = bright(G.pos[1]); if (bA + bB === 0) return;
+  stopSound();
   const u = rand(), w = photon(bA, bB, u), id = G;
   G.firing = true; G.attempts = 1;
   function later(fn, delay) {
@@ -509,6 +558,9 @@ function cardHTML(c, i, sel, back) {
 }
 function render() {
   if (document.body.dataset.tab !== 'play') return;
+  const selected = G.phase === 'choose' && G.sel !== null ? G.hands[G.who][G.sel] : null;
+  $('#preview-a').disabled = !selected || !legal(selected, 0);
+  $('#preview-b').disabled = !selected || !legal(selected, 1);
   renderTokens($('#board'), [{ pos: G.pos[0], cls: 'A', label: 'A' }, { pos: G.pos[1], cls: 'B', label: 'B' }]);
   const st = G.phase === 'resolve' ? G.steps[G.stepIdx] : null;
   for (const t of [0, 1]) {
@@ -558,22 +610,101 @@ function render() {
   else if (G.phase === 'photon') { status.textContent = G.firing ? (G.missed ? 'A missed photon is gone. New photons use the same settings; retries advance automatically.' : 'Sending the first photon…') : `Per photon: A ${percent(bA / CUP)}, B ${percent(bB / CUP)}, missed ${percent(1 - total / CUP)}. Fire when ready!`; badge.textContent = G.firing ? 'Sending photons' : 'Photon time'; }
   else { status.textContent = `Player ${NAMES[G.result]} caught the photon!`; badge.textContent = `Player ${NAMES[G.result]} wins`; }
 }
-/* Every card contributes its amplitude and phase to a simultaneous sound. */
-let actx = null;
-function hear(cards) {
-  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
-  actx = actx || new AC(); if (actx.state === 'suspended') actx.resume();
-  const t0 = actx.currentTime + .06, dur = 1.4, master = actx.createGain();
-  master.gain.setValueAtTime(0, t0); master.gain.linearRampToValueAtTime(1, t0 + .05); master.gain.setValueAtTime(1, t0 + dur - .12); master.gain.linearRampToValueAtTime(0, t0 + dur); master.connect(actx.destination);
-  const scale = .4 / Math.max(5, cards.reduce((n, c) => n + c.strength, 0));
-  for (const card of cards) {
-    const d = vector(card), pw = actx.createPeriodicWave(new Float32Array([0, d[1]]), new Float32Array([0, d[0]]), { disableNormalization: true });
-    const o = actx.createOscillator(), g = actx.createGain(); o.setPeriodicWave(pw); o.frequency.value = 330; g.gain.value = scale; o.connect(g); g.connect(master); o.start(t0); o.stop(t0 + dur + .02);
-  }
-  return true;
+/* Musical sonification: add phasors exactly, then play their sum at each shared note.
+   PeriodicWave normalization is disabled, so gain never depends on card count. */
+let actx = null, audioRun = 0, audioView = null, audioNodes = [], audioTimers = [], audioMaster = null;
+function clearSoundView(view) {
+  $('#' + view + '-sound-stages').innerHTML = '';
+  $('#' + view + '-sound-status').textContent = '';
 }
-let LAB = [];
-const labPos = () => LAB.reduce((p, card) => step(p, card), [0, 0]);
+function stopSound(announce = true) {
+  audioRun++;
+  audioTimers.forEach(clearTimeout); audioTimers = [];
+  if (audioMaster && actx) {
+    audioMaster.gain.cancelScheduledValues(actx.currentTime);
+    audioMaster.gain.setTargetAtTime(0, actx.currentTime, .008);
+  }
+  audioNodes.forEach(o => { try { o.stop(actx.currentTime + .04); } catch (_) { /* Already ended. */ } });
+  if (!audioNodes.length && audioMaster) audioMaster.disconnect();
+  audioNodes = []; audioMaster = null;
+  document.querySelectorAll('.sound-stage').forEach(el => el.classList.remove('is-sounding'));
+  document.querySelectorAll('[data-sound-stop]').forEach(b => b.disabled = true);
+  if (audioView && announce) $('#' + audioView + '-sound-status').textContent = 'Sound stopped.';
+  audioView = null;
+}
+function soundPlot(pos) {
+  return `<svg viewBox="0 0 320 110" role="img" aria-label="Wave with brightness ${bright(pos)}"><path d="M10 55H310" stroke="#c9ccd5"/><path d="${pathFor(pos[0], pos[1], 10, 300, 55, 44 / RREF, 2)}" fill="none" stroke="#b41524" stroke-width="3"/></svg>`;
+}
+async function playTune(stages, view, label) {
+  stopSound();
+  const ticket = audioRun, status = $('#' + view + '-sound-status');
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) { status.textContent = 'Sound is unavailable in this browser. The wave plots and challenges still work.'; return false; }
+  try {
+    actx = actx || new AC();
+    if (actx.state === 'suspended') await actx.resume();
+    if (ticket !== audioRun) return false;
+    if (actx.state !== 'running') throw new Error('Audio is not running');
+    audioView = view;
+    const positions = stages.map(s => sumWave(s.cards));
+    const holder = $('#' + view + '-sound-stages');
+    holder.innerHTML = stages.map((s, i) => `<div class="sound-stage" data-stage="${i}"><b>${s.name}</b>${soundPlot(positions[i])}<span>Brightness ${bright(positions[i])}</span></div>`).join('');
+    if (view === 'play') $('#play-sound').open = true;
+    const master = actx.createGain(); master.gain.value = 1; master.connect(actx.destination); audioMaster = master;
+    document.querySelectorAll('[data-sound-stop]').forEach(b => b.disabled = false);
+    const t0 = actx.currentTime + .05, stageLength = 1.02;
+    let voices = 0;
+    const show = i => {
+      if (ticket !== audioRun) return;
+      holder.querySelectorAll('.sound-stage').forEach((el, k) => { el.classList.remove('is-sounding'); if (k === i) el.classList.add('is-sounding'); });
+      status.textContent = `${label} · ${stages[i].name}: brightness ${bright(positions[i])}${bright(positions[i]) ? '.' : ' — the tune is silent.'}`;
+    };
+    stages.forEach((stage, i) => {
+      const [x, y] = positions[i];
+      // Summing equal-frequency coefficients before synthesis is exactly equivalent
+      // to synchronizing a separate oscillator for every card, without voice drift.
+      if (x || y) {
+        const pw = actx.createPeriodicWave(new Float32Array([0, y]), new Float32Array([0, x]), {disableNormalization: true});
+        TUNE.forEach((frequency, n) => {
+          const start = t0 + i * stageLength + n * .3, end = start + .25;
+          const oscillator = actx.createOscillator(), envelope = actx.createGain();
+          oscillator.setPeriodicWave(pw); oscillator.frequency.value = frequency;
+          envelope.gain.setValueAtTime(0, start);
+          envelope.gain.linearRampToValueAtTime(SOUND_GAIN, start + .012);
+          envelope.gain.linearRampToValueAtTime(SOUND_GAIN * .6, start + .09);
+          envelope.gain.linearRampToValueAtTime(0, end);
+          oscillator.connect(envelope); envelope.connect(master);
+          voices++;
+          oscillator.onended = () => { oscillator.disconnect(); envelope.disconnect(); if (!--voices) master.disconnect(); };
+          oscillator.start(start); oscillator.stop(end + .01); audioNodes.push(oscillator);
+        });
+      }
+      if (!i) show(0); else audioTimers.push(setTimeout(() => show(i), (i * stageLength + .05) * 1000));
+    });
+    if (!voices) master.disconnect();
+    audioTimers.push(setTimeout(() => {
+      if (ticket !== audioRun) return;
+      const last = positions.length - 1;
+      stopSound(false); master.disconnect();
+      status.textContent = `${label} · Finished: brightness ${bright(positions[last])}${bright(positions[last]) ? '. Same audio scale for every wave.' : ' — silence from complete cancellation.'}`;
+    }, (stages.length * stageLength + .05) * 1000));
+    return true;
+  } catch (_) {
+    if (ticket !== audioRun) return false;
+    stopSound(false); status.textContent = 'Sound could not start. Try Hear the waves again; the visual challenges still work.'; return false;
+  }
+}
+function hear(cards, view = 'lab', label = 'Combined wave') { return playTune([{name: 'Together', cards: cards.slice()}], view, label); }
+function hearChange(before, card, view, label) {
+  return playTune([{name: 'Current wave', cards: before.slice()}, {name: 'Card alone', cards: [card]}, {name: 'Together', cards: [...before, card]}], view, label);
+}
+function previewDetector(t) {
+  if (G.phase !== 'choose' || G.sel === null) return;
+  const card = G.hands[G.who][G.sel]; if (!legal(card, t)) return;
+  return hearChange(G.played[t], card, 'play', `Preview on detector ${NAMES[t]}`);
+}
+let LAB = [], CHALLENGE = null, challengesSolved = 0;
+const labPos = () => sumWave(LAB);
 function renderLab() {
   const p = labPos(), b = bright(p); renderTokens($('#lab-board'), [{ pos: p, cls: 'L', label: '' }]);
   $('#lab-waves').innerHTML = LAB.length ? LAB.map(waveChip).join(' ') : '<span style="font-size:16px">No waves yet. Choose a direction and strength.</span>';
@@ -584,7 +715,68 @@ function renderLab() {
   $('#lab-note').textContent = !LAB.length ? 'Flat line: no waves, brightness 0. This detector catches 0% of photons.' : b === 0 ? 'Equal opposite amplitudes: complete cancellation, brightness 0. This detector catches 0% of photons.' : `Total amplitude ${Number.isInteger(height) ? height : height.toFixed(2)}; brightness ${b} = (${p[0]})² + (${p[1]})². Per-photon chance at this detector: ${b}/64 = ${percent(b / CUP)}.`;
   $('#lab-undo').disabled = !LAB.length; $('#lab-clear').disabled = !LAB.length;
 }
-function labAdd(card) { if (!onBoard(step(labPos(), card))) { $('#lab-note').textContent = 'The full move would leave the board.'; return; } LAB.push(card); renderLab(); }
+function renderChallenge() {
+  const c = CHALLENGE, active = c && !c.done;
+  $('#prediction-choices').hidden = !(active && c.kind === 'predict');
+  const choices = $('#challenge-cards');
+  choices.hidden = !c || c.kind === 'predict';
+  choices.innerHTML = !c || c.kind === 'predict' ? '' : [1,2].flatMap(strength => ['U','D','R','L'].map(direction => {
+    const card = wave(direction, strength), w = WAVES[direction], disabled = c.done || !onBoard(step(labPos(), card));
+    return `<button data-direction="${direction}" data-strength="${strength}" style="color:${w.color};border-color:${w.color}" aria-label="Challenge card strength ${strength}, ${w.dir}" ${disabled ? 'disabled' : ''}>${strength}${w.sym}</button>`;
+  })).join('');
+  $('#challenge-retry').hidden = !c;
+  $('#challenge-exit').hidden = !c;
+  document.querySelectorAll('#lab-buttons button').forEach(b => b.disabled = !!(active && c.kind === 'predict'));
+  $('#challenge-score').textContent = `Challenges solved: ${challengesSolved}`;
+  if (!c) $('#challenge-prompt').textContent = 'Free play: add waves above, or start a challenge.';
+  else if (c.kind === 'silence') $('#challenge-prompt').textContent = `Silence the ghost: cancel ${cardName(c.initial[0])} with exactly 1 card. Choose your wave below.`;
+  else if (c.kind === 'build') $('#challenge-prompt').textContent = `Build the tune: reach brightness 9 or more with exactly 2 cards. Cards used: ${c.moves}/2.`;
+  else $('#challenge-prompt').textContent = `Predict: ${cardName(c.probe)} will join ${cardName(c.initial[0])}. The arrows show their phases. What will the combined tune do?`;
+}
+function startChallenge(kind, initial = null, probe = null) {
+  if (!['silence', 'build', 'predict'].includes(kind)) return;
+  stopSound();
+  const directions = ['U', 'D', 'R', 'L'];
+  const seed = initial || [wave(directions[Math.floor(rand() * 4)], kind === 'build' ? 1 : 1 + Math.floor(rand() * 2))];
+  CHALLENGE = {kind, initial: seed.map(c => ({...c})), probe: probe || wave(directions[Math.floor(rand() * 4)], 1 + Math.floor(rand() * 2)), moves: 0, done: false};
+  LAB = seed.map(c => ({...c})); $('#challenge-feedback').textContent = '';
+  $('#sound-challenge').open = true;
+  renderLab(); renderChallenge(); hear(LAB, 'lab', 'Starting wave');
+}
+function leaveChallenge() {
+  CHALLENGE = null; $('#challenge-feedback').textContent = ''; renderChallenge();
+}
+function finishChallenge(success, message) {
+  CHALLENGE.done = true;
+  if (success) challengesSolved++;
+  $('#challenge-feedback').textContent = message;
+  renderChallenge();
+}
+function answerPrediction(answer) {
+  const c = CHALLENGE;
+  if (!c || c.done || c.kind !== 'predict' || !['stronger','quieter','silent','same'].includes(answer)) return;
+  const before = LAB.slice(), b0 = bright(labPos()), actual = soundChange(labPos(), c.probe);
+  LAB.push(c.probe); renderLab();
+  const descriptions = {stronger:'The tune grows stronger.', quieter:'The tune becomes quieter.', silent:'The tune vanishes.', same:'The phase changes; the audio level stays the same.'};
+  finishChallenge(answer === actual, `${answer === actual ? 'Correct!' : 'Try another prediction.'} ${descriptions[actual]} Brightness ${b0} → ${bright(labPos())}.`);
+  hearChange(before, c.probe, 'lab', 'Prediction replay');
+}
+function labAdd(card) {
+  if (CHALLENGE && !CHALLENGE.done && CHALLENGE.kind === 'predict') return;
+  if (!onBoard(step(labPos(), card))) { $('#lab-note').textContent = 'The full move would leave the board.'; return; }
+  stopSound();
+  const before = LAB.slice(), c = CHALLENGE;
+  if (c && c.done) leaveChallenge();
+  LAB.push(card); renderLab();
+  if (c && !c.done) {
+    c.moves++;
+    const b = bright(labPos());
+    if (c.kind === 'silence') finishChallenge(b === 0, b === 0 ? 'Silenced! Equal opposite waves canceled the whole tune.' : `The ghost is still singing: brightness ${b}. Try again with an equal opposite wave.`);
+    else if (c.moves === 2) finishChallenge(b >= 9, b >= 9 ? `Built it! Two cards brought brightness to ${b}.` : `Brightness ${b}; the target was 9 or more. Try again.`);
+    else { $('#challenge-feedback').textContent = `One card left. Brightness is now ${b}.`; renderChallenge(); }
+    hearChange(before, card, 'lab', 'Challenge replay');
+  }
+}
 const wave = (direction, strength = 1) => ({ direction, strength });
 const PRESETS = [
   { t: '↑2 + ↓1: partly cancel', w: [wave('U',2),wave('D')] },
@@ -594,6 +786,7 @@ const PRESETS = [
   { t: '↑2 + ↓1 + ↓2: phase reverses', w: [wave('U',2),wave('D'),wave('D',2)] }
 ];
 function setTab(t) {
+  stopSound();
   document.body.dataset.tab = t; $('#tab-play').setAttribute('aria-pressed', String(t === 'play')); $('#tab-lab').setAttribute('aria-pressed', String(t === 'lab'));
   if (t === 'lab') { $('#status').textContent = 'Wave lab: add waves and see (and hear) them reinforce or cancel.'; $('#status').className = ''; $('#turn-badge').className = 'badge'; $('#turn-badge').textContent = 'Wave lab'; renderLab(); } else render();
 }
@@ -601,10 +794,17 @@ buildBoard($('#board')); buildBoard($('#lab-board'));
 $('#lab-buttons').innerHTML = [1,2].flatMap(strength => ['U','D','R','L'].map(direction => { const w = WAVES[direction]; return `<button data-direction="${direction}" data-strength="${strength}" style="color:${w.color};border-color:${w.color}" aria-label="Add strength ${strength} ${w.dir}">${strength}${w.sym}<small>${w.phase}</small></button>`; })).join('');
 $('#lab-buttons').addEventListener('click', e => { const b = e.target.closest('button'); if (b) labAdd(wave(b.dataset.direction, +b.dataset.strength)); });
 $('#presets').innerHTML = PRESETS.map((p,i) => `<button data-i="${i}">${p.t}</button>`).join('');
-$('#presets').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { LAB = PRESETS[+b.dataset.i].w.slice(); renderLab(); } });
-$('#lab-undo').onclick = () => { LAB.pop(); renderLab(); }; $('#lab-clear').onclick = () => { LAB = []; renderLab(); };
-$('#lab-hear').onclick = () => { if (!hear(LAB)) $('#lab-note').textContent = 'This browser cannot play sound.'; };
-document.querySelectorAll('.hear').forEach(b => b.onclick = () => hear(G.played[+b.dataset.det]));
+$('#presets').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { stopSound(); leaveChallenge(); LAB = PRESETS[+b.dataset.i].w.slice(); renderLab(); } });
+$('#lab-undo').onclick = () => { stopSound(); leaveChallenge(); LAB.pop(); renderLab(); }; $('#lab-clear').onclick = () => { stopSound(); leaveChallenge(); LAB = []; renderLab(); };
+$('#lab-hear').onclick = () => hear(LAB);
+document.querySelectorAll('.hear').forEach(b => b.onclick = () => hear(G.played[+b.dataset.det], 'play', `Detector ${NAMES[+b.dataset.det]}`));
+document.querySelectorAll('[data-sound-stop]').forEach(b => b.onclick = () => stopSound());
+document.querySelectorAll('[data-challenge]').forEach(b => b.onclick = () => startChallenge(b.dataset.challenge));
+document.querySelectorAll('[data-prediction]').forEach(b => b.onclick = () => answerPrediction(b.dataset.prediction));
+$('#challenge-retry').onclick = () => { if (CHALLENGE) startChallenge(CHALLENGE.kind, CHALLENGE.initial, CHALLENGE.probe); };
+$('#challenge-exit').onclick = () => { stopSound(); leaveChallenge(); };
+$('#challenge-cards').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled) labAdd(wave(b.dataset.direction, +b.dataset.strength)); });
+$('#preview-a').onclick = () => previewDetector(0); $('#preview-b').onclick = () => previewDetector(1);
 $('#hand').addEventListener('click', e => { const b = e.target.closest('.pc'); if (b && !b.disabled && +b.dataset.i >= 0) selectCard(+b.dataset.i); });
 $('#targets').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled) { if (+b.dataset.t < 0) G.sel = 0; chooseTarget(+b.dataset.t); } });
 $('#show-hand').onclick = showHand; $('#reveal').onclick = reveal; $('#next').onclick = next; $('#fire').onclick = fire; $('#new-game').onclick = newGame;

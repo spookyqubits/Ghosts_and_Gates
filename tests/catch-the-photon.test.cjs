@@ -148,3 +148,104 @@ test('simultaneous edge collision loses the second whole card without moving off
   app.run("G.pos=[[0,3],[0,0]];G.picks=[{card:wave('U',2),target:0},null];whole=applyPick(0)");
   assert.equal(app.run('whole.lost'),true);assert.deepEqual(arr(app.run('G.pos[0]')),[0,3]);
 });
+
+function attachAudio(app) {
+  const audit={waves:[],oscillators:[],gains:[]};
+  const parameter=()=>({value:0,events:[],setValueAtTime(v,t){this.events.push(['set',v,t]);},linearRampToValueAtTime(v,t){this.events.push(['ramp',v,t]);},cancelScheduledValues(){},setTargetAtTime(){}});
+  class AudioContext {
+    constructor(){this.state='running';this.currentTime=10;this.destination={};}
+    resume(){this.state='running';return Promise.resolve();}
+    createPeriodicWave(real,imag,options){const w={real:arr(real),imag:arr(imag),options};audit.waves.push(w);return w;}
+    createGain(){const g={gain:parameter(),connect(){},disconnect(){this.disconnected=true;}};audit.gains.push(g);return g;}
+    createOscillator(){const o={frequency:parameter(),connect(){},disconnect(){},setPeriodicWave(w){this.wave=w;},start(t){this.started=t;},stop(t){this.stopped=t;}};audit.oscillators.push(o);return o;}
+  }
+  app.ctx.window.AudioContext=AudioContext;
+  return audit;
+}
+test('musical phasors give exact cancellation, quadrature power and a fixed bounded scale',()=>{
+  const {CP}=load();
+  const cards=[{direction:'U',strength:2},{direction:'D',strength:2}];
+  assert.deepEqual(arr(CP.sumWave(cards)),[0,0]);
+  for(const f of CP.TUNE)for(let k=0;k<101;k++){
+    const t=k/101, separate=cards.reduce((s,c)=>{const [x,y]=CP.vector(c);return s+CP.waveY(x,y,f*t);},0);
+    assert(Math.abs(separate)<1e-12);
+  }
+  const [x,y]=CP.sumWave([{direction:'U',strength:1},{direction:'R',strength:1}]);
+  let meanSquare=0;for(let k=0;k<1024;k++)meanSquare+=CP.waveY(x,y,k/1024)**2/1024;
+  assert(Math.abs(meanSquare-1)<1e-12); // amplitude squared 2 gives cycle-mean pressure squared 1.
+  assert(CP.SOUND_GAIN*Math.sqrt(32)<.32);
+  assert.equal(CP.soundChange([0,1],{direction:'D',strength:2}),'same');
+  assert.equal(CP.soundChange([0,2],{direction:'D',strength:1}),'quieter');
+});
+test('three notes use unnormalized phase coefficients and equal brightness has equal gain regardless of history',async()=>{
+  const app=load(true),audit=attachAudio(app);
+  await app.run("hear([wave('U')])");
+  const first=audit.oscillators.slice();
+  await app.run("hear([wave('U',2),wave('D')])");
+  assert.deepEqual(audit.waves.map(w=>w.real),[[0,1],[0,1]]);
+  assert(audit.waves.every(w=>w.options.disableNormalization===true));
+  assert.equal(audit.oscillators.length,6);
+  assert.deepEqual(first.map(o=>o.frequency.value),arr(app.CP.TUNE));
+  assert.deepEqual(audit.oscillators.slice(3).map(o=>o.frequency.value),arr(app.CP.TUNE));
+  const peaks=audit.gains.flatMap(g=>g.gain.events.filter(e=>e[0]==='ramp'&&e[1]===app.CP.SOUND_GAIN));
+  assert.equal(peaks.length,6);
+  assert(audit.oscillators.slice(3).every(o=>o.stopped>o.started));
+});
+test('an opposite card silences the final phrase and preview never commits or combines detectors',async()=>{
+  const app=load(true),audit=attachAudio(app);
+  app.run("G.phase='choose';G.played=[[wave('U',2)],[wave('R',2)]];G.pos=[[0,2],[2,0]];G.hands[0]=[wave('D',2)];G.who=0;G.sel=0");
+  const before=app.run('JSON.stringify([G.pos,G.hands,G.played,G.picks])');
+  await app.run('previewDetector(0)');
+  assert.equal(app.run('JSON.stringify([G.pos,G.hands,G.played,G.picks])'),before);
+  assert.equal(audit.oscillators.length,6); // Current and card; Together creates no source.
+  assert.deepEqual(audit.waves.map(w=>w.real),[[0,2],[0,-2]]);
+  assert(audit.waves.every(w=>w.imag[1]===0)); // No B right-wave entered A's audition.
+  app.tick();app.tick();assert(app.nodes.get('#play-sound-status').textContent.includes('silent'));
+  app.tick();assert(app.nodes.get('#play-sound-status').textContent.includes('complete cancellation'));
+});
+test('stop and restart cancel staged previews and stale callbacks cannot overwrite a new audition',async()=>{
+  const app=load(true),audit=attachAudio(app);
+  await app.run("hearChange([wave('U')],wave('D'),'lab','Old preview')");
+  const stale=[...app.timers.values()];
+  await app.run("hear([wave('R')],'play','Detector B')");
+  const current=app.nodes.get('#play-sound-status').textContent;
+  stale.forEach(fn=>fn());
+  assert.equal(app.nodes.get('#play-sound-status').textContent,current);
+  app.run('newGame()');assert.equal(app.timers.size,0);assert.equal(app.run('audioNodes.length'),0);
+  assert(audit.oscillators.every(o=>o.stopped<=10.04));
+  assert.equal(app.run('audioView'),null);
+});
+test('pending AudioContext resume is canceled by reset and unsupported audio keeps challenges playable',async()=>{
+  const app=load(true);let release;
+  class PendingAudio {constructor(){this.state='suspended';this.currentTime=0;}resume(){return new Promise(r=>{release=r;});}}
+  app.ctx.window.AudioContext=PendingAudio;
+  const pending=app.run("hear([wave('U')])");app.run('newGame()');release();assert.equal(await pending,false);
+  assert.equal(app.run('audioNodes.length'),0);assert.equal(app.timers.size,0);
+  const silent=load(true);silent.random(0);silent.run("startChallenge('silence');labAdd(wave('D'))");
+  assert.equal(silent.run('challengesSolved'),1);assert.equal(silent.run('bright(labPos())'),0);
+  assert(silent.nodes.get('#lab-sound-status').textContent.includes('unavailable'));
+});
+test('musical challenges require their stated move counts, offer same-level answers, and count each solution once',()=>{
+  const app=load(true);app.random(0);
+  app.run("startChallenge('build');labAdd(wave('U',2))");
+  assert.equal(app.run('bright(labPos())'),9);assert.equal(app.run('CHALLENGE.done'),false);
+  app.run("labAdd(wave('U'))");assert.equal(app.run('CHALLENGE.done'),true);assert.equal(app.run('challengesSolved'),1);
+  app.run("startChallenge('predict',[wave('U')],wave('D',2));answerPrediction('same')");
+  assert.equal(app.run('challengesSolved'),2);assert.equal(app.run('bright(labPos())'),1);
+  app.run("answerPrediction('same')");assert.equal(app.run('challengesSolved'),2);
+  app.run("startChallenge('silence',[wave('U',2)]);labAdd(wave('D'))");
+  assert.equal(app.run('CHALLENGE.done'),true);assert.equal(app.run('challengesSolved'),2);
+  app.run("$('#challenge-retry').onclick();labAdd(wave('D',2))");assert.equal(app.run('challengesSolved'),3);
+  app.run("$('#lab-undo').onclick()");assert.equal(app.run('CHALLENGE'),null);
+});
+test('committing a private card clears its audible comparison before passing to the other player',async()=>{
+  const app=load(true);attachAudio(app);
+  app.run("G.phase='choose';G.who=0;G.sel=0;G.hands[0]=[wave('U')]");
+  await app.run('previewDetector(0)');
+  assert(app.nodes.get('#play-sound-stages').innerHTML.includes('Card alone'));
+  const stale=[...app.timers.values()];app.run('chooseTarget(0)');stale.forEach(fn=>fn());
+  assert.equal(app.nodes.get('#play-sound-stages').innerHTML,'');
+  assert.equal(app.nodes.get('#play-sound-status').textContent,'');
+  assert.equal(app.run('G.phase'),'hidden');assert.equal(app.run('G.who'),1);
+  assert.equal(app.run('audioNodes.length'),0);
+});

@@ -54,6 +54,9 @@ Run the focused regression checks from this repository:
 node --test tests/catch-the-photon.test.cjs
 ```
 
+
+The sound model plays a synchronized three-note phrase with fixed gain. Card directions set phase within each note; strengths set amplitude. Equal opposite waves cancel exactly. Select a game card and open “Sound model of wave interference” to preview the current wave, the card alone and their sum without committing a move. Detector auditions remain separate, and committing a private card clears its comparison. Wave Lab includes “Silence the ghost” challenges: cancel in one card, reach brightness 9 with exactly two cards, or predict stronger, quieter, silent or unchanged level. Challenge cards appear next to the prompt. Stop, restart and view changes cancel scheduled sound and stale status updates.
+
 Regenerate the browser-printable deck with `node tools/build-photon-cards.cjs`. The PDF resource builder is `tools/build-photon-pdfs.py`; it accepts the classroom output directory, requires ReportLab, and currently uses the standard macOS Arial and Comic Sans font files. The offline source in the QCaMP workspace is `CatchThePhoton/CatchThePhoton_Offline.html`; the playground builder copies that source and the explicit resources listed in its catalog.
 
 ## Assessment improvements
