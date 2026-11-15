@@ -13,21 +13,17 @@
 body { margin: 0; background: var(--paper); }
 .app { max-width: 1600px; min-width: 650px; margin: auto; padding: 16px 20px 30px; }
 header { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
-h1 { margin: 0; color: var(--brand); font-size: clamp(26px, 3vw, 40px); }
+h1 { margin: 0; color: var(--brand); font-size: clamp(26px, 2.7vw, 32px); }
 .ghost-icon { width: 1.15em; height: 1.15em; vertical-align: -0.2em; margin-right: .28em; }
-.subtitle { margin: 5px 0 0; font-size: 18px; }
-.badge { border: 3px solid #bec8be; border-radius: 20px; padding: 10px 18px; font-weight: bold; font-size: clamp(17px, 1.8vw, 23px); white-space: nowrap; }
-.badge.A { color: var(--a); border-color: var(--a); background: #eef3fb; }
-.badge.B { color: var(--b); border-color: var(--b); background: #f5eefa; }
-.badge.done { color: #202435; background: #f0f3f8; }
+.subtitle { margin: 5px 0 0; font-size: 16px; }
 button { font: inherit; cursor: pointer; border: 2px solid #b9bdc8; border-radius: 9px; background: #f4f5f8; color: #202435; font-weight: bold; }
 button:hover:enabled { background: #e6eaf3; border-color: #50586c; }
 button:focus-visible { outline: 4px solid #985800; outline-offset: 3px; }
 button:disabled { cursor: default; opacity: .42; }
 .tabs { display: flex; gap: 8px; margin: 14px 0 0; }
-.tabs button { padding: 9px 18px; font-size: 18px; }
+.tabs button { padding: 8px 15px; font-size: 16px; }
 .tabs button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
-#status { font-size: clamp(20px, 2.1vw, 28px); font-weight: bold; margin: 14px 0; padding: 13px 18px; background: #f0f3f8; border-left: 6px solid var(--brand); border-radius: 6px; }
+#status { font-size: clamp(18px, 1.8vw, 22px); font-weight: bold; margin: 12px 0; padding: 10px 14px; background: #f0f3f8; border-left: 6px solid var(--brand); border-radius: 6px; }
 #status.A { border-left-color: var(--a); } #status.B { border-left-color: var(--b); }
 .play-area { display: grid; grid-template-columns: minmax(330px, 1.2fr) minmax(330px, 1fr) minmax(200px, 235px); gap: 20px; align-items: start; }
 h2 { font-size: 21px; margin: 0 0 8px; }
@@ -56,6 +52,10 @@ h2 { font-size: 21px; margin: 0 0 8px; }
 .hear { padding: 5px 9px; font-size: 13px; }
 .det-cards { font-size: 16px; min-height: 20px; letter-spacing: 2px; word-break: break-all; }
 .det-cards .r, .red { color: var(--red); } .det-cards .k, .black { color: #111; }
+.det-history { margin: 5px 0 0; padding-top: 4px; font-size: 13px; }
+.det-history summary { font-size: 13px; color: #535969; font-weight: normal; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.section-heading h2 { margin: 0; }
 /* wave cards */
 #hand-area { margin-top: 12px; border: 2px dashed #c9ccd5; border-radius: 12px; padding: 10px; min-height: 120px; }
 .hand-title { font-size: 18px; font-weight: bold; margin: 0 0 8px; }
@@ -79,7 +79,11 @@ h2 { font-size: 21px; margin: 0 0 8px; }
 .primary { background: var(--brand) !important; border-color: var(--brand) !important; color: white !important; }
 .primary:hover:enabled { background: #95111e !important; }
 .options { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px; font-size: 16px; }
-#event { min-height: 50px; font-size: 18px; line-height: 1.4; margin: 12px 0 0; }
+.play-options { margin-top: 12px; padding-top: 7px; font-size: 14px; }
+.play-options summary { font-size: 14px; color: #535969; }
+.play-options button { margin-top: 8px; padding: 6px 9px; font-size: 14px; }
+#event { font-size: 16px; line-height: 1.4; margin: 12px 0 0; }
+#event:empty { display: none; }
 .hint { color: #535969; font-size: 15px; line-height: 1.45; margin: 8px 0 0; }
 .text-link { color: var(--brand); font-weight: bold; }
 /* side */
@@ -93,7 +97,7 @@ h2 { font-size: 21px; margin: 0 0 8px; }
 .odds-label { flex-wrap: wrap; gap: 5px 10px; }
 .odds-label .missed { color: #515765; }
 .photon.missed { background: #737985; box-shadow: 0 0 10px 4px #b3b8c0; }
-.oddsbar div { height: 100%; transition: width .4s; }
+.oddsbar div { height: 100%; }
 .photon { position: absolute; top: 0; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fffbe0, #ffd54a 55%, #e09a00); box-shadow: 0 0 14px 6px rgba(255, 200, 40, .75); display: none; }
 .photon.fly { display: block; animation: fly 1.4s ease-in forwards; }
 @keyframes fly { 0% { transform: translate(var(--x0), -10px); } 60% { transform: translate(var(--x1), 6px); } 100% { transform: translate(var(--x1), 42px); } }
@@ -104,7 +108,9 @@ h2 { font-size: 21px; margin: 0 0 8px; }
 #result.A { color: var(--a); } #result.B { color: var(--b); }
 #result:empty, #shot-count:empty { display: none; }
 .side .small { font-size: 13px; color: #6b4700; line-height: 1.35; margin: 8px 0 0; }
-#score { font-size: 16px; font-weight: bold; }
+.score-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-top: 14px; padding-top: 10px; border-top: 1px solid #ded5b5; }
+#score { font-size: 14px; font-weight: bold; margin: 0; }
+#reset-score { padding: 4px 7px; font-size: 12px; }
 /* A small tabletop model; the inventory expands only when requested. */
 .cup-display { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 8px; margin-top: 8px; }
 .cup-svg { display: block; width: 72px; height: 94px; overflow: visible; }
@@ -143,7 +149,7 @@ body[data-tab="lab"] #play-view { display: none; }
 .wave-buttons button small { display: block; font-size: 13px; margin-top: 4px; color: #535969; }
 .wave-buttons .red { color: var(--red); border-color: var(--red); } .wave-buttons .black { color: #111; border-color: #111; }
 .lab-curve { width: 100%; height: auto; max-height: 180px; border: 2px solid #d9dce4; border-radius: 12px; background: #fff; margin-top: 8px; display: block; }
-#lab-waves { font-size: 18px; min-height: 24px; margin: 8px 0 4px; letter-spacing: 3px; word-break: break-all; }
+#lab-waves { font-size: 18px; min-height: 24px; margin: 8px 0 4px; word-break: break-all; }
 #lab-note { font-size: 17px; font-weight: bold; padding: 8px; margin: 8px 0; background: #f0f3f8; border-radius: 8px; }
 .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .presets button { padding: 8px 10px; font-size: 15px; }
@@ -152,6 +158,7 @@ body[data-tab="lab"] #play-view { display: none; }
 .sound-panel p { margin: 7px 0; }
 .sound-panel button, .sound-stop { padding: 6px 9px; font-size: 14px; min-height: 32px; }
 .sound-panel .actions { gap: 6px; margin-top: 7px; }
+.sound-stop:disabled { display: none; }
 .sound-stages { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 8px; }
 .sound-stage { padding: 5px; border: 2px solid #d9dce4; border-radius: 7px; background: #fff; font-size: 12px; }
 .sound-stage.is-sounding { border-color: var(--brand); background: #fff1ed; }
@@ -167,6 +174,8 @@ body[data-tab="lab"] #play-view { display: none; }
 .challenge-cards button { min-height: 40px; font-size: 20px; background: #fff; }
 details { margin-top: 22px; font-size: 17px; line-height: 1.5; border-top: 1px solid #d9dce4; padding-top: 10px; }
 summary { font-weight: bold; font-size: 19px; cursor: pointer; }
+.lab-detail { margin-top: 10px; padding-top: 7px; font-size: 14px; }
+.lab-detail summary { font-size: 14px; color: #535969; }
 details table { border-collapse: collapse; margin: 8px 0; }
 details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-align: left; vertical-align: top; }
 .credit { font-size: 13px; color: #6b7080; margin-top: 18px; }
@@ -188,8 +197,7 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
 <main class="app">
   <header>
     <div><h1><svg class="ghost-icon" aria-hidden="true" focusable="false"><use href="#ghost"/></svg>CATCH THE PHOTON</h1>
-    <p class="subtitle">A wave game with real phases · Waves can add up or cancel · Grades 6–8</p></div>
-    <span class="badge" id="turn-badge"></span>
+    <p class="subtitle">Build your wave. Cancel theirs. Catch the photon. · Grades 6–8</p></div>
   </header>
   <nav class="tabs" aria-label="Choose a view">
     <button id="tab-play" aria-pressed="true">Play the game</button>
@@ -204,38 +212,40 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
         <svg class="board" id="board" viewBox="0 0 1000 1000" role="img" aria-label="Wave Board: a 9 by 9 grid; each square shows the wave you get by adding cards"></svg>
       </section>
       <section aria-label="Detectors and cards">
-        <h2>Detectors</h2>
+        <div class="section-heading"><h2>Detectors</h2><button class="sound-stop" data-sound-stop disabled>Stop sound</button></div>
         <div class="dets">
           <div class="det A" id="det0"><div class="det-head"><span>Player A's detector</span><span><span class="bval" id="b0">0</span><small>brightness</small></span></div>
             <svg id="curve0" viewBox="0 0 320 110" aria-label="Player A's wave"></svg>
             <div class="det-row"><div class="placed" id="placed0"></div><button class="hear" data-det="0">Hear it</button></div>
-            <div class="det-cards" id="cards0" aria-label="Cards on Player A's detector"></div></div>
+            <details class="det-history" id="history0" hidden><summary id="history-label0">Waves played</summary><div class="det-cards" id="cards0" aria-label="Cards on Player A's detector"></div></details></div>
           <div class="det B" id="det1"><div class="det-head"><span>Player B's detector</span><span><span class="bval" id="b1">0</span><small>brightness</small></span></div>
             <svg id="curve1" viewBox="0 0 320 110" aria-label="Player B's wave"></svg>
             <div class="det-row"><div class="placed" id="placed1"></div><button class="hear" data-det="1">Hear it</button></div>
-            <div class="det-cards" id="cards1" aria-label="Cards on Player B's detector"></div></div>
+            <details class="det-history" id="history1" hidden><summary id="history-label1">Waves played</summary><div class="det-cards" id="cards1" aria-label="Cards on Player B's detector"></div></details></div>
         </div>
+        <p class="sound-status" id="play-sound-status" role="status"></p>
         <div id="hand-area"><p class="hand-title" id="hand-title"></p><div class="hand" id="hand"></div><div class="targets" id="targets"></div></div>
         <details class="sound-panel" id="play-sound">
-          <summary>Sound model of wave interference</summary>
+          <summary>Hear a move</summary>
           <p>Pick a card, then hear the current wave, that card alone, and both together. A and B are played separately.</p>
-          <div class="actions"><button id="preview-a" disabled>Preview on A</button><button id="preview-b" disabled>Preview on B</button><button class="sound-stop" data-sound-stop disabled>Stop sound</button></div>
+          <div class="actions"><button id="preview-a" disabled>Preview on A</button><button id="preview-b" disabled>Preview on B</button></div>
           <div class="sound-stages" id="play-sound-stages"></div>
-          <p class="sound-status" id="play-sound-status" role="status"></p>
         </details>
         <div class="actions">
           <button id="show-hand" class="primary" hidden>Show my cards</button>
           <button id="reveal" class="primary" hidden>Reveal both cards</button>
           <button id="next" class="primary" hidden>Next ▶</button>
-          <button id="solo" class="primary">Solo quick play</button>
+          <button id="solo">Solo quick play</button>
           <button id="new-game">New game</button>
+        </div>
+        <details class="play-options"><summary>Play options</summary>
+          <div class="options">
+            <label><input type="checkbox" id="cpu-b"> Computer plays B</label>
+            <label><input type="checkbox" id="open-hands"> Open hands <small>(both hands visible)</small></label>
+            <label><input type="checkbox" id="hints" checked> Show brightness hints</label>
+          </div>
           <button id="fullscreen">Full screen</button>
-        </div>
-        <div class="options">
-          <label><input type="checkbox" id="cpu-b"> Computer plays B</label>
-          <label><input type="checkbox" id="open-hands"> Open hands (whole class sees both hands)</label>
-          <label><input type="checkbox" id="hints" checked> Show brightness hints</label>
-        </div>
+        </details>
         <p id="event" aria-live="polite"></p>
       </section>
       <aside class="side" aria-labelledby="side-h">
@@ -259,17 +269,15 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
           </ul>
         </div>
         <p id="cup-message" role="status">Each photon uses this 64-slip mix.</p>
+        <button id="fire" hidden>Fire the photon</button>
+        <p id="result" aria-live="polite"></p>
+        <p class="small" id="shot-count" role="status"></p>
         <details class="cup-details"><summary>See all 64 slips</summary>
           <div class="slip-grid" id="cup-grid" role="img" aria-label="64 gray missed slips"></div>
           <p>Each photon uses this mix. Slips have equal chances; the grid shows the inventory, not draw order. Return gray, mix, then send a new photon.</p>
         </details>
-        <p class="small" id="eventual-odds"></p>
-        <p class="small" id="shot-count" role="status"></p>
-        <button id="fire" hidden>Fire the photon</button>
-        <p id="result" aria-live="polite"></p>
-        <h2>Games won</h2>
-        <p id="score"></p>
-        <button id="reset-score" style="padding:6px 10px;font-size:14px">Reset</button>
+        <details class="cup-details"><summary>Winner odds after retries</summary><p id="eventual-odds"></p></details>
+        <div class="score-row"><p id="score"></p><button id="reset-score" aria-label="Reset wins">Reset</button></div>
       </aside>
     </div>
   </div>
@@ -281,11 +289,11 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
         <svg class="board" id="lab-board" viewBox="0 0 1000 1000" role="img" aria-label="Wave lab board"></svg>
       </section>
       <section aria-label="Lab controls">
-        <h2>Add a wave</h2>
-        <div class="wave-buttons" id="lab-buttons"></div>
+        <div id="free-wave-controls"><h2>Add a wave</h2><div class="wave-buttons" id="lab-buttons"></div></div>
         <div id="lab-waves" aria-label="Waves added"></div>
         <svg class="lab-curve" id="lab-curve" viewBox="0 0 640 220" aria-label="The waves and their sum"></svg>
         <p id="lab-note" aria-live="polite"></p>
+        <details class="lab-detail"><summary>See the calculation</summary><p id="lab-calculation"></p></details>
         <div class="actions">
           <button id="lab-hear" class="primary">Hear the waves</button>
           <button class="sound-stop" data-sound-stop disabled>Stop sound</button>
@@ -296,18 +304,17 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
         <div class="sound-stages" id="lab-sound-stages"></div>
         <details class="sound-panel" id="sound-challenge">
           <summary>Silence the ghost · musical challenges</summary>
-          <p>Choose a challenge. The wave stays visible while you listen and try cards.</p>
+          <p id="challenge-intro">Choose a challenge. Listen, then try your answer.</p>
           <div class="actions"><button data-challenge="silence">Silence in 1 card</button><button data-challenge="build">Build in 2 cards</button><button data-challenge="predict">Predict the change</button></div>
           <p id="challenge-prompt">Free play: add waves above, or start a challenge.</p>
           <div class="challenge-cards" id="challenge-cards" hidden></div>
           <fieldset id="prediction-choices" hidden><legend>What will happen to the tune?</legend><div class="actions"><button data-prediction="stronger">Stronger</button><button data-prediction="quieter">Quieter</button><button data-prediction="silent">Silent</button><button data-prediction="same">Same level</button></div></fieldset>
           <p id="challenge-feedback" role="status"></p>
           <div class="actions"><button id="challenge-retry" hidden>Try again</button><button id="challenge-exit" hidden>Free play</button></div>
-          <p id="challenge-score">Challenges solved: 0</p>
+          <p id="challenge-score" hidden></p>
         </details>
-        <p class="hand-title" style="margin-top:14px">Try these</p>
-        <div class="presets" id="presets"></div>
-        <p class="hint">Thin gray curves: each wave on its own. Thick red curve: their sum. The sound model plays the same three-note tune for every contribution, with each note’s phase set by the arrow. Equal opposite waves silence the tune. Strength changes amplitude; every card shares the same pitches. Audio level uses a fixed scale; perceived loudness is not a brightness meter.</p>
+        <details class="lab-detail" id="lab-examples"><summary>Try an example</summary><div class="presets" id="presets"></div></details>
+        <p class="hint">Gray curves: separate waves. Red: their sum. Every wave plays the same tune; equal opposites cancel it. Sound uses a fixed scale, but perceived loudness is not a brightness meter.</p>
       </section>
     </div>
   </div>
@@ -316,11 +323,16 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
     <p><b>Goal.</b> Make your detector bright and your opponent's dark, then catch the photon.</p>
     <p><a class="text-link" href="CatchThePhoton_Wave_Cards.html" target="_blank" rel="noopener">Print the 40 wave cards ↗</a></p>
     <p><b>Cards.</b> The arrow gives the direction; the number is wave strength (amplitude) and tells you how many squares to move. ↑ up is blue, ↓ down red, → right purple, and ← left gold. There are 40 cards: seven strength-1 and three strength-2 cards per direction. The small plots all use the same scale and frequency.</p>
-    <p><b>Each round (8 rounds).</b> Deal three cards each. Both players secretly choose a card and a detector: their own to build brightness, or their opponent’s to reduce it. Reveal both. Move each chosen detector by the full number of squares in the arrow’s direction, then refill hands. ↑2 and ↓1 leave ↑1; ↑2 and ↓2 cancel completely. Resolve Player A’s card first, then Player B’s.</p>
-    <p><b>Catch the photon.</b> After 8 rounds, prepare exactly 64 identical slips: blue equal to A’s brightness, purple equal to B’s, and gray for the rest. Draw without looking. Blue or purple wins. Gray means a missed photon: replace the slip, mix, and send a new photon with the same settings. The browser shows a miss when it occurs, then automatically advances through further attempts. If both detectors are dark, play one more round instead of firing.</p>
+    <ol>
+      <li><b>Choose.</b> Start with three cards each. Secretly pick one card and either detector. Build your own wave or try to cancel your opponent’s.</li>
+      <li><b>Reveal and move.</b> Apply A’s card first, then B’s. Move the chosen token in the arrow’s direction by the full card strength. ↑2 and ↓1 leave ↑1; ↑2 and ↓2 cancel.</li>
+      <li><b>Refill and repeat.</b> Refill hands to three. Play 8 rounds. If both detectors end dark, play another round.</li>
+      <li><b>Catch.</b> Draw from exactly 64 equal-sized slips: blue equal to A’s brightness, purple equal to B’s, gray for the rest. Blue or purple wins. Return gray, mix, and send a new photon with the same settings. The browser handles retries.</li>
+    </ol>
     <p><b>Solo quick play.</b> Click “Solo quick play” to show your hand and play against the computer. Each choice resolves both cards and starts the next round. “New game” keeps your play mode for an easy replay.</p>
-    <p><b>Passing one screen.</b> Before each turn, the other player looks away, then the player clicks "Show my cards". On a projector, use "Open hands" so the class can discuss each move, or tick "Computer plays B".</p>
-    <p><b>Edge of the board.</b> A card cannot push a token off the board. If both cards push the same token off the edge in one round, the second card is lost.</p>
+    <p><b>Passing one screen.</b> The other player looks away before you show your cards. For a projector, open <b>Play options → Open hands</b>. Computer play and brightness hints are there too.</p>
+    <p><b>Edge of the board.</b> Choose a full move that stays on the board. If A’s move makes B’s already-chosen move leave the board, B’s card is lost. Never make a partial move. With no legal move on either detector, discard the first card.</p>
+    <p><b>Hear a move.</b> Pick a card, open “Hear a move”, then preview it on A or B before choosing its target. In Wave lab, try the musical challenges or open “Try an example”.</p>
   </details>
   <details><summary>Why it works</summary>
     <p><b>The musical sound model.</b> Every contribution shares the same three notes and timing. The arrow sets phase within each note, and strength sets amplitude. The app adds wave components before playback, using a fixed audio scale. Equal opposite contributions cancel the whole tune. The sound is an audible model of wave interference. Detector A and B are auditioned separately.</p>
@@ -570,7 +582,7 @@ function fire() {
   function finish(winner) {
     G.firing = false; G.result = winner; G.phase = 'done'; G.cupState = NAMES[winner]; score[winner]++;
     $('#result').className = NAMES[winner]; $('#result').textContent = `Player ${NAMES[winner]} caught a photon!`;
-    $('#event').textContent = `Eventual win odds: A ${percent(bA / (bA + bB))}, B ${percent(bB / (bA + bB))}. ${G.missed} missed photon${G.missed === 1 ? '' : 's'} before detection. A good strategy can still lose one game.`;
+    $('#event').textContent = 'A good strategy can still lose one game. Play again to try it over several games.';
     render();
   }
   animate(u, w === 2); render();
@@ -630,7 +642,9 @@ function render() {
   const st = G.phase === 'resolve' ? G.steps[G.stepIdx] : null;
   for (const t of [0, 1]) {
     $('#b' + t).textContent = bright(G.pos[t]); drawDetCurve($('#curve' + t), G.pos[t], st && st.t === t ? st : null, t ? '#6c2f9e' : '#154c9c');
-    $('#cards' + t).innerHTML = G.played[t].map(waveChip).join('') || '<span style="color:#697080;font-size:14px">no waves yet</span>';
+    $('#cards' + t).innerHTML = G.played[t].map(waveChip).join('');
+    $('#history' + t).hidden = !G.played[t].length;
+    $('#history-label' + t).textContent = `Waves played (${G.played[t].length})`;
     const placed = [0, 1].filter(p => G.picks[p] && G.picks[p].target === t && (['ready','choose','hidden'].includes(G.phase) || (G.phase === 'resolve' && G.stepIdx < p)));
     $('#placed' + t).innerHTML = placed.map(() => '<div class="mini-back" title="face-down wave card"></div>').join('');
   }
@@ -659,6 +673,8 @@ function render() {
   $('#show-hand').hidden = G.phase !== 'hidden'; $('#show-hand').textContent = `Show Player ${NAMES[G.who]}'s cards`;
   $('#reveal').hidden = G.phase !== 'ready'; $('#next').hidden = G.phase !== 'resolve'; $('#next').textContent = G.stepIdx === 0 ? 'Next wave ▶' : 'Next round ▶';
   $('#fire').hidden = G.phase !== 'photon'; $('#fire').disabled = G.firing;
+  $('#hand-area').hidden = ['photon', 'done'].includes(G.phase);
+  $('#play-sound').hidden = ['photon', 'done'].includes(G.phase);
   $('#new-game').textContent = G.phase === 'done' ? 'Play again' : 'New game';
   const bA = bright(G.pos[0]), bB = bright(G.pos[1]), total = bA + bB, pA = winp(bA, bB);
   renderCup(bA, bB);
@@ -668,13 +684,13 @@ function render() {
   $('#eventual-odds').textContent = total ? `Eventual win odds: A ${percent(pA)} · B ${percent(1 - pA)}. Repeat identical preparations until detected.` : 'Both dark: every photon would miss. Build brightness before firing.';
   $('#shot-count').textContent = G.attempts ? `Photons sent: ${G.attempts} · Missed: ${G.missed}${G.phase === 'done' ? ' · Detected: 1' : ''}` : '';
   $('#round').textContent = ['photon','done'].includes(G.phase) ? 'Photon time!' : `Round ${Math.min(G.round, G.maxRounds)} of ${G.maxRounds}`;
-  $('#score').innerHTML = `<span style="color:var(--a)">Player A: ${score[0]}</span> · <span style="color:var(--b)">Player B: ${score[1]}</span>`;
-  const status = $('#status'), badge = $('#turn-badge'); status.className = ''; badge.className = 'badge';
-  if (['hidden','choose'].includes(G.phase)) { const name = NAMES[G.who]; status.textContent = G.phase === 'hidden' ? `Player ${name}'s turn. Other player, look away!` : `Player ${name}: choose a wave and a detector`; status.classList.add(name); badge.classList.add(name); badge.textContent = `Player ${name}'s turn`; }
-  else if (G.phase === 'ready') { status.textContent = 'Both cards are placed. Reveal them!'; badge.textContent = 'Reveal'; }
-  else if (G.phase === 'resolve') { status.textContent = `Round ${G.round}: wave ${G.stepIdx + 1} of 2`; badge.textContent = 'Waves adding'; }
-  else if (G.phase === 'photon') { status.textContent = G.firing ? (G.missed ? 'A missed photon is gone. New photons use the same settings; retries advance automatically.' : 'Sending the first photon…') : `Per photon: A ${percent(bA / CUP)}, B ${percent(bB / CUP)}, missed ${percent(1 - total / CUP)}. Fire when ready!`; badge.textContent = G.firing ? 'Sending photons' : 'Photon time'; }
-  else { status.textContent = `Player ${NAMES[G.result]} caught the photon!`; badge.textContent = `Player ${NAMES[G.result]} wins`; }
+  $('#score').innerHTML = `Wins: <span style="color:var(--a)">A ${score[0]}</span> · <span style="color:var(--b)">B ${score[1]}</span>`;
+  const status = $('#status'); status.className = '';
+  if (['hidden','choose'].includes(G.phase)) { const name = NAMES[G.who]; status.textContent = G.phase === 'hidden' ? `Player ${name}'s turn. Other player, look away!` : `Player ${name}: choose a wave and a detector`; status.classList.add(name); }
+  else if (G.phase === 'ready') status.textContent = 'Both cards are placed. Reveal them!';
+  else if (G.phase === 'resolve') status.textContent = `Round ${G.round}: wave ${G.stepIdx + 1} of 2`;
+  else if (G.phase === 'photon') status.textContent = G.firing ? (G.missed ? 'New photon, same settings. Retrying automatically…' : 'Sending the first photon…') : 'Ready to draw. Fire the photon!';
+  else status.textContent = `Player ${NAMES[G.result]} caught the photon!`;
 }
 /* Musical sonification: add phasors exactly, then play their sum at each shared note.
    PeriodicWave normalization is disabled, so gain never depends on card count. */
@@ -714,8 +730,8 @@ async function playTune(stages, view, label) {
     audioView = view;
     const positions = stages.map(s => sumWave(s.cards));
     const holder = $('#' + view + '-sound-stages');
-    holder.innerHTML = stages.map((s, i) => `<div class="sound-stage" data-stage="${i}"><b>${s.name}</b>${soundPlot(positions[i])}<span>Brightness ${bright(positions[i])}</span></div>`).join('');
-    if (view === 'play') $('#play-sound').open = true;
+    holder.innerHTML = stages.length > 1 ? stages.map((s, i) => `<div class="sound-stage" data-stage="${i}"><b>${s.name}</b>${soundPlot(positions[i])}<span>Brightness ${bright(positions[i])}</span></div>`).join('') : '';
+    if (view === 'play' && stages.length > 1) $('#play-sound').open = true;
     const master = actx.createGain(); master.gain.value = 1; master.connect(actx.destination); audioMaster = master;
     document.querySelectorAll('[data-sound-stop]').forEach(b => b.disabled = false);
     const t0 = actx.currentTime + .05, stageLength = 1.02;
@@ -752,7 +768,7 @@ async function playTune(stages, view, label) {
       if (ticket !== audioRun) return;
       const last = positions.length - 1;
       stopSound(false); master.disconnect();
-      status.textContent = `${label} · Finished: brightness ${bright(positions[last])}${bright(positions[last]) ? '. Same audio scale for every wave.' : ' — silence from complete cancellation.'}`;
+      status.textContent = `${label}: brightness ${bright(positions[last])}${bright(positions[last]) ? '.' : ' — silence from complete cancellation.'}`;
     }, (stages.length * stageLength + .05) * 1000));
     return true;
   } catch (_) {
@@ -778,23 +794,30 @@ function renderLab() {
   LAB.forEach(card => { const d = vector(card); h += `<path d="${pathFor(d[0], d[1], 10, 620, 110, amp, 2)}" fill="none" stroke="#9aa0ad" stroke-width="1.6" opacity=".8"/>`; });
   h += `<path d="${pathFor(p[0], p[1], 10, 620, 110, amp, 2)}" fill="none" stroke="#b41524" stroke-width="5"/>`; $('#lab-curve').innerHTML = h;
   const height = Math.sqrt(b);
-  $('#lab-note').textContent = !LAB.length ? 'Flat line: no waves, brightness 0. This detector catches 0% of photons.' : b === 0 ? 'Equal opposite amplitudes: complete cancellation, brightness 0. This detector catches 0% of photons.' : `Total amplitude ${Number.isInteger(height) ? height : height.toFixed(2)}; brightness ${b} = (${p[0]})² + (${p[1]})². Per-photon chance at this detector: ${b}/64 = ${percent(b / CUP)}.`;
+  $('#lab-note').textContent = !LAB.length ? 'Add a wave to begin.' : b === 0 ? 'Canceled: brightness 0 · Photon chance 0%.' : `Brightness ${b} · Photon chance ${b}/64 (${percent(b / CUP)}).`;
+  $('#lab-calculation').textContent = `Position (${p[0]}, ${p[1]}). Amplitude ${Number.isInteger(height) ? height : height.toFixed(2)}. Brightness = (${p[0]})² + (${p[1]})² = ${b}. This detector catches ${b} of every 64 photons on average.`;
   $('#lab-undo').disabled = !LAB.length; $('#lab-clear').disabled = !LAB.length;
 }
 function renderChallenge() {
   const c = CHALLENGE, active = c && !c.done;
+  $('#free-wave-controls').hidden = !!c;
+  $('#lab-undo').hidden = !!c; $('#lab-clear').hidden = !!c;
+  $('#lab-examples').hidden = !!c;
+  $('#challenge-intro').hidden = !!c;
   $('#prediction-choices').hidden = !(active && c.kind === 'predict');
   const choices = $('#challenge-cards');
-  choices.hidden = !c || c.kind === 'predict';
+  choices.hidden = !active || c.kind === 'predict';
   choices.innerHTML = !c || c.kind === 'predict' ? '' : [1,2].flatMap(strength => ['U','D','R','L'].map(direction => {
     const card = wave(direction, strength), w = WAVES[direction], disabled = c.done || !onBoard(step(labPos(), card));
     return `<button data-direction="${direction}" data-strength="${strength}" style="color:${w.color};border-color:${w.color}" aria-label="Challenge card strength ${strength}, ${w.dir}" ${disabled ? 'disabled' : ''}>${strength}${w.sym}</button>`;
   })).join('');
-  $('#challenge-retry').hidden = !c;
+  $('#challenge-retry').hidden = !c || !c.done;
   $('#challenge-exit').hidden = !c;
   document.querySelectorAll('#lab-buttons button').forEach(b => b.disabled = !!(active && c.kind === 'predict'));
   $('#challenge-score').textContent = `Challenges solved: ${challengesSolved}`;
+  $('#challenge-score').hidden = !challengesSolved;
   if (!c) $('#challenge-prompt').textContent = 'Free play: add waves above, or start a challenge.';
+  else if (c.done) $('#challenge-prompt').textContent = 'Try again, choose another challenge, or return to free play.';
   else if (c.kind === 'silence') $('#challenge-prompt').textContent = `Silence the ghost: cancel ${cardName(c.initial[0])} with exactly 1 card. Choose your wave below.`;
   else if (c.kind === 'build') $('#challenge-prompt').textContent = `Build the tune: reach brightness 9 or more with exactly 2 cards. Cards used: ${c.moves}/2.`;
   else $('#challenge-prompt').textContent = `Predict: ${cardName(c.probe)} will join ${cardName(c.initial[0])}. The arrows show their phases. What will the combined tune do?`;
@@ -810,7 +833,7 @@ function startChallenge(kind, initial = null, probe = null) {
   renderLab(); renderChallenge(); hear(LAB, 'lab', 'Starting wave');
 }
 function leaveChallenge() {
-  CHALLENGE = null; $('#challenge-feedback').textContent = ''; renderChallenge();
+  CHALLENGE = null; clearSoundView('lab'); $('#challenge-feedback').textContent = ''; renderChallenge();
 }
 function finishChallenge(success, message) {
   CHALLENGE.done = true;
@@ -828,11 +851,11 @@ function answerPrediction(answer) {
   hearChange(before, c.probe, 'lab', 'Prediction replay');
 }
 function labAdd(card) {
-  if (CHALLENGE && !CHALLENGE.done && CHALLENGE.kind === 'predict') return;
+  if (CHALLENGE && (CHALLENGE.done || CHALLENGE.kind === 'predict')) return;
   if (!onBoard(step(labPos(), card))) { $('#lab-note').textContent = 'The full move would leave the board.'; return; }
   stopSound();
   const before = LAB.slice(), c = CHALLENGE;
-  if (c && c.done) leaveChallenge();
+  clearSoundView('lab');
   LAB.push(card); renderLab();
   if (c && !c.done) {
     c.moves++;
@@ -854,7 +877,7 @@ const PRESETS = [
 function setTab(t) {
   stopSound();
   document.body.dataset.tab = t; $('#tab-play').setAttribute('aria-pressed', String(t === 'play')); $('#tab-lab').setAttribute('aria-pressed', String(t === 'lab'));
-  if (t === 'lab') { $('#status').textContent = 'Wave lab: add waves and see (and hear) them reinforce or cancel.'; $('#status').className = ''; $('#turn-badge').className = 'badge'; $('#turn-badge').textContent = 'Wave lab'; renderLab(); } else render();
+  if (t === 'lab') { $('#status').textContent = 'Add waves, hear them combine, or try a challenge.'; $('#status').className = ''; renderLab(); renderChallenge(); } else render();
 }
 buildBoard($('#board')); buildBoard($('#lab-board'));
 $('#lab-buttons').innerHTML = [1,2].flatMap(strength => ['U','D','R','L'].map(direction => { const w = WAVES[direction]; return `<button data-direction="${direction}" data-strength="${strength}" style="color:${w.color};border-color:${w.color}" aria-label="Add strength ${strength} ${w.dir}">${strength}${w.sym}<small>${w.phase}</small></button>`; })).join('');

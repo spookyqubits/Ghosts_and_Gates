@@ -56,12 +56,14 @@ test('reset during firing cancels the old result and restores Fire for later gam
   app.random(0);
   for(let i=0;i<4;i++) {
     app.run("G.pos=[[0,2],[1,0]];G.phase='photon';fire()"); assert.equal(app.nodes.get('#fire').disabled,true); assert.equal(app.timers.size,1);
-    const stale=[...app.timers.values()][0]; app.run('newGame()'); assert.equal(app.timers.size,0); assert.equal(app.nodes.get('#fire').disabled,false);
+    assert.equal(app.nodes.get('#hand-area').hidden,true);
+    const stale=[...app.timers.values()][0]; app.run('newGame()');
+    assert.equal(app.nodes.get('#hand-area').hidden,false); assert.equal(app.timers.size,0); assert.equal(app.nodes.get('#fire').disabled,false);
     stale(); assert.equal(app.run('G.result'),null); assert.equal(app.run('score[0]+score[1]'),0);
   }
   app.run("G.pos=[[0,2],[1,0]];G.phase='photon';fire()");
   const finish=[...app.timers.values()][0]; app.timers.clear(); finish(); finish(); assert.equal(app.run('G.phase'),'done'); assert.equal(app.nodes.get('#fire').disabled,false);
-  assert(app.nodes.get('#event').textContent.includes('A 80%, B 20%'));
+  assert(app.nodes.get('#eventual-odds').textContent.includes('A 80% · B 20%'));
   assert.equal(app.run('score[0]+score[1]'),1);
   app.run('newGame()'); assert.equal(app.nodes.get('#fire').disabled,false);
 });
@@ -295,4 +297,51 @@ test('direct B draws reveal the correct slip and reset clears every cup highligh
     assert(!app.nodes.get('#cup-grid').innerHTML.includes('is-drawn'));
     assert.equal(app.run('G.cupSlot'),null);assert.equal(app.timers.size,0);
   }
+});
+
+test('challenge controls stay focused until an explicit retry or exit',()=>{
+  const app=load(true);
+  app.run("startChallenge('silence',[wave('U')])");
+  assert.equal(app.nodes.get('#free-wave-controls').hidden,true);
+  assert.equal(app.nodes.get('#challenge-cards').hidden,false);
+  assert.equal(app.nodes.get('#lab-undo').hidden,true);
+  assert.equal(app.nodes.get('#challenge-retry').hidden,true);
+  app.run("labAdd(wave('D'))");
+  assert.equal(app.nodes.get('#challenge-cards').hidden,true);
+  assert.equal(app.nodes.get('#challenge-retry').hidden,false);
+  assert(!app.nodes.get('#challenge-prompt').textContent.includes('Choose your wave below'));
+  const solved=app.run('JSON.stringify(LAB)');
+  app.run("labAdd(wave('R'))");
+  assert.equal(app.run('JSON.stringify(LAB)'),solved);
+  assert.equal(app.run('challengesSolved'),1);
+  app.run("$('#challenge-exit').onclick()");
+  assert.equal(app.nodes.get('#free-wave-controls').hidden,false);
+  assert.equal(app.nodes.get('#lab-undo').hidden,false);
+  assert.equal(app.nodes.get('#lab-examples').hidden,false);
+  app.run("startChallenge('predict',[wave('U')],wave('R'))");
+  assert.equal(app.nodes.get('#challenge-cards').hidden,true);
+  assert.equal(app.nodes.get('#prediction-choices').hidden,false);
+  app.run("labAdd(wave('D'))");
+  assert.equal(app.run('LAB.length'),1);
+});
+test('single-wave hearing reuses the main plot; comparisons open only for a move preview',async()=>{
+  const app=load(true);attachAudio(app);
+  await app.run("hear([wave('U')],'play','Detector A')");
+  assert.equal(app.nodes.get('#play-sound-stages').innerHTML,'');
+  assert.equal(app.run("!!$('#play-sound').open"),false);
+  await app.run("hearChange([wave('U')],wave('D'),'play','Preview on A')");
+  assert.equal(app.nodes.get('#play-sound').open,true);
+  assert.equal((app.nodes.get('#play-sound-stages').innerHTML.match(/class="sound-stage"/g)||[]).length,3);
+  await app.run("hear([wave('R')],'play','Detector B')");
+  assert.equal(app.nodes.get('#play-sound-stages').innerHTML,'');
+});
+
+test('editing free-play waves clears an older audible comparison',async()=>{
+  const app=load(true);attachAudio(app);
+  await app.run("hearChange([wave('U')],wave('D'),'lab','Old comparison')");
+  assert(app.nodes.get('#lab-sound-stages').innerHTML.includes('Card alone'));
+  app.run("labAdd(wave('R'))");
+  assert.equal(app.nodes.get('#lab-sound-stages').innerHTML,'');
+  assert.equal(app.nodes.get('#lab-sound-status').textContent,'');
+  assert.equal(app.timers.size,0);
 });
