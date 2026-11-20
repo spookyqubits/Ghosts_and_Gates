@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ghost Copy Shop | Spooky Qubits</title><meta name="description" content="Audit three copying machines with fresh qubits and look for a counterexample.">
+<style>:root{color-scheme:light;--paper:#f7f3ea;--white:#fffdf7;--ink:#23263a;--muted:#51576a;--rule:#dcd2ca;--red:#a52943;--navy:#232941;--light:#e7e7f5;--gold:#ffe5a1}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.5 system-ui,sans-serif}main{max-width:74rem;margin:auto;padding:clamp(1rem,4vw,3rem);padding-bottom:max(2.5rem,env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:Georgia,serif;line-height:1.08}h1{font-size:clamp(2.8rem,8vw,5.8rem);letter-spacing:-.052em;margin:.15rem 0 .65rem}h2{font-size:clamp(1.35rem,3vw,1.8rem);margin:0 0 .65rem}h3{font-size:1.3rem;margin:.1rem 0 .5rem}p{margin:0 0 .7rem}header>p:last-child{max-width:61ch}nav{margin:0 0 1.2rem}nav a{display:inline-block;padding:.25rem 0}.brand{font-size:.8rem;font-weight:750;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+.layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:1rem;align-items:start;margin:1.15rem 0}.panel,.board{min-width:0;padding:clamp(.85rem,2.4vw,1.3rem);border:1px solid var(--rule);border-radius:.8rem;background:var(--white)}.board{background:var(--navy);color:#fff8ed;border-color:var(--navy)}.board .hint{color:#deecf6}.stack>*+*{margin-top:.8rem}.hint{font-size:.9rem;color:var(--muted)}.value{font-variant-numeric:tabular-nums}.row{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;margin:.7rem 0}.row>*{min-width:0}.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}.split>label{min-width:0}
+input,select,button{font:inherit}input:not([type=range]):not([type=checkbox]),select{max-width:100%;width:100%;min-height:44px;padding:.38rem .55rem;background:var(--white);color:var(--ink);border:1px solid #776f82;border-radius:.32rem}input[type=range]{display:block;width:100%;accent-color:var(--red);margin:.6rem 0}label{font-weight:680}output{font-variant-numeric:tabular-nums;font-weight:680}
+button,.button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;border:1px solid var(--red);border-radius:.35rem;padding:.38rem .63rem;background:var(--red);color:white;font-weight:680;text-align:center;cursor:pointer;text-decoration:none}button.secondary,.button.secondary{color:var(--red);background:transparent}button[aria-pressed=true]{background:var(--navy);color:white;border-color:var(--navy)}button:disabled{background:#efe9e7;color:#5a5662;border-color:#d3c8c9;cursor:default}.board .secondary{color:#fff8ed;border-color:#d6c7dd}:focus-visible{outline:3px solid #95601b;outline-offset:3px}
+.stats{display:flex;flex-wrap:wrap;gap:.65rem 1rem;margin:.65rem 0}.stats span{font-size:.9rem}.stats strong{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}.note{margin:.65rem 0;padding:.66rem .78rem;border-radius:.4rem;background:#efe7f3;color:#282539}.note:empty{display:none}.note > :last-child{margin-bottom:0}
+canvas{display:block;width:100%;height:190px;margin:.25rem 0}table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}th,td{padding:.32rem .2rem;border-bottom:1px solid var(--rule);text-align:left}th.num,td.num{text-align:right}details{padding:.65rem 0;border-top:1px solid var(--rule);max-width:77ch}details p{margin:.55rem 0}summary{cursor:pointer;font-weight:730}a{color:var(--red);text-underline-offset:.15em}.group{margin:1.75rem 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1rem}.cards .panel{display:flex;flex-direction:column;align-items:start}.cards .button{margin-top:auto}.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:.32rem;list-style:none;padding:0;margin:.7rem 0}.chips li{border:1px solid #8389a1;border-radius:.35rem;text-align:center;padding:.35rem;color:#fff8ed;font-variant-numeric:tabular-nums}.chips strong{display:block}.chips .done{background:#405f57;border-color:#adcfac}.chips .current{background:var(--gold);color:var(--ink);border-color:var(--gold)}[hidden]{display:none!important}
+@media(max-width:720px){.layout{grid-template-columns:1fr;gap:.8rem}canvas{height:160px}}
+</style></head>
+<body><main>
+<nav aria-label="Site navigation"><a href="../index.html">Spooky Labs</a></nav>
+<header><p class="brand">Spooky Qubits · Quantum networks</p><h1>Ghost Copy Shop</h1><p>Audit three copying machines with fresh qubits and look for a counterexample.</p></header>
+<script>'use strict';
+const $ = id => document.getElementById(id);
+const on = (id, event, listener) => $(id).addEventListener(event, listener);
+const click = (id, listener) => on(id, 'click', listener);
+const say = (id, message) => { $(id).textContent = message; };
+const show = (id, visible) => { $(id).hidden = !visible; };
+const fmt = (number, places = 2) => (Math.abs(number) < 0.5 * 10 ** -places ? 0 : number).toFixed(places);
+const randomInt = (count, random = Math.random) => Math.floor(random() * count);
+
+function element(tag, text, attrs = {}) {
+  const result = document.createElement(tag);
+  if (text !== undefined) result.textContent = text;
+  for (const [key, value] of Object.entries(attrs)) result.setAttribute(key, value);
+  return result;
+}
+
+function rows(id, data) {
+  $(id).replaceChildren(...data.map(([label, ...values]) => {
+    const row = element('tr');
+    row.append(element('th', label, {scope:'row'}), ...values.map(value => element('td', value)));
+    return row;
+  }));
+}
+
+function percent(probability) { return `${fmt(100 * probability, 1)}%`; }
+
+function bellMessage(random = Math.random) { return [randomInt(2, random), randomInt(2, random)]; }
+
+function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 + bit]; }
+</script>
+<div class="layout">
+  <section class="board"><h2 id="device"></h2><p id="claim"></p><p id="budget" class="hint"></p><div id="test-chart" hidden><p class="hint" id="tested"></p><table aria-label="Output distribution"><thead><tr><th>Result</th><th>Two true copies</th><th>Machine model</th><th>Sample count</th></tr></thead><tbody id="distribution"></tbody></table></div></section>
+  <section class="panel"><h2>Run an audit</h2><div class="split"><label>Fresh input<select id="input"><option value="0">|0⟩</option><option value="1">|1⟩</option><option value="+">|+⟩</option><option value="-">|−⟩</option></select></label><label>Measure both outputs<select id="basis"><option value="Z">Z basis</option><option value="X">X basis</option></select></label></div>
+    <div class="row"><button id="test" type="button">Test 64 fresh inputs</button><button id="challenge" class="secondary" type="button" disabled>Submit as counterexample</button></div>
+    <p id="feedback" class="note" role="status"></p><div class="row"><button id="next" type="button" hidden>Next device</button><button id="restart" class="secondary" type="button">Restart audits</button></div>
+  </section>
+</div>
+<details><summary>College lab questions</summary><p>Find a test that lets the controlled copier pass and one that exposes it. Explain why copying orthogonal states in one basis is possible. For a |+⟩ input, compare the controlled copier’s joint X-basis distribution with measuring two independently prepared copies.</p></details>
+<details><summary>Model and experiment</summary><p>Every run starts with a fresh source and target |0⟩. The controlled copier applies CNOT. The transfer device swaps the source and target. The measure-and-prepare device measures Z and uses the result to produce both outputs. The table compares probabilities for these devices with the probability for two independently prepared copies.</p><p>Unitary evolution is linear. A device that copies |0⟩ and |1⟩ sends their superposition to an entangled state, while two copies would be a product state. This audit illustrates a counterexample to the claim. <a href="https://doi.org/10.1038/299802a0">Wootters and Zurek, no-cloning</a></p></details>
+<script>
+  const root=Math.SQRT1_2;
+  const states={'0':[1,0],'1':[0,1],'+':[root,root],'-':[root,-root]};
+  const devices=[
+    ['Controlled copier','“I copy into a blank qubit using a controlled flip.”','A superposition can become entangled with the target.'],
+    ['Transfer device','“I move the input to the target. Count that as two copies.”','The target receives the state. The source is reset to |0⟩.'],
+    ['Measure and prepare','“I read the source in Z, then prepare two outputs for you.”','The Z result preserves a basis label and loses the input’s phase information.'],
+  ];
+  let device=0,budget=3,last=null,closed=false,found=0;
+  function probabilities(vector,basis) {
+    const [a,b,c,d]=vector;
+    const amplitudes=basis==='Z'?vector:[(a+b+c+d)/2,(a-b+c-d)/2,(a+b-c-d)/2,(a-b-c+d)/2];
+    return amplitudes.map(value=>value*value);
+  }
+  function audit(which,key,basis) {
+    const [a,b]=states[key];
+    const ideal=probabilities([a*a,a*b,a*b,b*b],basis);
+    const actual=which===0?probabilities([a,0,0,b],basis):which===1?probabilities([a,b,0,0],basis)
+      :probabilities([1,0,0,0],basis).map((p,i)=>a*a*p+b*b*probabilities([0,0,0,1],basis)[i]);
+    const difference=.5*ideal.reduce((sum,p,i)=>sum+Math.abs(p-actual[i]),0);
+    return {ideal,actual,difference};
+  }
+  function sample(probs,random=Math.random) {
+    const counts=[0,0,0,0];
+    for(let shot=0;shot<64;shot++) {
+      const roll=random(); let cumulative=0;
+      const index=probs.findIndex(p=>(cumulative+=p)>roll); counts[index<0?3:index]++;
+    }
+    return counts;
+  }
+  function render() {
+    say('device',`Device ${device+1} of ${devices.length} · ${devices[device][0]}`);
+    say('claim',devices[device][1]); say('budget',`${budget} test batches left`);
+    $('test').disabled=closed||!budget; $('challenge').disabled=closed||!last;
+    $('input').disabled=closed; $('basis').disabled=closed;
+    show('test-chart',Boolean(last)); show('next',closed&&device<devices.length-1);
+    if(last) {
+      const symbols=last.basis==='Z'?['00','01','10','11']:['++','+−','−+','−−'];
+      say('tested',`Most recent test · |${last.key}⟩ input · ${last.basis} basis`);
+      rows('distribution',symbols.map((symbol,i)=>[symbol,percent(last.ideal[i]),percent(last.actual[i]),last.counts[i]]));
+    }
+  }
+  function resetCase() { budget=3;last=null;closed=false;$('input').value='0';$('basis').value='Z';say('feedback','');render(); }
+  click('test',()=>{
+    if(closed||!budget) return;
+    const key=$('input').value, basis=$('basis').value, result=audit(device,key,basis);
+    last={...result,key,basis,counts:sample(result.actual)};budget--;
+    say('feedback','Compare the two probability columns. Sample counts can vary from batch to batch.');render();
+  });
+  function finish(success) {
+    closed=true;if(success) found++;
+    const summary=success?'Counterexample found.':'Audit budget used. Try a different input next time.';
+    say('feedback',`${summary} ${devices[device][2]}${device===2?` Total · ${found} of 3 audits.`:''}`);render();
+  }
+  click('challenge',()=>{
+    if(!last||closed) return;
+    if(last.difference>1e-8) finish(true);
+    else if(!budget) finish(false);
+    else say('feedback','The predicted distributions match for this test. Try a different input or basis.');
+  });
+  click('next',()=>{if(closed&&device<2){device++;resetCase();}});
+  click('restart',()=>{device=0;found=0;resetCase();});
+  resetCase();
+</script>
+
+</main></body></html>

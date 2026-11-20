@@ -25,5 +25,7 @@
 @media(max-width:560px){.site-header nav{gap:8px}.social-links{gap:2px}.social-links a{width:36px;height:36px}.social-links svg{width:17px;height:17px}.site-header .nav-cta{padding:8px 10px;gap:6px}}
 @media(max-width:420px){.site-header{height:auto;min-height:73px;flex-wrap:wrap;row-gap:8px;padding-block:12px}.site-header nav{margin-left:auto}}
 
-.materials-card{grid-column:1/-1;background:#e6efe9;border-color:#bdd2c4}
+.materials-card{background:#e6efe9;border-color:#bdd2c4}
 .materials-card .eyebrow,.materials-card .text-link{color:#215844}
+.labs-card{background:#e9edf8;border-color:#c6cfe5}
+.labs-card .eyebrow,.labs-card .text-link{color:#31547b}

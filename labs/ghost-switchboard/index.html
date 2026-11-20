@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ghost Switchboard | Spooky Qubits</title><meta name="description" content="Create an endpoint pair before the links at your relay expire.">
+<style>:root{color-scheme:light;--paper:#f7f3ea;--white:#fffdf7;--ink:#23263a;--muted:#51576a;--rule:#dcd2ca;--red:#a52943;--navy:#232941;--light:#e7e7f5;--gold:#ffe5a1}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.5 system-ui,sans-serif}main{max-width:74rem;margin:auto;padding:clamp(1rem,4vw,3rem);padding-bottom:max(2.5rem,env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:Georgia,serif;line-height:1.08}h1{font-size:clamp(2.8rem,8vw,5.8rem);letter-spacing:-.052em;margin:.15rem 0 .65rem}h2{font-size:clamp(1.35rem,3vw,1.8rem);margin:0 0 .65rem}h3{font-size:1.3rem;margin:.1rem 0 .5rem}p{margin:0 0 .7rem}header>p:last-child{max-width:61ch}nav{margin:0 0 1.2rem}nav a{display:inline-block;padding:.25rem 0}.brand{font-size:.8rem;font-weight:750;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+.layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:1rem;align-items:start;margin:1.15rem 0}.panel,.board{min-width:0;padding:clamp(.85rem,2.4vw,1.3rem);border:1px solid var(--rule);border-radius:.8rem;background:var(--white)}.board{background:var(--navy);color:#fff8ed;border-color:var(--navy)}.board .hint{color:#deecf6}.stack>*+*{margin-top:.8rem}.hint{font-size:.9rem;color:var(--muted)}.value{font-variant-numeric:tabular-nums}.row{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;margin:.7rem 0}.row>*{min-width:0}.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}.split>label{min-width:0}
+input,select,button{font:inherit}input:not([type=range]):not([type=checkbox]),select{max-width:100%;width:100%;min-height:44px;padding:.38rem .55rem;background:var(--white);color:var(--ink);border:1px solid #776f82;border-radius:.32rem}input[type=range]{display:block;width:100%;accent-color:var(--red);margin:.6rem 0}label{font-weight:680}output{font-variant-numeric:tabular-nums;font-weight:680}
+button,.button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;border:1px solid var(--red);border-radius:.35rem;padding:.38rem .63rem;background:var(--red);color:white;font-weight:680;text-align:center;cursor:pointer;text-decoration:none}button.secondary,.button.secondary{color:var(--red);background:transparent}button[aria-pressed=true]{background:var(--navy);color:white;border-color:var(--navy)}button:disabled{background:#efe9e7;color:#5a5662;border-color:#d3c8c9;cursor:default}.board .secondary{color:#fff8ed;border-color:#d6c7dd}:focus-visible{outline:3px solid #95601b;outline-offset:3px}
+.stats{display:flex;flex-wrap:wrap;gap:.65rem 1rem;margin:.65rem 0}.stats span{font-size:.9rem}.stats strong{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}.note{margin:.65rem 0;padding:.66rem .78rem;border-radius:.4rem;background:#efe7f3;color:#282539}.note:empty{display:none}.note > :last-child{margin-bottom:0}
+canvas{display:block;width:100%;height:190px;margin:.25rem 0}table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}th,td{padding:.32rem .2rem;border-bottom:1px solid var(--rule);text-align:left}th.num,td.num{text-align:right}details{padding:.65rem 0;border-top:1px solid var(--rule);max-width:77ch}details p{margin:.55rem 0}summary{cursor:pointer;font-weight:730}a{color:var(--red);text-underline-offset:.15em}.group{margin:1.75rem 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1rem}.cards .panel{display:flex;flex-direction:column;align-items:start}.cards .button{margin-top:auto}.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:.32rem;list-style:none;padding:0;margin:.7rem 0}.chips li{border:1px solid #8389a1;border-radius:.35rem;text-align:center;padding:.35rem;color:#fff8ed;font-variant-numeric:tabular-nums}.chips strong{display:block}.chips .done{background:#405f57;border-color:#adcfac}.chips .current{background:var(--gold);color:var(--ink);border-color:var(--gold)}[hidden]{display:none!important}
+@media(max-width:720px){.layout{grid-template-columns:1fr;gap:.8rem}canvas{height:160px}}
+</style></head>
+<body><main>
+<nav aria-label="Site navigation"><a href="../index.html">Spooky Labs</a></nav>
+<header><p class="brand">Spooky Qubits · Quantum networks</p><h1>Ghost Switchboard</h1><p>Create an endpoint pair before the links at your relay expire.</p></header>
+<script>'use strict';
+const $ = id => document.getElementById(id);
+const on = (id, event, listener) => $(id).addEventListener(event, listener);
+const click = (id, listener) => on(id, 'click', listener);
+const say = (id, message) => { $(id).textContent = message; };
+const show = (id, visible) => { $(id).hidden = !visible; };
+const fmt = (number, places = 2) => (Math.abs(number) < 0.5 * 10 ** -places ? 0 : number).toFixed(places);
+const randomInt = (count, random = Math.random) => Math.floor(random() * count);
+
+function element(tag, text, attrs = {}) {
+  const result = document.createElement(tag);
+  if (text !== undefined) result.textContent = text;
+  for (const [key, value] of Object.entries(attrs)) result.setAttribute(key, value);
+  return result;
+}
+
+function rows(id, data) {
+  $(id).replaceChildren(...data.map(([label, ...values]) => {
+    const row = element('tr');
+    row.append(element('th', label, {scope:'row'}), ...values.map(value => element('td', value)));
+    return row;
+  }));
+}
+
+function percent(probability) { return `${fmt(100 * probability, 1)}%`; }
+
+function bellMessage(random = Math.random) { return [randomInt(2, random), randomInt(2, random)]; }
+
+function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 + bit]; }
+</script>
+<div class="layout">
+  <section class="board"><h2>Relay A–B–C</h2><ul class="chips"><li><strong id="ab-life"></strong>A–B</li><li><strong id="bc-life"></strong>B–C</li><li><strong id="remote"></strong>A–C</li></ul><div class="stats"><span>Turns left<strong id="remaining"></strong></span><span>Usable endpoint pairs<strong id="delivered"></strong></span></div><p class="hint" id="windows"></p></section>
+  <section class="panel"><h2>Schedule the relay</h2><label>Mission<select id="mission"><option value="open">Open relay · both links open</option><option value="slotted">Slotted relay · alternating windows</option></select></label><p class="hint">Deliver two endpoint pairs in 14 turns. Each action costs one turn. A new link lasts for the next three actions.</p>
+    <div class="row"><button id="ab" type="button">Try A–B · 75%</button><button id="bc" type="button">Try B–C · 60%</button><button id="swap" type="button">Swap at B</button><button id="message" type="button">Send frame bits to C</button><button id="wait" class="secondary" type="button">Wait</button></div>
+    <p id="relay-log" class="note" role="status"></p><button id="restart" class="secondary" type="button">Restart relay</button>
+  </section>
+</div>
+<details><summary>College lab questions</summary><p>Compare two policies over several runs: attempt the slower link first, or take whichever link is open first. Record how many pairs expire and how many endpoint pairs you identify. Explain why either outcome depends on both memory lifetime and link success.</p></details>
+<details><summary>Model and experiment</summary><p>The relay holds two separate qubits. Its joint Bell measurement consumes both neighboring pairs and prepares an endpoint pair with a label set by two classical bits. C uses those bits to identify the Bell state. Creating the connection prepares an entangled resource for a future protocol.</p><p>Here swapping and message delivery are ideal. The success rates, hard expiry, and time slots are classroom rules. <a href="https://arxiv.org/abs/2110.11373">Hermans et al., three-node experiment</a></p></details>
+<script>
+  const limit=14,goal=2,lifetime=3;
+  const rates={ab:.75,bc:.60};
+  let relay;
+  function live(link) { return relay[link]>relay.turn; }
+  function open(link) { return relay.mission==='open'||(relay.turn%2===0?link==='ab':link==='bc'); }
+  function ended() { return relay.turn===limit||relay.count===goal; }
+  function render() {
+    const finished=ended();
+    for(const link of Object.keys(rates)) {
+      $(link).disabled=finished||live(link)||!open(link);
+      say(`${link}-life`,live(link)?`${relay[link]-relay.turn} turns`:'Empty');
+    }
+    $('swap').disabled=finished||!live('ab')||!live('bc')||Boolean(relay.pending);
+    $('message').disabled=finished||!relay.pending; $('wait').disabled=finished;
+    say('remote',relay.pending?`Bits ${relay.pending.join('')}`:'Empty');
+    say('remaining',limit-relay.turn); say('delivered',`${relay.count} / ${goal}`);
+    say('windows',relay.mission==='open'?'Both link attempts are open this turn.':`${open('ab')?'A–B':'B–C'} is open this turn.`);
+  }
+  function start() { relay={mission:$('mission').value,turn:0,ab:0,bc:0,pending:null,count:0};say('relay-log','Build one link on each side of B.');render(); }
+  function act(action,random=Math.random) {
+    if(ended()||$(action).disabled) return;
+    const startLive=Object.keys(rates).filter(live);
+    relay.turn++;
+    let message;
+    if(action in rates) {
+      const success=random()<rates[action];
+      if(success) relay[action]=relay.turn+lifetime;
+      message=`${action==='ab'?'A–B':'B–C'} ${success?'is ready.':'did not connect.'}`;
+    } else if(action==='swap') {
+      relay.ab=0;relay.bc=0;relay.pending=bellMessage(random);
+      message=`B consumed both links. Its Bell measurement produced ${relay.pending.join('')}.`;
+    } else if(action==='message') {
+      message=`C received ${relay.pending.join('')} and identified the endpoint pair. `;
+      relay.pending=null;relay.count++;
+    } else message='One turn passed.';
+    const expired=startLive.filter(link=>relay[link]===relay.turn);
+    if(expired.length) message+=` ${expired.map(link=>link==='ab'?'A–B':'B–C').join(' and ')} expired.`;
+    if(ended()) message+=relay.count===goal?' Mission complete.':' Time is up.';
+    say('relay-log',message);render();
+  }
+  for(const action of ['ab','bc','swap','message','wait']) click(action,()=>act(action));
+  on('mission','change',start);click('restart',start);start();
+</script>
+
+</main></body></html>

@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quantum Drift | Spooky Qubits</title><meta name="description" content="Steer a shared quantum walker, then swap sides and see whose strategy holds up.">
+<style>:root{color-scheme:light;--paper:#f7f3ea;--white:#fffdf7;--ink:#23263a;--muted:#51576a;--rule:#dcd2ca;--red:#a52943;--navy:#232941;--light:#e7e7f5;--gold:#ffe5a1}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.5 system-ui,sans-serif}main{max-width:74rem;margin:auto;padding:clamp(1rem,4vw,3rem);padding-bottom:max(2.5rem,env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:Georgia,serif;line-height:1.08}h1{font-size:clamp(2.8rem,8vw,5.8rem);letter-spacing:-.052em;margin:.15rem 0 .65rem}h2{font-size:clamp(1.35rem,3vw,1.8rem);margin:0 0 .65rem}h3{font-size:1.3rem;margin:.1rem 0 .5rem}p{margin:0 0 .7rem}header>p:last-child{max-width:61ch}nav{margin:0 0 1.2rem}nav a{display:inline-block;padding:.25rem 0}.brand{font-size:.8rem;font-weight:750;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+.layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:1rem;align-items:start;margin:1.15rem 0}.panel,.board{min-width:0;padding:clamp(.85rem,2.4vw,1.3rem);border:1px solid var(--rule);border-radius:.8rem;background:var(--white)}.board{background:var(--navy);color:#fff8ed;border-color:var(--navy)}.board .hint{color:#deecf6}.stack>*+*{margin-top:.8rem}.hint{font-size:.9rem;color:var(--muted)}.value{font-variant-numeric:tabular-nums}.row{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;margin:.7rem 0}.row>*{min-width:0}.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}.split>label{min-width:0}
+input,select,button{font:inherit}input:not([type=range]):not([type=checkbox]),select{max-width:100%;width:100%;min-height:44px;padding:.38rem .55rem;background:var(--white);color:var(--ink);border:1px solid #776f82;border-radius:.32rem}input[type=range]{display:block;width:100%;accent-color:var(--red);margin:.6rem 0}label{font-weight:680}output{font-variant-numeric:tabular-nums;font-weight:680}
+button,.button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;border:1px solid var(--red);border-radius:.35rem;padding:.38rem .63rem;background:var(--red);color:white;font-weight:680;text-align:center;cursor:pointer;text-decoration:none}button.secondary,.button.secondary{color:var(--red);background:transparent}button[aria-pressed=true]{background:var(--navy);color:white;border-color:var(--navy)}button:disabled{background:#efe9e7;color:#5a5662;border-color:#d3c8c9;cursor:default}.board .secondary{color:#fff8ed;border-color:#d6c7dd}:focus-visible{outline:3px solid #95601b;outline-offset:3px}
+.stats{display:flex;flex-wrap:wrap;gap:.65rem 1rem;margin:.65rem 0}.stats span{font-size:.9rem}.stats strong{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}.note{margin:.65rem 0;padding:.66rem .78rem;border-radius:.4rem;background:#efe7f3;color:#282539}.note:empty{display:none}.note > :last-child{margin-bottom:0}
+canvas{display:block;width:100%;height:190px;margin:.25rem 0}table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}th,td{padding:.32rem .2rem;border-bottom:1px solid var(--rule);text-align:left}th.num,td.num{text-align:right}details{padding:.65rem 0;border-top:1px solid var(--rule);max-width:77ch}details p{margin:.55rem 0}summary{cursor:pointer;font-weight:730}a{color:var(--red);text-underline-offset:.15em}.group{margin:1.75rem 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1rem}.cards .panel{display:flex;flex-direction:column;align-items:start}.cards .button{margin-top:auto}.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:.32rem;list-style:none;padding:0;margin:.7rem 0}.chips li{border:1px solid #8389a1;border-radius:.35rem;text-align:center;padding:.35rem;color:#fff8ed;font-variant-numeric:tabular-nums}.chips strong{display:block}.chips .done{background:#405f57;border-color:#adcfac}.chips .current{background:var(--gold);color:var(--ink);border-color:var(--gold)}[hidden]{display:none!important}
+@media(max-width:720px){.layout{grid-template-columns:1fr;gap:.8rem}canvas{height:160px}}
+</style></head>
+<body><main>
+<nav aria-label="Site navigation"><a href="../index.html">Spooky Labs</a></nav>
+<header><p class="brand">Spooky Qubits · Computing</p><h1>Quantum Drift</h1><p>Steer a shared quantum walker, then swap sides and see whose strategy holds up.</p></header>
+<script>'use strict';
+const $ = id => document.getElementById(id);
+const on = (id, event, listener) => $(id).addEventListener(event, listener);
+const click = (id, listener) => on(id, 'click', listener);
+const say = (id, message) => { $(id).textContent = message; };
+const show = (id, visible) => { $(id).hidden = !visible; };
+const fmt = (number, places = 2) => (Math.abs(number) < 0.5 * 10 ** -places ? 0 : number).toFixed(places);
+const randomInt = (count, random = Math.random) => Math.floor(random() * count);
+
+function element(tag, text, attrs = {}) {
+  const result = document.createElement(tag);
+  if (text !== undefined) result.textContent = text;
+  for (const [key, value] of Object.entries(attrs)) result.setAttribute(key, value);
+  return result;
+}
+
+function rows(id, data) {
+  $(id).replaceChildren(...data.map(([label, ...values]) => {
+    const row = element('tr');
+    row.append(element('th', label, {scope:'row'}), ...values.map(value => element('td', value)));
+    return row;
+  }));
+}
+
+function percent(probability) { return `${fmt(100 * probability, 1)}%`; }
+
+function bellMessage(random = Math.random) { return [randomInt(2, random), randomInt(2, random)]; }
+
+function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 + bit]; }
+</script>
+<style>
+  .hands{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem}.hands button{min-height:55px}.teaching{max-width:57rem}.teaching .panel{margin:.8rem 0}.board th,.board td{border-color:#69738d}.chart-key{margin:.35rem 0}.chart-key b{color:#ffe5a1}.duel-actions{display:flex;flex-wrap:wrap;gap:.45rem;margin:.75rem 0}.board summary{color:#fff8ed}
+</style>
+<div class="row" aria-label="Quantum Drift modes"><button id="intro-mode" type="button" class="secondary">Three steps</button><button id="duel-mode" type="button" class="secondary">Drift Duel</button><button id="lab-mode" type="button" class="secondary">Observer lab</button></div>
+<section class="teaching" id="intro">
+  <div class="board"><h2>Same three steps, different odds</h2><canvas id="intro-chart" role="img" aria-label="Ordinary and quantum probability bars after three steps"></canvas><p class="chart-key">Cream: ordinary · <b>Gold: quantum</b></p></div>
+  <div class="panel"><p>Which walk is more likely to land at position +1?</p><div class="row"><button id="ordinary-guess" type="button">Ordinary walk</button><button id="quantum-guess" type="button">Quantum walk</button></div><p class="note" id="intro-answer" role="status"></p><button id="start-duel" class="secondary" type="button">Play the duel</button></div>
+</section>
+<div id="duel" class="layout" hidden>
+  <section class="board" aria-labelledby="drift-chart-title"><h2 id="drift-chart-title">Distribution</h2><canvas id="duel-chart" role="img" aria-label="Walker probability by position"></canvas>
+    <div class="stats"><span>Left<strong id="left"></strong></span><span>Zero<strong id="zero"></strong></span><span>Right<strong id="right"></strong></span></div>
+    <details><summary>Inspect the two direction channels</summary><label>Position<select id="position"></select></label><p id="amplitude"></p></details>
+  </section>
+  <section class="panel"><h2 id="drift-title"></h2><p id="role"></p>
+    <label>Computer opponent<select id="opponent"><option value="learner">Learner · one move ahead</option><option value="planner">Planner · full search</option></select></label>
+    <p id="opponent-hand" class="hint"></p><div class="hands" id="cards"></div>
+    <div class="duel-actions"><button id="cast" type="button" disabled>Cast</button><button id="undo" type="button" class="secondary" disabled>Clear preview</button><button id="restart" type="button" class="secondary">Restart match</button></div>
+    <p class="hint" id="turn-status" role="status"></p><p class="note" id="score"></p><p id="sample-note" role="status"></p>
+    <div class="row"><button id="look" type="button" class="secondary" hidden>LOOK</button><button id="round-two" type="button" hidden>Round 2 · swap sides</button><button id="retry" type="button" class="secondary" hidden>Retry computer turn</button></div>
+  </section>
+</div>
+<section id="lab" class="teaching" hidden>
+  <div class="board"><h2>Sixteen-step comparison</h2><canvas id="lab-chart" role="img" aria-label="Sixteen-step probability comparison"></canvas><p class="chart-key">Cream: ordinary · <b>Gold: selected quantum experiment</b></p><p id="lab-rms"></p></div>
+  <div class="panel"><label><input type="checkbox" id="observer"> Record the direction after every Ghost gate</label><p id="lab-note" role="status"></p><details><summary>Probability table</summary><table><thead><tr><th>Position</th><th>Ordinary</th><th>Selected</th></tr></thead><tbody id="lab-data"></tbody></table></details></div>
+</section>
+<details><summary>College lab questions</summary><p>After two Ghost steps, inspect position zero. Show why the left and right amplitudes contribute a combined probability of 1/2 even though the signs differ. Explain why the square is taken before adding the two terms.</p><p>Compare RMS distance from the origin for the ordinary walk, coherent walk, and the walk with direction read out. Explain why recording direction removes the interference in this fixed-Hadamard experiment.</p></details>
+<details><summary>Rules and model</summary><p>Each card changes the coin state at every position, then left and right directions shift one step along the line. Ghost maps (L,R) to ((L+R)/√2,(L−R)/√2); Flip swaps directions; Sign reverses R; Leave keeps the coin state and still shifts. Every player spends five cards per round.</p><p>The walker starts at zero pointing right. In round two you swap roles with the computer while the initial state stays the same. Right receives 100 × (P(right) + P(zero)/2) points, and Left receives the rest. LOOK samples a fresh preparation for illustration. <a href="https://arxiv.org/abs/quant-ph/0303081">Kempe, quantum random walks</a></p></details>
+<script>
+  const deck = ['Ghost','Flip','Sign','Leave'];
+  const descriptions = ['mix','switch','change R sign','shift only'];
+  const freshHand = [3,1,1,1];
+  const initial = [[0,0,1]];
+  const maxMoves = 10;
+  const storageKey = 'spooky-labs-drift-1';
+  let rounds=[], match, preview=null, mode='intro', worker=null, workerUrl=null, failed=false;
+
+  function step(state,card) {
+    const next=new Map();
+    function add(x,i,value) {
+      if(!value) return;
+      if(!next.has(x)) next.set(x,[0,0]);
+      next.get(x)[i]+=value;
+    }
+    for(const [x,l,r] of state) {
+      const [left,right] = card===0?[l+r,l-r]:card===1?[r,l]:card===2?[l,-r]:[l,r];
+      add(x-1,0,left); add(x+1,1,right);
+    }
+    return [...next].filter(([,v])=>v[0]||v[1]).sort((a,b)=>a[0]-b[0]).map(([x,v])=>[x,...v]);
+  }
+  function distribution(state) {
+    const weighted=state.map(([x,l,r])=>[x,l*l+r*r]);
+    const total=weighted.reduce((sum,[,w])=>sum+w,0);
+    return weighted.map(([x,w])=>[x,w/total]);
+  }
+  function regions(state) {
+    const sums=[0,0,0];
+    for(const [x,p] of distribution(state)) sums[Math.sign(x)+1]+=p;
+    return sums;
+  }
+  function value(state) { const [,zero,right]=regions(state); return 128*right+64*zero; }
+  function search(state,hands,turn,depth,memo=new Map()) {
+    if (turn===10||depth===0) return [value(state),null];
+    const key=JSON.stringify([state,hands,turn,depth]);
+    if(memo.has(key)) return memo.get(key);
+    const side=turn%2;
+    let best=side?[Infinity,null]:[-Infinity,null];
+    hands[side].forEach((remaining,card)=>{
+      if(!remaining) return;
+      const newHands=hands.map(hand=>hand.slice()); newHands[side][card]--;
+      const [candidate]=search(step(state,card),newHands,turn+1,depth-1,memo);
+      if(side?candidate<best[0]:candidate>best[0]) best=[candidate,card];
+    });
+    memo.set(key,best); return best;
+  }
+  function historyState(history) {
+    if(!Array.isArray(history)||history.length>maxMoves) throw Error('Invalid history');
+    let state=initial;
+    const hands=[freshHand.slice(),freshHand.slice()];
+    history.forEach((card,turn)=>{
+      if(!Number.isInteger(card)||!hands[turn%2][card]) throw Error('Invalid card');
+      hands[turn%2][card]--; state=step(state,card);
+    });
+    return { state,hands,turn:history.length };
+  }
+  function save() { try { localStorage.setItem(storageKey,JSON.stringify({ rounds,opponent:$('opponent').value })); } catch {} }
+  function load() {
+    try {
+      const data=JSON.parse(localStorage.getItem(storageKey));
+      if(!data||!Array.isArray(data.rounds)||data.rounds.length<1||data.rounds.length>2|| (data.rounds.length===2 && data.rounds[0].length!==10)) return false;
+      data.rounds.forEach(historyState);
+      rounds=data.rounds;
+      $('opponent').value=data.opponent==='planner'?'planner':'learner'; return true;
+    } catch { return false; }
+  }
+  function stopWorker() {
+    if(worker) worker.terminate();
+    if(workerUrl) URL.revokeObjectURL(workerUrl);
+    worker=null; workerUrl=null;
+  }
+  function computeReply() {
+    const side=rounds.length-1;
+    if(mode!=='duel'||worker||failed||match.turn===maxMoves||match.turn%2===side) return;
+    const depth=$('opponent').value==='planner'?maxMoves-match.turn:1;
+    const code=[step,distribution,regions,value,search].map(fn=>fn.toString()).join('\n')+'\nonmessage=({data})=>postMessage(search(...data)[1]);';
+    try {
+      workerUrl=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));
+      const job=new Worker(workerUrl);
+      worker=job;
+      job.onmessage=({data})=>{
+        if(worker!==job) return;
+        stopWorker(); commit(data);
+      };
+      job.onerror=event=>{ event.preventDefault(); if(worker===job){stopWorker(); failed=true; drawDuel();} };
+      job.postMessage([match.state,match.hands,match.turn,depth]);
+    } catch { stopWorker(); failed=true; drawDuel(); }
+  }
+  function history() { return rounds.at(-1); }
+  function commit(card) {
+    if(!Number.isInteger(card)||!match.hands[match.turn%2][card]||match.turn>=maxMoves) return;
+    history().push(card); preview=null; failed=false;
+    match=historyState(history()); save(); drawDuel(); computeReply();
+  }
+  function reset() {
+    stopWorker(); rounds=[[]]; preview=null; failed=false; match=historyState(history());
+    say('sample-note',''); say('look','LOOK'); save(); drawDuel();
+  }
+  function ordinary(n) {
+    let result=[[0,1]];
+    for(let i=0;i<n;i++) {
+      const next=new Map();
+      for(const [x,p] of result) for(const delta of [-1,1]) next.set(x+delta,(next.get(x+delta)??0)+p/2);
+      result=[...next];
+    }
+    return result;
+  }
+  function coherent(n) { let state=initial; for(let i=0;i<n;i++) state=step(state,0); return distribution(state); }
+  function rms(probabilities) { return Math.sqrt(probabilities.reduce((acc,[x,p])=>acc+x*x*p,0)); }
+  function graph(id,series,range,ticks,cap) {
+    const canvas=$(id); const {width,height}=canvas.getBoundingClientRect();
+    if(!width||!height) return;
+    const scale=Math.min(2,devicePixelRatio||1);
+    canvas.width=Math.round(width*scale); canvas.height=Math.round(height*scale);
+    const ctx=canvas.getContext('2d'); ctx.scale(scale,scale);
+    const x=value=>30+(width-49)*(value+range)/(2*range);
+    const y=value=>height-28-(height-50)*value/cap;
+    ctx.font='11px system-ui'; ctx.textAlign='right';
+    for(const p of [0,cap/2,cap]) {
+      ctx.strokeStyle='#657089'; ctx.beginPath(); ctx.moveTo(28,y(p)); ctx.lineTo(width-12,y(p)); ctx.stroke();
+      ctx.fillStyle='#edf0fb'; ctx.fillText(`${Math.round(p*100)}%`,25,y(p)+4);
+    }
+    ctx.strokeStyle='#a7aabd'; ctx.beginPath(); ctx.moveTo(x(0),15); ctx.lineTo(x(0),y(0)); ctx.stroke();
+    ctx.textAlign='center';
+    for(const tick of ticks) ctx.fillText(tick,x(tick),height-7);
+    const barWidth=Math.min(15,(width-48)/Math.max(2*range+1,1)/series.length);
+    series.forEach((data,i)=>{
+      ctx.fillStyle=['#ffe5a1','#f2eef5'][series.length===1?0:1-i];
+      for(const [position,p] of data) {
+        const px=x(position)+(i-series.length/2)*barWidth;
+        ctx.fillRect(px,y(p),Math.max(barWidth-1,1),y(0)-y(p));
+      }
+    });
+  }
+  function drawDuel() {
+    const {turn,state,hands}=match;
+    const side=rounds.length-1;
+    const complete=turn===maxMoves;
+    const canPlay=!complete&&turn%2===side;
+    const shown=preview===null?state:step(state,preview);
+    say('drift-title',`Round ${rounds.length} · ${turn} of 10 moves`);
+    say('role',`You are ${side?'Left':'Right'}. Right moves first.`);
+    say('opponent-hand',`Computer hand · ${deck.map((name,i)=>`${name} ${hands[1-side][i]}`).join(' · ')}`);
+    $('opponent').disabled=rounds.length>1||turn>0;
+    $('cards').replaceChildren(...deck.map((name,i)=>{
+      const button=element('button',`${name} · ${descriptions[i]} · ${hands[side][i]}`,{type:'button',class:'secondary','aria-pressed':String(preview===i),'data-card':i});
+      button.disabled=!canPlay||!hands[side][i];
+      button.addEventListener('click',()=>{preview=i;drawDuel();$('cast').focus();});
+      return button;
+    }));
+    $('cast').disabled=!canPlay||preview===null; $('undo').disabled=preview===null;
+    const last=history().at(-1);
+    say('turn-status',failed?'The computer turn could not start. Retry to continue.':complete?'Round complete.':preview!==null?`Previewing ${deck[preview]}. Cast to commit it.`:canPlay?(turn?`Computer cast ${deck[last]}. Your turn.`:'Your turn. Choose a card to preview it.'):'Computer is planning.');
+    say('drift-chart-title',complete?'Distribution before LOOK':preview===null?'Current distribution':'Preview after this step');
+    const probabilities=regions(shown);
+    ['left','zero','right'].forEach((region,i)=>say(region,percent(probabilities[i])));
+    const data=distribution(shown);
+    graph('duel-chart',[data],10,[-10,-5,0,5,10],1);
+    $('duel-chart').setAttribute('aria-label',`Position probabilities. ${data.map(([x,p])=>`${x}: ${percent(p)}`).join(', ')}.`);
+    show('look',complete); show('round-two',complete&&side===0); show('retry',failed);
+    if(complete) {
+      const score=side?128-value(state):value(state);
+      const points=units=>fmt(100*units/128,1);
+      let message=`This round · You ${points(score)} · Computer ${points(128-score)} points.`;
+      if(side) {
+        const total=score+value(historyState(rounds[0]).state);
+        const result=total===128?'Match tied.':total>128?'You win the match.':'Computer wins the match.';
+        message+=` ${result} Total · You ${points(total)} · Computer ${points(256-total)} points.`;
+      }
+      say('score',message);
+    } else say('score','');
+    inspect();
+  }
+  function inspect() {
+    const x=Number($('position').value),state=preview===null?match.state:step(match.state,preview);
+    const [,left,right]=state.find(entry=>entry[0]===x)||[x,0,0];
+    const p=distribution(state).find(entry=>entry[0]===x)?.[1]??0;
+    const denominator=state.reduce((sum,[,l,r])=>sum+l*l+r*r,0);
+    say('amplitude',`Position ${x} · L ${left} · R ${right}. Probability (${left}² + ${right}²) / ${denominator} = ${percent(p)}.`);
+  }
+  function drawLab() {
+    const observed=$('observer').checked;
+    const fair=ordinary(16), data=observed?fair:coherent(16);
+    graph('lab-chart',[fair,data],16,[-16,-8,0,8,16],.25);
+    rows('lab-data',fair.map(([x,p])=>[x,percent(p),percent(data.find(entry=>entry[0]===x)?.[1]??0)]));
+    say('lab-rms',`RMS distance in steps · Ordinary ${fmt(rms(fair),1)} · ${observed?'Observed':'Coherent'} ${fmt(rms(data),1)}`);
+    say('lab-note',observed?'Directions are recorded before each shift. The ensemble matches the ordinary walk.':'With coherent directions, paths can interfere. The walker spreads farther in this setup.');
+  }
+  function navigate(view) {
+    stopWorker(); preview=null; failed=false; mode=view;
+    for(const name of ['intro','duel','lab']) { show(name,name===view); $(`${name}-mode`).setAttribute('aria-pressed',String(name===view)); }
+    if(view==='intro') graph('intro-chart',[ordinary(3),coherent(3)],3,[-3,-1,1,3],.75);
+    if(view==='duel') { drawDuel(); computeReply(); }
+    if(view==='lab') drawLab();
+  }
+  for(const view of ['intro','duel','lab']) click(`${view}-mode`,()=>navigate(view));
+  click('start-duel',()=>navigate('duel'));
+  for(const name of ['ordinary','quantum']) click(`${name}-guess`,()=>say('intro-answer',`${name==='quantum'?'Yes.':'Try comparing the bars at +1.'} The quantum walk gives +1 with 62.5% probability and the ordinary walk with 37.5%.`));
+  for(let position=-10;position<=10;position++) $('position').append(element('option',position,{value:position}));
+  $('position').value='0';
+  on('position','change',inspect); on('observer','change',drawLab); on('opponent','change',save);
+  click('cast',()=>{if(preview!==null&&match.turn%2===rounds.length-1) commit(preview);});
+  click('undo',()=>{preview=null;drawDuel();});
+  click('restart',reset);
+  click('retry',()=>{failed=false;drawDuel();computeReply();});
+  click('round-two',()=>{if(rounds.length!==1||match.turn!==maxMoves)return; rounds.push([]); match=historyState(history()); say('sample-note',''); say('look','LOOK'); save(); drawDuel(); computeReply();});
+  click('look',()=>{
+    const roll=Math.random(),data=distribution(match.state); let sum=0;
+    const [position]=data.find(([,p])=>(sum+=p)>roll)||data.at(-1);
+    say('sample-note',`Observed position ${position}${position===0?' · neutral':''}. Strategy points stay the same.`); say('look','Sample another preparation');
+  });
+  const resumed=load();
+  if(!resumed) rounds=[[]];
+  match=historyState(history());
+  new ResizeObserver(()=>{
+    if(mode==='intro') graph('intro-chart',[ordinary(3),coherent(3)],3,[-3,-1,1,3],.75);
+    if(mode==='duel') graph('duel-chart',[distribution(preview===null?match.state:step(match.state,preview))],10,[-10,-5,0,5,10],1);
+    if(mode==='lab') drawLab();
+  }).observe(document.querySelector('main'));
+  navigate(resumed?'duel':'intro');
+</script>
+
+</main></body></html>

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ghost Post | Spooky Qubits</title><meta name="description" content="Send a sealed state through a five-hop route and decode the message at each stop.">
+<style>:root{color-scheme:light;--paper:#f7f3ea;--white:#fffdf7;--ink:#23263a;--muted:#51576a;--rule:#dcd2ca;--red:#a52943;--navy:#232941;--light:#e7e7f5;--gold:#ffe5a1}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.5 system-ui,sans-serif}main{max-width:74rem;margin:auto;padding:clamp(1rem,4vw,3rem);padding-bottom:max(2.5rem,env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:Georgia,serif;line-height:1.08}h1{font-size:clamp(2.8rem,8vw,5.8rem);letter-spacing:-.052em;margin:.15rem 0 .65rem}h2{font-size:clamp(1.35rem,3vw,1.8rem);margin:0 0 .65rem}h3{font-size:1.3rem;margin:.1rem 0 .5rem}p{margin:0 0 .7rem}header>p:last-child{max-width:61ch}nav{margin:0 0 1.2rem}nav a{display:inline-block;padding:.25rem 0}.brand{font-size:.8rem;font-weight:750;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+.layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:1rem;align-items:start;margin:1.15rem 0}.panel,.board{min-width:0;padding:clamp(.85rem,2.4vw,1.3rem);border:1px solid var(--rule);border-radius:.8rem;background:var(--white)}.board{background:var(--navy);color:#fff8ed;border-color:var(--navy)}.board .hint{color:#deecf6}.stack>*+*{margin-top:.8rem}.hint{font-size:.9rem;color:var(--muted)}.value{font-variant-numeric:tabular-nums}.row{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;margin:.7rem 0}.row>*{min-width:0}.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}.split>label{min-width:0}
+input,select,button{font:inherit}input:not([type=range]):not([type=checkbox]),select{max-width:100%;width:100%;min-height:44px;padding:.38rem .55rem;background:var(--white);color:var(--ink);border:1px solid #776f82;border-radius:.32rem}input[type=range]{display:block;width:100%;accent-color:var(--red);margin:.6rem 0}label{font-weight:680}output{font-variant-numeric:tabular-nums;font-weight:680}
+button,.button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;border:1px solid var(--red);border-radius:.35rem;padding:.38rem .63rem;background:var(--red);color:white;font-weight:680;text-align:center;cursor:pointer;text-decoration:none}button.secondary,.button.secondary{color:var(--red);background:transparent}button[aria-pressed=true]{background:var(--navy);color:white;border-color:var(--navy)}button:disabled{background:#efe9e7;color:#5a5662;border-color:#d3c8c9;cursor:default}.board .secondary{color:#fff8ed;border-color:#d6c7dd}:focus-visible{outline:3px solid #95601b;outline-offset:3px}
+.stats{display:flex;flex-wrap:wrap;gap:.65rem 1rem;margin:.65rem 0}.stats span{font-size:.9rem}.stats strong{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}.note{margin:.65rem 0;padding:.66rem .78rem;border-radius:.4rem;background:#efe7f3;color:#282539}.note:empty{display:none}.note > :last-child{margin-bottom:0}
+canvas{display:block;width:100%;height:190px;margin:.25rem 0}table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}th,td{padding:.32rem .2rem;border-bottom:1px solid var(--rule);text-align:left}th.num,td.num{text-align:right}details{padding:.65rem 0;border-top:1px solid var(--rule);max-width:77ch}details p{margin:.55rem 0}summary{cursor:pointer;font-weight:730}a{color:var(--red);text-underline-offset:.15em}.group{margin:1.75rem 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1rem}.cards .panel{display:flex;flex-direction:column;align-items:start}.cards .button{margin-top:auto}.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:.32rem;list-style:none;padding:0;margin:.7rem 0}.chips li{border:1px solid #8389a1;border-radius:.35rem;text-align:center;padding:.35rem;color:#fff8ed;font-variant-numeric:tabular-nums}.chips strong{display:block}.chips .done{background:#405f57;border-color:#adcfac}.chips .current{background:var(--gold);color:var(--ink);border-color:var(--gold)}[hidden]{display:none!important}
+@media(max-width:720px){.layout{grid-template-columns:1fr;gap:.8rem}canvas{height:160px}}
+</style></head>
+<body><main>
+<nav aria-label="Site navigation"><a href="../index.html">Spooky Labs</a></nav>
+<header><p class="brand">Spooky Qubits · Quantum networks</p><h1>Ghost Post</h1><p>Send a sealed state through a five-hop route and decode the message at each stop.</p></header>
+<script>'use strict';
+const $ = id => document.getElementById(id);
+const on = (id, event, listener) => $(id).addEventListener(event, listener);
+const click = (id, listener) => on(id, 'click', listener);
+const say = (id, message) => { $(id).textContent = message; };
+const show = (id, visible) => { $(id).hidden = !visible; };
+const fmt = (number, places = 2) => (Math.abs(number) < 0.5 * 10 ** -places ? 0 : number).toFixed(places);
+const randomInt = (count, random = Math.random) => Math.floor(random() * count);
+
+function element(tag, text, attrs = {}) {
+  const result = document.createElement(tag);
+  if (text !== undefined) result.textContent = text;
+  for (const [key, value] of Object.entries(attrs)) result.setAttribute(key, value);
+  return result;
+}
+
+function rows(id, data) {
+  $(id).replaceChildren(...data.map(([label, ...values]) => {
+    const row = element('tr');
+    row.append(element('th', label, {scope:'row'}), ...values.map(value => element('td', value)));
+    return row;
+  }));
+}
+
+function percent(probability) { return `${fmt(100 * probability, 1)}%`; }
+
+function bellMessage(random = Math.random) { return [randomInt(2, random), randomInt(2, random)]; }
+
+function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 + bit]; }
+</script>
+<div class="layout">
+  <section class="board"><h2>Route from sender to receiver</h2><ol id="route" class="chips" aria-label="Route hops"></ol><div class="stats"><span>Hops completed<strong id="hop"></strong></span><span>Ticks left<strong id="ticks"></strong></span><span>Classical bits sent<strong id="bits"></strong></span></div><p id="route-rule" class="hint"></p></section>
+  <section class="panel"><h2 id="stage"></h2><p id="instruction"></p>
+    <div class="row" id="link-actions"><button id="fast" type="button">Fast link · 1 tick</button><button id="checked" class="secondary" type="button">Checked link · 2 ticks</button></div>
+    <div class="row" id="corrections" hidden><button type="button" data-correction="I">Leave</button><button type="button" data-correction="X">X</button><button type="button" data-correction="Z">Z</button><button type="button" data-correction="XZ">X and Z</button></div>
+    <p id="post-log" class="note" role="status"></p><button id="restart" class="secondary" type="button">New route</button>
+  </section>
+</div>
+<details><summary>College lab questions</summary><p>Predict survival for five independent fast links, then for three fast links and two checked links. Explain which paired resources are consumed and why each hop still needs two classical bits. Describe what a detectable erasure means for a state already consumed at an earlier hop.</p></details>
+<details><summary>Model and experiment</summary><p>Each hop uses one pair and sends the two bits from a Bell measurement. The first bit calls for Z and the second for X. A wrong correction changes how the sealed state is carried forward. The debrief uses the simulator’s hidden state to compute fidelity.</p><p>A fast hop has an independent 5% erasure chance. A checked hop is ideal in this classroom model. All-fast survival is 0.95⁵ ≈ 77.4% before correction errors. This game models an erasure flag for a lost state. Real hardware can have additional errors. <a href="https://arxiv.org/abs/2110.11373">Hermans et al., teleportation across a network</a></p></details>
+<script>
+  const preparations=[['|0⟩',[0,0,1]],['|1⟩',[0,0,-1]],['|+⟩',[1,0,0]],['|−⟩',[-1,0,0]],['|+i⟩',[0,1,0]],['|−i⟩',[0,-1,0]]];
+  const hops=5,totalTicks=7;
+  let route;
+  function applyPauli(vector,operator) {
+    let [x,y,z]=vector;
+    if(operator.includes('X')) { y=-y; z=-z; }
+    if(operator.includes('Z')) { x=-x; y=-y; }
+    return [x,y,z];
+  }
+  function fidelity(a,b) { return (1+a.reduce((sum,value,i)=>sum+value*b[i],0))/2; }
+  function start() {
+    const [label,vector]=preparations[randomInt(preparations.length)];
+    route={label,start:vector,state:vector,ticks:totalTicks,hop:0,bits:0,stage:'link',message:null,fast:0,mistakes:0};
+    say('post-log','');render();
+  }
+  function render() {
+    $('route').replaceChildren(...Array.from({length:hops},(_,i)=>element('li',`Hop ${i+1}`,{class:i<route.hop?'done':i===route.hop&&route.stage!=='end'?'current':''})));
+    say('hop',`${route.hop} / ${hops}`);say('ticks',route.ticks);say('bits',route.bits);
+    say('route-rule','Fast links have a 5% erasure chance. Checked links are ideal here, and cost an extra tick.');
+    show('link-actions',route.stage==='link');show('corrections',route.stage==='correct');
+    $('checked').disabled=route.ticks-2<hops-route.hop-1;
+    if(route.stage==='link') {
+      say('stage',`Prepare hop ${route.hop+1}`);say('instruction','Choose a link that leaves time to finish the route.');
+    } else if(route.stage==='correct') {
+      say('stage',`Decode hop ${route.hop+1}`);say('instruction',`Two-bit message ${route.message.join('')}. First bit 1 means Z. Second bit 1 means X.`);
+    } else {
+      say('stage',route.hop===hops?'Route complete':'State lost');
+      say('instruction',route.hop===hops?`Prepared state ${route.label}. Final fidelity ${percent(fidelity(route.start,route.state))}.`: 'An erasure cut this route short. A new route begins with a fresh state.');
+    }
+  }
+  function begin(checked,random=Math.random) {
+    if(route.stage!=='link'||(checked&&$('checked').disabled)) return;
+    route.ticks-=checked?2:1;
+    if(!checked) route.fast++;
+    if(!checked&&random()<.05) { route.stage='end';say('post-log','A fast hop returned an erasure flag.'); }
+    else {
+      route.message=bellMessage(random);route.bits+=2;
+      route.state=applyPauli(route.state,bellCorrection(route.message));route.stage='correct';
+      say('post-log','The source and one shared pair were used for this Bell measurement.');
+    }
+    render();
+  }
+  function correct(operator) {
+    if(route.stage!=='correct') return;
+    const needed=bellCorrection(route.message);
+    route.state=applyPauli(route.state,operator);route.hop++;
+    if(operator!==needed) route.mistakes++;
+    route.stage=route.hop===hops?'end':'link';
+    const result=operator===needed?'Correction matches the message.':`The message called for ${needed==='I'?'Leave':needed}. Your chosen operation was applied.`;
+    say('post-log',route.stage==='end'?`${result} Correction mistakes: ${route.mistakes}. Fast hops used: ${route.fast}.`:result);render();
+  }
+  click('fast',()=>begin(false));click('checked',()=>begin(true));for(const button of document.querySelectorAll('[data-correction]')) button.addEventListener('click',()=>correct(button.dataset.correction));
+  click('restart',start);start();
+</script>
+
+</main></body></html>

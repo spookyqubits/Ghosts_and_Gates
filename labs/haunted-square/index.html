@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Haunted Square | Spooky Qubits</title><meta name="description" content="Build a classical parity strategy and compare it with an ideal entangled team.">
+<style>:root{color-scheme:light;--paper:#f7f3ea;--white:#fffdf7;--ink:#23263a;--muted:#51576a;--rule:#dcd2ca;--red:#a52943;--navy:#232941;--light:#e7e7f5;--gold:#ffe5a1}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.5 system-ui,sans-serif}main{max-width:74rem;margin:auto;padding:clamp(1rem,4vw,3rem);padding-bottom:max(2.5rem,env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:Georgia,serif;line-height:1.08}h1{font-size:clamp(2.8rem,8vw,5.8rem);letter-spacing:-.052em;margin:.15rem 0 .65rem}h2{font-size:clamp(1.35rem,3vw,1.8rem);margin:0 0 .65rem}h3{font-size:1.3rem;margin:.1rem 0 .5rem}p{margin:0 0 .7rem}header>p:last-child{max-width:61ch}nav{margin:0 0 1.2rem}nav a{display:inline-block;padding:.25rem 0}.brand{font-size:.8rem;font-weight:750;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+.layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:1rem;align-items:start;margin:1.15rem 0}.panel,.board{min-width:0;padding:clamp(.85rem,2.4vw,1.3rem);border:1px solid var(--rule);border-radius:.8rem;background:var(--white)}.board{background:var(--navy);color:#fff8ed;border-color:var(--navy)}.board .hint{color:#deecf6}.stack>*+*{margin-top:.8rem}.hint{font-size:.9rem;color:var(--muted)}.value{font-variant-numeric:tabular-nums}.row{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;margin:.7rem 0}.row>*{min-width:0}.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}.split>label{min-width:0}
+input,select,button{font:inherit}input:not([type=range]):not([type=checkbox]),select{max-width:100%;width:100%;min-height:44px;padding:.38rem .55rem;background:var(--white);color:var(--ink);border:1px solid #776f82;border-radius:.32rem}input[type=range]{display:block;width:100%;accent-color:var(--red);margin:.6rem 0}label{font-weight:680}output{font-variant-numeric:tabular-nums;font-weight:680}
+button,.button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;border:1px solid var(--red);border-radius:.35rem;padding:.38rem .63rem;background:var(--red);color:white;font-weight:680;text-align:center;cursor:pointer;text-decoration:none}button.secondary,.button.secondary{color:var(--red);background:transparent}button[aria-pressed=true]{background:var(--navy);color:white;border-color:var(--navy)}button:disabled{background:#efe9e7;color:#5a5662;border-color:#d3c8c9;cursor:default}.board .secondary{color:#fff8ed;border-color:#d6c7dd}:focus-visible{outline:3px solid #95601b;outline-offset:3px}
+.stats{display:flex;flex-wrap:wrap;gap:.65rem 1rem;margin:.65rem 0}.stats span{font-size:.9rem}.stats strong{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}.note{margin:.65rem 0;padding:.66rem .78rem;border-radius:.4rem;background:#efe7f3;color:#282539}.note:empty{display:none}.note > :last-child{margin-bottom:0}
+canvas{display:block;width:100%;height:190px;margin:.25rem 0}table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}th,td{padding:.32rem .2rem;border-bottom:1px solid var(--rule);text-align:left}th.num,td.num{text-align:right}details{padding:.65rem 0;border-top:1px solid var(--rule);max-width:77ch}details p{margin:.55rem 0}summary{cursor:pointer;font-weight:730}a{color:var(--red);text-underline-offset:.15em}.group{margin:1.75rem 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1rem}.cards .panel{display:flex;flex-direction:column;align-items:start}.cards .button{margin-top:auto}.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:.32rem;list-style:none;padding:0;margin:.7rem 0}.chips li{border:1px solid #8389a1;border-radius:.35rem;text-align:center;padding:.35rem;color:#fff8ed;font-variant-numeric:tabular-nums}.chips strong{display:block}.chips .done{background:#405f57;border-color:#adcfac}.chips .current{background:var(--gold);color:var(--ink);border-color:var(--gold)}[hidden]{display:none!important}
+@media(max-width:720px){.layout{grid-template-columns:1fr;gap:.8rem}canvas{height:160px}}
+</style></head>
+<body><main>
+<nav aria-label="Site navigation"><a href="../index.html">Spooky Labs</a></nav>
+<header><p class="brand">Spooky Qubits · Entanglement</p><h1>Haunted Square</h1><p>Build a classical parity strategy and compare it with an ideal entangled team.</p></header>
+<script>'use strict';
+const $ = id => document.getElementById(id);
+const on = (id, event, listener) => $(id).addEventListener(event, listener);
+const click = (id, listener) => on(id, 'click', listener);
+const say = (id, message) => { $(id).textContent = message; };
+const show = (id, visible) => { $(id).hidden = !visible; };
+const fmt = (number, places = 2) => (Math.abs(number) < 0.5 * 10 ** -places ? 0 : number).toFixed(places);
+const randomInt = (count, random = Math.random) => Math.floor(random() * count);
+
+function element(tag, text, attrs = {}) {
+  const result = document.createElement(tag);
+  if (text !== undefined) result.textContent = text;
+  for (const [key, value] of Object.entries(attrs)) result.setAttribute(key, value);
+  return result;
+}
+
+function rows(id, data) {
+  $(id).replaceChildren(...data.map(([label, ...values]) => {
+    const row = element('tr');
+    row.append(element('th', label, {scope:'row'}), ...values.map(value => element('td', value)));
+    return row;
+  }));
+}
+
+function percent(probability) { return `${fmt(100 * probability, 1)}%`; }
+
+function bellMessage(random = Math.random) { return [randomInt(2, random), randomInt(2, random)]; }
+
+function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 + bit]; }
+</script>
+<style>.square{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.36rem;margin:.5rem 0 .85rem}.square button{width:100%;font-size:1.18rem}.square .derived{background:#eae4ec;color:#343047;border-color:#bcb0bf}.overlap{font-weight:750;color:#ffe5a1}.plans-title{margin-top:1rem}</style>
+<div class="layout">
+  <section class="panel"><h2>Make a classical plan</h2><p class="hint">Change the first two signs in each Alice row or Bob column. The remaining sign follows the product rule.</p><h3>Alice rows all multiply to +1</h3><div id="alice" class="square" role="group" aria-label="Alice signs by row"></div><h3 class="plans-title">Bob columns multiply to +1, +1, −1</h3><div id="bob" class="square" role="group" aria-label="Bob signs by column"></div><div class="row"><button id="check" type="button">Test all 9 intersections</button><button id="reset" class="secondary" type="button">Reset plans</button></div><p class="note" id="classical" role="status"></p></section>
+  <section class="board"><h2>Try the ideal entangled strategy</h2><p class="hint">Choose the row Alice receives and the column Bob receives. The simulator draws their answers from the joint distribution for two shared Bell pairs.</p><div class="split"><label>Alice row<select id="q-row"><option>1</option><option>2</option><option>3</option></select></label><label>Bob column<select id="q-col"><option>1</option><option>2</option><option>3</option></select></label></div><div class="row"><button id="draw" type="button">Draw quantum answers</button></div><p id="quantum" role="status"></p></section>
+</div>
+<details><summary>College lab questions</summary><p>Multiply Alice’s nine entries by grouping them into rows. Then multiply Bob’s nine entries in columns. Why must their two plans differ somewhere? Find a pair of plans that agree at eight intersections and explain why observing nine lucky rounds is a separate question.</p></details>
+<details><summary>Model and experiment</summary><p>For matching answers at the chosen intersection, the joint quantum distribution is uniform over the eight allowed pairs of triples. The corresponding commuting Pauli observables, row by row, are IX XI XX, ZI IZ ZZ, and ZX XZ YY. Measurements on two Bell pairs give agreeing signs at the shared cell. The browser calculates both answers as a teaching simulation. <a href="https://dspace.mit.edu/entities/publication/239a52fe-8cca-4f5d-80d3-43059743ec80">Quantum magic games</a></p></details>
+<script>
+  const columnParity=[1,1,-1];
+  const sign=value=>value===1?'+':'−';
+  let alice,bob;
+  function derived() {
+    for(let i=0;i<3;i++) {
+      alice[i][2]=alice[i][0]*alice[i][1];
+      bob[2][i]=columnParity[i]*bob[0][i]*bob[1][i];
+    }
+  }
+  function render() {
+    derived();
+    for(const [id,table] of [['alice',alice],['bob',bob]]) {
+      const cells=[];
+      for(let r=0;r<3;r++) for(let c=0;c<3;c++) {
+        const fixed=id==='alice'?c===2:r===2;
+        const label=`${id} row ${r+1}, column ${c+1}, ${table[r][c]===1?'plus':'minus'}${fixed?', follows product rule':''}`;
+        const button=element('button',sign(table[r][c]),{type:'button',class:fixed?'derived':'secondary','aria-label':label,'data-cell':`${r},${c}`});
+        button.disabled=fixed;
+        button.addEventListener('click',()=>{
+          table[r][c]*=-1;say('classical','');render();$(id).querySelector(`[data-cell="${r},${c}"]`).focus();
+        });cells.push(button);
+      }
+      $(id).replaceChildren(...cells);
+    }
+  }
+  function reset() { alice=Array.from({length:3},()=>[1,1,1]);bob=Array.from({length:3},()=>[1,1,1]);say('classical','');say('quantum','');render(); }
+  function agreements(a,b) { return a.flatMap((row,r)=>row.map((s,c)=>s===b[r][c]?null:[r,c])).filter(Boolean); }
+  function drawQuantum(r,c,random=Math.random) {
+    const toss=()=>random()<.5?1:-1;
+    const row=[toss(),toss(),1]; row[2]=row[0]*row[1];
+    const col=Array(3);col[r]=row[c];
+    const i=(r+1)%3,j=(r+2)%3;
+    col[i]=toss();col[j]=columnParity[c]*col[i]*col[r];
+    return {row,col};
+  }
+  click('check',()=>{
+    const misses=agreements(alice,bob);
+    say('classical',`Plans agree at ${9-misses.length} of 9 intersections. Disagreements · ${misses.map(([r,c])=>`row ${r+1}, column ${c+1}`).join(' · ')}.`);
+  });
+  click('draw',()=>{
+    const r=Number($('q-row').value)-1,c=Number($('q-col').value)-1;
+    const {row,col}=drawQuantum(r,c);
+    say('quantum',`Alice row ${r+1}: ${row.map(sign).join(' ')}. Bob column ${c+1}: ${col.map(sign).join(' ')}. The shared entry is ${sign(row[c])} for both.`);
+  });
+  click('reset',reset);reset();
+</script>
+
+</main></body></html>
