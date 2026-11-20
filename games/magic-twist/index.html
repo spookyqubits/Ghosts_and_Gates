@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Magic Twist | Spooky Qubits</title>
+  <style>
+    :root { color-scheme: light; --ink: #142b27; --paper: #f5f5ec; --rule: #bdc8bb; --accent: #215844; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 1rem/1.5 system-ui, sans-serif; }
+    main { max-width: 75rem; margin: auto; padding: clamp(1rem, 4vw, 3.2rem); }
+    h1, h2 { font-family: Georgia, serif; line-height: 1.05; }
+    h1 { margin: .2rem 0 .55rem; font-size: clamp(3.3rem, 8vw, 6.4rem); letter-spacing: -.065em; }
+    h2 { font-size: 1.65rem; margin: 0 0 .85rem; }
+    p { margin: 0 0 .75rem; }
+    .brand { font-size: .8rem; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+    header > p:last-child { max-width: 48ch; }
+    .lab { display: grid; grid-template-columns: minmax(0, 1fr) minmax(17rem, 21rem); gap: 1.75rem; margin: 1.6rem 0; }
+    .stage { margin: 0; min-width: 0; }
+    canvas { display: block; width: 100%; height: clamp(20rem, 45vw, 30rem); background: #102724; border-radius: .65rem; }
+    figcaption { margin: .65rem 0 0; font-size: .9rem; }
+    .controls { padding: 1.15rem; background: #fffef7; border: 1px solid var(--rule); border-radius: .65rem; }
+    label { display: block; font-weight: 650; }
+    label.toggle { display: flex; align-items: center; gap: .55rem; margin: .65rem 0; font-weight: 500; }
+    input[type=checkbox] { width: 1.1rem; height: 1.1rem; margin: 0; }
+    output { font-weight: 700; font-variant-numeric: tabular-nums; }
+    input, select, button { font: inherit; accent-color: var(--accent); }
+    input[type=range] { width: 100%; margin: .55rem 0 .3rem; touch-action: pan-y; }
+    select, input[type=number] { color: var(--ink); background: #fffef7; border: 1px solid #687d73; border-radius: .3rem; min-height: 2.55rem; padding: .3rem .55rem; width: 100%; }
+    button { color: white; border: 1px solid var(--accent); background: var(--accent); padding: .5rem .75rem; border-radius: .35rem; cursor: pointer; font-weight: 650; min-height: 2.55rem; }
+    button.secondary { color: var(--accent); background: transparent; }
+    :focus-visible { outline: 3px solid #a05a11; outline-offset: 3px; }
+    .guess-panel { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+    .guess-entry { display: grid; grid-template-columns: minmax(5rem, 1fr) auto; gap: .5rem; align-items: start; margin-top: .2rem; }
+    .pickers { display: grid; grid-template-columns: 1.15fr 1fr; gap: .7rem; }
+    .hint { color: #40584e; font-size: .87rem; }
+    #result:not(:empty) { margin-top: .85rem; padding-top: .75rem; border-top: 1px solid var(--rule); }
+    #result p { margin: 0 0 .35rem; }
+    #result ul { margin: .35rem 0 .75rem; padding-left: 1.2rem; }
+    #again { margin-top: .45rem; }
+    .measurements { margin-top: .55rem; min-height: 3em; }
+    details { border-top: 1px solid var(--rule); padding: .8rem 0; max-width: 75ch; }
+    details p { margin: .55rem 0; }
+    summary { cursor: pointer; font-weight: 720; }
+    a { color: var(--accent); text-underline-offset: .12em; }
+    @media (max-width: 730px) { .lab { grid-template-columns: 1fr; gap: 1rem; } canvas { height: clamp(16rem, 69vw, 25rem); } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="brand">Spooky Qubits · Materials lab</p>
+    <h1>Magic Twist</h1>
+    <p>Rotate one sheet of dots and a larger pattern appears. Can you pick an angle that makes its repeating spots land a target distance apart?</p>
+  </header>
+  <div class="lab">
+    <figure class="stage">
+      <canvas id="pattern" role="img" aria-label="Two triangular dot lattices overlaid. The twist control rotates one lattice."></canvas>
+      <figcaption>Each layer has a 2 mm dot pitch in the model. Use the scale bar to compare the distance between neighboring patches of close alignment.</figcaption>
+    </figure>
+    <section class="controls" aria-label="Twist and challenge controls">
+      <h2>Explore the twist</h2>
+      <label for="angle">Twist angle <output id="angle-text" for="angle">4.00°</output></label>
+      <input id="angle" aria-valuetext="4.00 degrees" type="range" min="0" max="8" step="0.01" value="4">
+      <label class="toggle"><input id="measure" type="checkbox"> Show spacing guide</label>
+      <p id="readout" class="measurements hint">Estimate the distance between neighboring patch centers using the scale bar.</p>
+
+      <section class="guess-panel" aria-labelledby="challenge-title">
+        <h2 id="challenge-title">Match a target</h2>
+        <div class="pickers">
+          <label>Target spacing
+            <select id="target">
+              <option value="20">2.0 cm</option>
+              <option value="40" selected>4.0 cm</option>
+              <option value="60">6.0 cm</option>
+              <option value="104">10.4 cm</option>
+            </select>
+          </label>
+          <label>Players
+            <select id="players"><option value="1">Solo</option><option value="2">Two</option></select>
+          </label>
+        </div>
+        <form id="guess-form">
+          <p id="round-note" class="hint" style="margin-top:.65rem" role="status">Predict an angle, then test your guess.</p>
+          <label id="guess-label" for="guess">Your angle (degrees)</label>
+          <div class="guess-entry">
+            <input id="guess" type="number" inputmode="decimal" min="1" max="8" step="0.01" required>
+            <button type="submit" id="submit">Test guess</button>
+          </div>
+        </form>
+        <p id="tally" class="hint" hidden></p>
+        <div id="result" role="status"></div>
+        <button type="button" class="secondary" id="again" hidden>Play this target again</button>
+      </section>
+    </section>
+  </div>
+  <details>
+    <summary>College lab questions</summary>
+    <p>Keep the spacing guide off. Compare 6°, 4°, 3°, and 2°. Use the 2 cm scale bar to estimate the distance between repeating centers, then reveal the guide and record the model value. Plot your estimates against 1 / angle. What happens when you halve the angle?</p>
+    <p>At 1.10°, express the period in dot pitches. Compare the model spacing at 1.00°, 1.10°, and 1.20°. Explain why a small angle error matters more here than at 6°.</p>
+    <p><strong>Submit</strong> a table of angles and spacings, your plot, and a sentence distinguishing what the dot overlay shows from what the graphene experiment measured.</p>
+  </details>
+  <details>
+    <summary>Model and graphene experiment</summary>
+    <p>The large pattern is called a moiré. For two ideal, identical lattices rotated by an angle θ, its spacing is <strong>L = a / [2 sin(θ/2)]</strong>, where a is the lattice pitch. For small angles, L is approximately a/θ when θ is in radians. At 1.10°, the period is about 52.1 dot pitches, or 10.42 cm in the 2 mm model.</p>
+    <p>In graphene, a is the 0.246 nm lattice constant. The same geometric estimate gives about 12.8 nm at 1.10°. Each printed or rendered dot stands for a lattice site in the simplified pattern. In a 2018 experiment near this angle, researchers measured zero resistance at low temperatures and certain carrier densities. The overlap shows periodic alignment. Explaining the electronic behavior requires a quantum model and experimental measurements.</p>
+    <p><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5380064/">Moiré geometry and microscopy</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3145708/">Electronic band theory</a> · <a href="https://arxiv.org/abs/1803.02342">2018 superconductivity experiment</a></p>
+  </details>
+</main>
+<script>
+  'use strict';
+  const el = id => document.getElementById(id);
+  const radians = degrees => degrees * Math.PI / 180;
+  const pitchMm = 2;
+  const periodInPitches = degrees => 1 / (2 * Math.sin(radians(degrees) / 2));
+  const periodMm = degrees => pitchMm * periodInPitches(degrees);
+  const canvas = el('pattern');
+  const context = canvas.getContext('2d');
+  const angleInput = el('angle');
+  const guideInput = el('measure');
+  const targetInput = el('target');
+  const playersInput = el('players');
+  const guessInput = el('guess');
+  const form = el('guess-form');
+  const dotOrientation = radians(15);
+  let guesses = [];
+  let wins = [0, 0];
+
+  function layer(pitch, extent, rotation, color) {
+    const stepY = pitch * Math.sqrt(3) / 2;
+    const columns = Math.ceil(extent / pitch) + 1;
+    const rows = Math.ceil(extent / stepY) + 1;
+    context.save();
+    context.rotate(rotation);
+    context.fillStyle = color;
+    context.beginPath();
+    const radius = pitch * .21;
+    for (let row = -rows; row <= rows; row++) {
+      const y = row * stepY;
+      const offset = (row & 1) * pitch / 2;
+      for (let column = -columns; column <= columns; column++) {
+        const x = column * pitch + offset;
+        if (x * x + y * y > extent * extent) continue;
+        context.moveTo(x + radius, y);
+        context.arc(x, y, radius, 0, Math.PI * 2);
+      }
+    }
+    context.fill();
+    context.restore();
+  }
+
+  function drawRuler(width, height, period, twist) {
+    // Inverting the difference of the two rotation matrices gives the moiré basis.
+    // Its six nearest vectors are separated by 60°, with the first at this angle.
+    const first = dotOrientation + twist / 2 - Math.PI / 2;
+    const points = Array.from({ length: 6 }, (_, index) => {
+      const direction = first + index * Math.PI / 3;
+      const x = period * Math.cos(direction);
+      const y = period * Math.sin(direction);
+      return { x, y, fit: Math.max(Math.abs(x) / (width / 2), Math.abs(y) / (height / 2)) };
+    });
+    const end = points.filter(point => point.x > 0).sort((a, b) => a.fit - b.fit)[0];
+    if (end.fit > .93) return;
+    context.strokeStyle = '#ffe08d';
+    context.lineWidth = 2;
+    context.setLineDash([4, 5]);
+    context.beginPath();
+    context.moveTo(0, 0);
+    context.lineTo(end.x, end.y);
+    context.stroke();
+    context.setLineDash([]);
+    for (const point of [{ x: 0, y: 0 }, end]) {
+      context.beginPath();
+      context.arc(point.x, point.y, 6, 0, 2 * Math.PI);
+      context.stroke();
+    }
+  }
+
+  function drawScale(width, height, pitch) {
+    const x = -width / 2 + 21;
+    const y = height / 2 - 24;
+    const length = pitch * (20 / pitchMm);
+    context.fillStyle = '#102724';
+    context.fillRect(x - 7, y - 23, Math.max(length, 36) + 14, 37);
+    context.fillStyle = '#fff8d9';
+    context.font = '600 12px system-ui';
+    context.fillText('2 cm', x, y - 8);
+    context.strokeStyle = '#fff8d9';
+    context.lineWidth = 1.5;
+    context.beginPath();
+    context.moveTo(x, y);
+    context.lineTo(x + length, y);
+    for (const end of [x, x + length]) {
+      context.moveTo(end, y - 3);
+      context.lineTo(end, y + 3);
+    }
+    context.stroke();
+  }
+
+  function render() {
+    const degrees = Number(angleInput.value);
+    const twist = radians(degrees);
+    const showGuide = guideInput.checked;
+    el('angle-text').textContent = `${degrees.toFixed(2)}°`;
+    angleInput.setAttribute('aria-valuetext', `${degrees.toFixed(2)} degrees`);
+    let readout = 'Estimate the distance between neighboring patch centers using the scale bar.';
+    if (degrees === 0) {
+      readout = 'The layers line up at 0°. Twist one layer to create a larger pattern.';
+    } else if (showGuide) {
+      readout = `Model spacing ${(periodMm(degrees) / 10).toFixed(2)} cm · ${periodInPitches(degrees).toFixed(1)} dot pitches.`;
+    }
+    el('readout').textContent = readout;
+    canvas.setAttribute('aria-label', `Two dot lattices at a twist of ${degrees.toFixed(2)} degrees. ${readout}`);
+    const { width, height } = canvas.getBoundingClientRect();
+    const scale = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(width * scale);
+    canvas.height = Math.round(height * scale);
+    const pitch = Math.min(width / 132, height / 104);
+    const extent = Math.hypot(width, height) / 2 + pitch;
+    context.setTransform(scale, 0, 0, scale, width * scale / 2, height * scale / 2);
+    layer(pitch, extent, dotOrientation, '#75887f');
+    context.globalCompositeOperation = 'screen';
+    layer(pitch, extent, dotOrientation + twist, '#669c89');
+    context.globalCompositeOperation = 'source-over';
+    if (showGuide && degrees > 0) drawRuler(width, height, periodInPitches(degrees) * pitch, twist);
+    drawScale(width, height, pitch);
+  }
+
+  function updateTally() {
+    const tally = el('tally');
+    tally.hidden = playersInput.value === '1';
+    tally.textContent = `Cards won · Player 1: ${wins[0]} · Player 2: ${wins[1]}`;
+  }
+
+  function startRound(focus = false) {
+    guesses = [];
+    form.hidden = false;
+    el('again').hidden = true;
+    el('result').replaceChildren();
+    guessInput.value = '';
+    const pair = playersInput.value === '2';
+    el('guess-label').textContent = pair ? 'Player 1 angle (degrees)' : 'Your angle (degrees)';
+    el('round-note').textContent = pair ? 'Enter your guesses one at a time. The first guess stays hidden until both are in.' : 'Predict an angle, then test your guess.';
+    el('submit').textContent = pair ? 'Lock guess' : 'Test guess';
+    updateTally();
+    if (focus) guessInput.focus();
+  }
+
+  function showResult() {
+    const target = Number(targetInput.value);
+    const attempts = guesses.map(degrees => ({ degrees, spacing: periodMm(degrees), error: Math.abs(periodMm(degrees) - target) }));
+    const tie = attempts.length === 2 && Math.abs(attempts[0].error - attempts[1].error) < 1e-8;
+    const best = attempts.length === 1 || attempts[0].error <= attempts[1].error ? 0 : 1;
+    const result = el('result');
+    const summary = document.createElement('p');
+    const rows = document.createElement('ul');
+    if (attempts.length === 1) {
+      summary.textContent = attempts[0].error <= 1 ? 'Within 1 mm of the target.' : 'Try another prediction.';
+    } else if (tie) {
+      summary.textContent = 'Tie. Neither player takes the card.';
+    } else {
+      summary.textContent = `Player ${best + 1} takes the card.`;
+      wins[best]++;
+    }
+    attempts.forEach(({ degrees, spacing, error }, index) => {
+      const row = document.createElement('li');
+      const player = attempts.length === 2 ? `Player ${index + 1}: ` : '';
+      row.textContent = `${player}${degrees.toFixed(2)}° gives ${(spacing / 10).toFixed(2)} cm (${error.toFixed(2)} mm from target).`;
+      rows.append(row);
+    });
+    form.hidden = true;
+    result.replaceChildren(summary, rows);
+    el('again').hidden = false;
+    angleInput.value = attempts[best].degrees;
+    guideInput.checked = true;
+    updateTally();
+    render();
+    el('again').focus();
+  }
+
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    guesses.push(guessInput.valueAsNumber);
+    if (guesses.length === Number(playersInput.value)) {
+      showResult();
+      return;
+    }
+    guessInput.value = '';
+    el('guess-label').textContent = 'Player 2 angle (degrees)';
+    el('round-note').textContent = 'First guess locked. Pass the screen to Player 2.';
+    el('submit').textContent = 'Compare guesses';
+    guessInput.focus();
+  });
+  angleInput.addEventListener('input', render);
+  guideInput.addEventListener('change', render);
+  targetInput.addEventListener('change', () => startRound());
+  playersInput.addEventListener('change', () => { wins = [0, 0]; startRound(); });
+  el('again').addEventListener('click', () => startRound(true));
+  new ResizeObserver(render).observe(canvas);
+  startRound();
+  render();
+</script>
+</body>
+</html>
