@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <pattern id="dots" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="1.2" fill="#726287"/></pattern>
+    <pattern id="overlay" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="1.2" fill="#c32f49"/></pattern>
+  </defs>
+  <rect width="64" height="64" rx="13" fill="#f4eaca"/>
+  <rect x="14" y="14" width="36" height="36" rx="3" fill="url(#dots)" stroke="#726287" stroke-width="1.5"/>
+  <rect x="14" y="14" width="36" height="36" rx="3" transform="rotate(16 32 32)" fill="url(#overlay)" stroke="#c32f49" stroke-width="1.5"/>
+  <circle cx="32" cy="32" r="10" stroke="#ae8348" stroke-width="1.5" stroke-dasharray="2 3"/>
+</svg>
