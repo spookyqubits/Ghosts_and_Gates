@@ -8,7 +8,7 @@
   const groups = [...map.querySelectorAll('[data-concept-group]')].map(element => ({
     element,
     id: element.dataset.conceptGroup,
-    title: normalize(element.querySelector('h3').textContent),
+    title: normalize(element.querySelector('h2').textContent),
     rows: [...element.querySelectorAll('.concept-row')].map(row => ({
       element: row,
       text: normalize(row.querySelector('.concept-node').textContent),

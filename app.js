@@ -1,4 +1,11 @@
 (() => {
+  function forwardConceptLink() {
+    const hash = location.hash;
+    if (hash === '#concepts' || hash.startsWith('#concept-')) location.replace('concepts.html' + hash);
+  }
+  forwardConceptLink();
+  window.addEventListener('hashchange', forwardConceptLink);
+
   const controls = document.querySelector('#filter-bar');
   const cards = [...document.querySelectorAll('.game-card')];
   controls.hidden = false;

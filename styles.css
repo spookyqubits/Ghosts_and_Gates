@@ -32,3 +32,15 @@
 
 .ghost-coin-page .screen-note { display: none; }
 .ghost-coin-page .game-area iframe { min-width: 0 !important; }
+
+.concept-ribbon a {
+  display: inline-flex;
+  align-items: center;
+  padding-block: 16px;
+  margin-block: -16px;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: .25em;
+}
+.concept-ribbon a:hover { color: #fff6e8; }
+.concept-ribbon a:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }

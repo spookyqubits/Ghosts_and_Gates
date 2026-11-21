@@ -19,7 +19,7 @@
   margin-bottom: 1.4rem;
 }
 
-.concept-intro h2 {
+.concept-intro h1 {
   font-size: clamp(2.15rem, 5vw, 3.4rem);
   line-height: 1.05;
   letter-spacing: -.045em;
@@ -146,7 +146,7 @@
   background: var(--map-paper);
 }
 
-.concept-group h3 {
+.concept-group > h2 {
   display: flex;
   align-items: center;
   gap: .65rem;
@@ -157,7 +157,7 @@
   font-size: clamp(1.06rem, 2.3vw, 1.3rem);
 }
 
-.concept-group h3 .concept-symbol { background: #fff9; }
+.concept-group > h2 .concept-symbol { background: #fff9; }
 
 .concept-row {
   --route-space: clamp(1.6rem, 3.3vw, 2.7rem);
@@ -189,7 +189,7 @@
   border: 2px solid var(--route);
 }
 
-.concept-node h4 {
+.concept-node h3 {
   margin: .07rem 0 .3rem;
   font-size: 1.1rem;
   line-height: 1.23;
