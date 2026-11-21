@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="205" viewBox="0 0 400 205" fill="none">
+  <defs>
+    <g id="singer">
+      <ellipse cx="39" cy="88" rx="31" ry="5" fill="#d9c3d2"/>
+      <path d="M6 69c4-5 6-12 6-18V37a27 27 0 0 1 54 0v14c0 7 1 13 6 18-7 3-14-1-17-5-5 10-14 10-20 1-5 6-12 6-16 1-4 3-8 5-13 3Z" fill="currentColor" stroke="#725871" stroke-width="2.8" stroke-linejoin="round"/>
+      <circle cx="30" cy="41" r="2.5" fill="#725871"/><circle cx="48" cy="41" r="2.5" fill="#725871"/>
+      <ellipse cx="39" cy="49" rx="2.6" ry="3.45" fill="#725871"/>
+      <circle cx="25" cy="48" r="3.4" fill="#efb5bf"/><circle cx="53" cy="48" r="3.4" fill="#efb5bf"/>
+    </g>
+  </defs>
+  <rect width="400" height="205" fill="#f3e2e9"/>
+  <path d="M20 100c32-15 63-13 94 0s66 15 97 0 65-15 96 0 55 15 73 7m-360 9c32-15 63-13 94 0s66 15 97 0 65-15 96 0 55 15 73 7m-360 9c32-15 63-13 94 0s66 15 97 0 65-15 96 0 55 15 73 7" stroke="#dfc5d4" stroke-width="1.5"/>
+  <use href="#singer" transform="translate(102 81) rotate(-10 39 51) scale(.92)" color="#fff8ed"/>
+  <use href="#singer" transform="translate(230 81) rotate(10 39 51) scale(.92)" color="#fff8ed"/>
+  <use href="#singer" transform="translate(157 59) scale(1.11)" color="#f0e7fa"/>
+  <g stroke="#b82e49" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M130 69V51l15-4v16m91-2V40l15-4v20"/>
+    <ellipse cx="125" cy="69" rx="5" ry="2.8" fill="#e58d9f"/><ellipse cx="140" cy="63" rx="5" ry="2.8" fill="#e58d9f"/>
+    <ellipse cx="231" cy="61" rx="5" ry="2.8" fill="#e58d9f"/><ellipse cx="246" cy="56" rx="5" ry="2.8" fill="#e58d9f"/>
+  </g>
+  <path d="M199 33v16m-8-8h16m93 15v12m-6-6h12m-225-3v12m-6-6h12" stroke="#b389a9" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M57 154h12m196 24h15m38-19h12" stroke="#c5a4bc" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="105" cy="59" r="2.6" fill="#f5be95"/><circle cx="315" cy="83" r="2.6" fill="#f5be95"/>
+</svg>

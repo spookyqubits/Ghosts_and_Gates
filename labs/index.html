@@ -11,11 +11,103 @@ button,.button{display:inline-flex;align-items:center;justify-content:center;min
 .stats{display:flex;flex-wrap:wrap;gap:.65rem 1rem;margin:.65rem 0}.stats span{font-size:.9rem}.stats strong{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}.note{margin:.65rem 0;padding:.66rem .78rem;border-radius:.4rem;background:#efe7f3;color:#282539}.note:empty{display:none}.note > :last-child{margin-bottom:0}
 canvas{display:block;width:100%;height:190px;margin:.25rem 0}table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}th,td{padding:.32rem .2rem;border-bottom:1px solid var(--rule);text-align:left}th.num,td.num{text-align:right}details{padding:.65rem 0;border-top:1px solid var(--rule);max-width:77ch}details p{margin:.55rem 0}summary{cursor:pointer;font-weight:730}a{color:var(--red);text-underline-offset:.15em}.group{margin:1.75rem 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1rem}.cards .panel{display:flex;flex-direction:column;align-items:start}.cards .button{margin-top:auto}.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:.32rem;list-style:none;padding:0;margin:.7rem 0}.chips li{border:1px solid #8389a1;border-radius:.35rem;text-align:center;padding:.35rem;color:#fff8ed;font-variant-numeric:tabular-nums}.chips strong{display:block}.chips .done{background:#405f57;border-color:#adcfac}.chips .current{background:var(--gold);color:var(--ink);border-color:var(--gold)}[hidden]{display:none!important}
 @media(max-width:720px){.layout{grid-template-columns:1fr;gap:.8rem}canvas{height:160px}}
+.cards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cards .lab-card {
+  align-items: stretch;
+  padding: 0;
+}
+
+.lab-card-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 400 / 205;
+  border-radius: calc(.8rem - 1px) calc(.8rem - 1px) 0 0;
+  border-bottom: 1px solid var(--rule);
+  background: var(--light);
+}
+
+.lab-card-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(.85rem, 2.4vw, 1.3rem);
+}
+
+.lab-card-copy p {
+  margin-bottom: .9rem;
+  color: var(--muted);
+}
+
+@media (max-width: 52rem) {
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 35rem) {
+  .cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 </style></head>
 <body><main>
 <nav aria-label="Site navigation"><a href="../index.html">Spooky Qubits</a></nav>
 <header><p class="brand">Spooky Qubits · Browser games</p><h1>Spooky Labs</h1><p>Try a quantum idea in a short game, then use the lab questions to explain what happened.</p></header>
-<section class="group"><h2>Computing</h2><div class="cards"><article class="panel"><h3>Energy Valley</h3><p>Claim dial settings and find the lowest energy before the computer does.</p><a class="button" href="energy-valley/index.html">Play Energy Valley</a></article><article class="panel"><h3>Quantum Drift</h3><p>Steer a shared quantum walker, then swap sides and see whose strategy holds up.</p><a class="button" href="quantum-drift/index.html">Play Quantum Drift</a></article><article class="panel"><h3>Ghost Choir</h3><p>Recover a hidden bit string using classical questions and a simulated quantum oracle.</p><a class="button" href="ghost-choir/index.html">Play Ghost Choir</a></article></div></section>
-<section class="group"><h2>Quantum networks</h2><div class="cards"><article class="panel"><h3>Ghost Copy Shop</h3><p>Audit three copying machines with fresh qubits and look for a counterexample.</p><a class="button" href="ghost-copy-shop/index.html">Play Ghost Copy Shop</a></article><article class="panel"><h3>Ghost Switchboard</h3><p>Create an endpoint pair before the links at your relay expire.</p><a class="button" href="ghost-switchboard/index.html">Play Ghost Switchboard</a></article><article class="panel"><h3>Ghost Post</h3><p>Send a sealed state through a five-hop route and decode the message at each stop.</p><a class="button" href="ghost-post/index.html">Play Ghost Post</a></article></div></section>
-<section class="group"><h2>Entanglement</h2><div class="cards"><article class="panel"><h3>Haunted Square</h3><p>Build a classical parity strategy and compare it with an ideal entangled team.</p><a class="button" href="haunted-square/index.html">Play Haunted Square</a></article></div></section>
+<section class="group"><h2>Computing</h2><div class="cards"><article class="panel lab-card">
+  <img class="lab-card-art" src="assets/energy-valley.svg" width="400" height="205" alt="">
+  <div class="lab-card-copy">
+    <h3>Energy Valley</h3>
+    <p>Claim dial settings and find the lowest energy before the computer does.</p>
+    <a class="button" href="energy-valley/index.html">Play Energy Valley</a>
+  </div>
+</article><article class="panel lab-card">
+  <img class="lab-card-art" src="assets/quantum-drift.svg" width="400" height="205" alt="">
+  <div class="lab-card-copy">
+    <h3>Quantum Drift</h3>
+    <p>Steer a shared quantum walker, then swap sides and see whose strategy holds up.</p>
+    <a class="button" href="quantum-drift/index.html">Play Quantum Drift</a>
+  </div>
+</article><article class="panel lab-card">
+  <img class="lab-card-art" src="assets/ghost-choir.svg" width="400" height="205" alt="">
+  <div class="lab-card-copy">
+    <h3>Ghost Choir</h3>
+    <p>Recover a hidden bit string using classical questions and a simulated quantum oracle.</p>
+    <a class="button" href="ghost-choir/index.html">Play Ghost Choir</a>
+  </div>
+</article></div></section>
+<section class="group"><h2>Quantum networks</h2><div class="cards"><article class="panel lab-card">
+  <img class="lab-card-art" src="assets/ghost-copy-shop.svg" width="400" height="205" alt="">
+  <div class="lab-card-copy">
+    <h3>Ghost Copy Shop</h3>
+    <p>Audit three copying machines with fresh qubits and look for a counterexample.</p>
+    <a class="button" href="ghost-copy-shop/index.html">Play Ghost Copy Shop</a>
+  </div>
+</article><article class="panel lab-card">
+  <img class="lab-card-art" src="assets/ghost-switchboard.svg" width="400" height="205" alt="">
+  <div class="lab-card-copy">
+    <h3>Ghost Switchboard</h3>
+    <p>Create an endpoint pair before the links at your relay expire.</p>
+    <a class="button" href="ghost-switchboard/index.html">Play Ghost Switchboard</a>
+  </div>
+</article><article class="panel lab-card">
+  <img class="lab-card-art" src="assets/ghost-post.svg" width="400" height="205" alt="">
+  <div class="lab-card-copy">
+    <h3>Ghost Post</h3>
+    <p>Send a sealed state through a five-hop route and decode the message at each stop.</p>
+    <a class="button" href="ghost-post/index.html">Play Ghost Post</a>
+  </div>
+</article></div></section>
+<section class="group"><h2>Entanglement</h2><div class="cards"><article class="panel lab-card">
+  <img class="lab-card-art" src="assets/haunted-square.svg" width="400" height="205" alt="">
+  <div class="lab-card-copy">
+    <h3>Haunted Square</h3>
+    <p>Build a classical parity strategy and compare it with an ideal entangled team.</p>
+    <a class="button" href="haunted-square/index.html">Play Haunted Square</a>
+  </div>
+</article></div></section>
 </main></body></html>
