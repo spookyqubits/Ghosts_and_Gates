@@ -11,10 +11,13 @@ button,.button{display:inline-flex;align-items:center;justify-content:center;min
 .stats{display:flex;flex-wrap:wrap;gap:.65rem 1rem;margin:.65rem 0}.stats span{font-size:.9rem}.stats strong{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}.note{margin:.65rem 0;padding:.66rem .78rem;border-radius:.4rem;background:#efe7f3;color:#282539}.note:empty{display:none}.note > :last-child{margin-bottom:0}
 canvas{display:block;width:100%;height:190px;margin:.25rem 0}table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}th,td{padding:.32rem .2rem;border-bottom:1px solid var(--rule);text-align:left}th.num,td.num{text-align:right}details{padding:.65rem 0;border-top:1px solid var(--rule);max-width:77ch}details p{margin:.55rem 0}summary{cursor:pointer;font-weight:730}a{color:var(--red);text-underline-offset:.15em}.group{margin:1.75rem 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1rem}.cards .panel{display:flex;flex-direction:column;align-items:start}.cards .button{margin-top:auto}.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:.32rem;list-style:none;padding:0;margin:.7rem 0}.chips li{border:1px solid #8389a1;border-radius:.35rem;text-align:center;padding:.35rem;color:#fff8ed;font-variant-numeric:tabular-nums}.chips strong{display:block}.chips .done{background:#405f57;border-color:#adcfac}.chips .current{background:var(--gold);color:var(--ink);border-color:var(--gold)}[hidden]{display:none!important}
 @media(max-width:720px){.layout{grid-template-columns:1fr;gap:.8rem}canvas{height:160px}}
+
+summary{min-height:44px;padding:.5rem 0}nav a{min-height:44px;padding:.55rem 0}
+[id$="-history"]{max-width:100%;overflow:auto}[id$="-history"] table{margin-bottom:.55rem}
 </style></head>
 <body><main>
 <nav aria-label="Site navigation"><a href="../index.html">Spooky Labs</a></nav>
-<header><p class="brand">Spooky Qubits · Quantum networks</p><h1>Ghost Switchboard</h1><p>Create an endpoint pair before the links at your relay expire.</p></header>
+<header><p class="brand">Spooky Qubits · College labs · Quantum networks</p><h1>Ghost Switchboard</h1><p>Create an endpoint pair before the links at your relay expire.</p></header>
 <script>'use strict';
 const $ = id => document.getElementById(id);
 const on = (id, event, listener) => $(id).addEventListener(event, listener);
@@ -44,58 +47,109 @@ function percent(probability) { return `${fmt(100 * probability, 1)}%`; }
 function bellMessage(random = Math.random) { return [randomInt(2, random), randomInt(2, random)]; }
 
 function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 + bit]; }
+
+function runLog(id, headings, maxEntries = 30) {
+  const body = element('tbody');
+  const header = element('tr');
+  header.append(...headings.map(label => element('th', label, {scope:'col'})));
+  const table = element('table', undefined, {'aria-label': headings[0] + ' history'});
+  const head = element('thead');
+  head.append(header);
+  table.append(head, body);
+  const download = element('button', 'Download results CSV', {type:'button', class:'secondary'});
+  download.disabled = true;
+  $(id).append(table, download);
+  const entries = [];
+  download.addEventListener('click', () => {
+    const encode = value => '"' + String(value).replaceAll('"', '""') + '"';
+    const csv = [headings, ...entries].map(row => row.map(encode).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+    const link = element('a', undefined, {href:url, download: id + '.csv'});
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  return values => {
+    entries.unshift(values);
+    if (entries.length > maxEntries) entries.pop();
+    const row = element('tr');
+    row.append(...values.map(value => element('td', value)));
+    body.prepend(row);
+    if (body.children.length > maxEntries) body.lastElementChild.remove();
+    download.disabled = false;
+  };
+}
 </script>
 <div class="layout">
-  <section class="board"><h2>Relay A–B–C</h2><ul class="chips"><li><strong id="ab-life"></strong>A–B</li><li><strong id="bc-life"></strong>B–C</li><li><strong id="remote"></strong>A–C</li></ul><div class="stats"><span>Turns left<strong id="remaining"></strong></span><span>Usable endpoint pairs<strong id="delivered"></strong></span></div><p class="hint" id="windows"></p></section>
-  <section class="panel"><h2>Schedule the relay</h2><label>Mission<select id="mission"><option value="open">Open relay · both links open</option><option value="slotted">Slotted relay · alternating windows</option></select></label><p class="hint">Deliver two endpoint pairs in 14 turns. Each action costs one turn. A new link lasts for the next three actions.</p>
-    <div class="row"><button id="ab" type="button">Try A–B · 75%</button><button id="bc" type="button">Try B–C · 60%</button><button id="swap" type="button">Swap at B</button><button id="message" type="button">Send frame bits to C</button><button id="wait" class="secondary" type="button">Wait</button></div>
-    <p id="relay-log" class="note" role="status"></p><button id="restart" class="secondary" type="button">Restart relay</button>
+  <section class="board"><h2>Relay A–B–C</h2><p aria-hidden="true">A ─── B ─── C</p><ul class="chips"><li><strong id="ab-life"></strong>A–B</li><li><strong id="bc-life"></strong>B–C</li><li><strong id="remote"></strong>A–C</li></ul><div class="stats"><span>Turns left<strong id="remaining"></strong></span><span>Usable endpoint pairs<strong id="delivered"></strong></span><span>Expired links<strong id="expired"></strong></span></div><p class="hint" id="windows"></p></section>
+  <section class="panel"><h2>Schedule the relay</h2><label>Mission<select id="mission"><option value="open">Open relay · both links open</option><option value="slotted">Slotted relay · alternating windows</option></select></label><p class="hint">Deliver two endpoint pairs in 14 turns. A swap uses both local pairs. Then tell C the two measurement bits to make the endpoint pair usable. The swap and the send each cost one turn.</p>
+    <div class="row"><button id="ab" type="button">Try A–B · 75%</button><button id="bc" type="button">Try B–C · 60%</button><button id="swap" type="button">Swap at B</button><button id="message" type="button">Tell C the two bits</button><button id="wait" class="secondary" type="button">Wait</button></div>
+    <div id="careful-actions" class="row" role="group" aria-label="Two-turn link attempts"><button id="ab-careful" class="secondary" type="button">Careful A–B · 94% · 2 turns</button><button id="bc-careful" class="secondary" type="button">Careful B–C · 90% · 2 turns</button></div><p id="relay-log" class="note" role="status"></p><button id="restart" class="secondary" type="button">Restart relay</button>
   </section>
 </div>
-<details><summary>College lab questions</summary><p>Compare two policies over several runs: attempt the slower link first, or take whichever link is open first. Record how many pairs expire and how many endpoint pairs you identify. Explain why either outcome depends on both memory lifetime and link success.</p></details>
-<details><summary>Model and experiment</summary><p>The relay holds two separate qubits. Its joint Bell measurement consumes both neighboring pairs and prepares an endpoint pair with a label set by two classical bits. C uses those bits to identify the Bell state. Creating the connection prepares an entangled resource for a future protocol.</p><p>Here swapping and message delivery are ideal. The success rates, hard expiry, and time slots are classroom rules. <a href="https://arxiv.org/abs/2110.11373">Hermans et al., three-node experiment</a></p></details>
+<details><summary>Relay history</summary><p>Completed runs on this page. Download before closing the tab.</p><div id="relay-history"></div></details>
+<details><summary>College lab questions</summary><p>Compare sending the two bits as soon as you swap with saving the send until the last available turn. Use the history to track pairs delivered and links expired. Explain how a pending pair blocks another swap. In Open relay, when is a slower, more reliable attempt worth spending two turns?</p></details>
+<details><summary>Model and experiment</summary><p>The relay holds two separate qubits. Its joint Bell measurement consumes both neighboring pairs and prepares an endpoint pair with a label set by two classical bits. C uses those bits to identify the Bell state. Creating the connection prepares an entangled resource for a future protocol.</p><p>Here swapping, the endpoint memories and message delivery are ideal. A pending endpoint pair does not expire. The success rates, hard expiry, and time slots are classroom rules. <a href="https://arxiv.org/abs/2110.11373">Hermans et al., three-node experiment</a></p></details>
 <script>
-  const limit=14,goal=2,lifetime=3;
-  const rates={ab:.75,bc:.60};
-  let relay;
+  const limit=14,goal=2;
+  const rates={ab:.75,bc:.60,'ab-careful':.94,'bc-careful':.90};
+  const logRelay=runLog('relay-history',['Run','Mission','Goal met','Pairs delivered','Links expired','Careful attempts','Turns used']);
+  let relay,completed=0;
   function live(link) { return relay[link]>relay.turn; }
   function open(link) { return relay.mission==='open'||(relay.turn%2===0?link==='ab':link==='bc'); }
   function ended() { return relay.turn===limit||relay.count===goal; }
   function render() {
     const finished=ended();
-    for(const link of Object.keys(rates)) {
-      $(link).disabled=finished||live(link)||!open(link);
-      say(`${link}-life`,live(link)?`${relay[link]-relay.turn} turns`:'Empty');
+    show('careful-actions',relay.mission==='open');
+    for(const id of Object.keys(rates)) {
+      const link=id.slice(0,2), careful=id.endsWith('careful');
+      $(id).disabled=finished||live(link)||!open(link)||(careful&&(relay.mission!=='open'||relay.turn+2>=limit));
     }
-    $('swap').disabled=finished||!live('ab')||!live('bc')||Boolean(relay.pending);
-    $('message').disabled=finished||!relay.pending; $('wait').disabled=finished;
-    say('remote',relay.pending?`Bits ${relay.pending.join('')}`:'Empty');
-    say('remaining',limit-relay.turn); say('delivered',`${relay.count} / ${goal}`);
-    say('windows',relay.mission==='open'?'Both link attempts are open this turn.':`${open('ab')?'A–B':'B–C'} is open this turn.`);
+    for(const link of ['ab','bc']) {
+      const left=relay[link]-relay.turn;
+      say(`${link}-life`,left>0?`${left} turn${left===1?'':'s'}`:'Empty');
+    }
+    $('swap').disabled=finished||!live('ab')||!live('bc')||Boolean(relay.pending)||relay.turn+1>=limit;
+    $('message').disabled=finished||!relay.pending;$('wait').disabled=finished;
+    say('remote',relay.pending?`Pending · ${relay.pending.join('')}`:'Empty');
+    say('remaining',limit-relay.turn);say('delivered',`${relay.count} / ${goal}`);say('expired',relay.expiries);
+    say('windows',finished?'':relay.mission==='open'?'Both links are open. A new link lasts three turns. A careful attempt spends two turns.':`${open('ab')?'A–B':'B–C'} is open. A new link lasts four turns.`);
   }
-  function start() { relay={mission:$('mission').value,turn:0,ab:0,bc:0,pending:null,count:0};say('relay-log','Build one link on each side of B.');render(); }
-  function act(action,random=Math.random) {
+  function start() {
+    relay={mission:$('mission').value,turn:0,ab:0,bc:0,pending:null,count:0,expiries:0,careful:0};
+    say('relay-log','Build one link on each side of B.');render();
+  }
+  function act(action,random=Math.random,focus=false) {
     if(ended()||$(action).disabled) return;
-    const startLive=Object.keys(rates).filter(live);
-    relay.turn++;
+    const startLive=['ab','bc'].filter(live), careful=action.endsWith('careful');
+    relay.turn+=careful?2:1;
+    if(careful) relay.careful++;
     let message;
     if(action in rates) {
-      const success=random()<rates[action];
-      if(success) relay[action]=relay.turn+lifetime;
-      message=`${action==='ab'?'A–B':'B–C'} ${success?'is ready.':'did not connect.'}`;
+      const link=action.slice(0,2),success=random()<rates[action];
+      if(success) relay[link]=relay.turn+(relay.mission==='open'?3:4);
+      message=`${link==='ab'?'A–B':'B–C'} ${success?'is ready.':'did not connect.'}`;
     } else if(action==='swap') {
       relay.ab=0;relay.bc=0;relay.pending=bellMessage(random);
-      message=`B consumed both links. Its Bell measurement produced ${relay.pending.join('')}.`;
+      message=`B used both links. Its Bell measurement produced ${relay.pending.join('')}. Send those bits to C.`;
     } else if(action==='message') {
-      message=`C received ${relay.pending.join('')} and identified the endpoint pair. `;
+      message=`C received ${relay.pending.join('')} and identified the endpoint pair.`;
       relay.pending=null;relay.count++;
     } else message='One turn passed.';
-    const expired=startLive.filter(link=>relay[link]===relay.turn);
+    const expired=action==='swap'?[]:startLive.filter(link=>!live(link));
+    relay.expiries+=expired.length;
     if(expired.length) message+=` ${expired.map(link=>link==='ab'?'A–B':'B–C').join(' and ')} expired.`;
-    if(ended()) message+=relay.count===goal?' Mission complete.':' Time is up.';
+    if(ended()) {
+      const won=relay.count===goal;
+      message+=won?' Mission complete.':` Time ran out with ${relay.count} of ${goal} usable pairs.`;
+      logRelay([++completed,relay.mission,won?'Yes':'No',relay.count,relay.expiries,relay.careful,relay.turn]);
+    }
     say('relay-log',message);render();
+    if(focus&&$(action).disabled) {
+      const next=['message','swap','ab','bc','wait','restart'].map($).find(button=>!button.disabled);
+      next.focus();
+    }
   }
-  for(const action of ['ab','bc','swap','message','wait']) click(action,()=>act(action));
+  for(const action of [...Object.keys(rates),'swap','message','wait']) click(action,()=>act(action,Math.random,true));
   on('mission','change',start);click('restart',start);start();
 </script>
 

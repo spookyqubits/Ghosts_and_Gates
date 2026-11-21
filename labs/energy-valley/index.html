@@ -11,10 +11,13 @@ button,.button{display:inline-flex;align-items:center;justify-content:center;min
 .stats{display:flex;flex-wrap:wrap;gap:.65rem 1rem;margin:.65rem 0}.stats span{font-size:.9rem}.stats strong{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}.note{margin:.65rem 0;padding:.66rem .78rem;border-radius:.4rem;background:#efe7f3;color:#282539}.note:empty{display:none}.note > :last-child{margin-bottom:0}
 canvas{display:block;width:100%;height:190px;margin:.25rem 0}table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}th,td{padding:.32rem .2rem;border-bottom:1px solid var(--rule);text-align:left}th.num,td.num{text-align:right}details{padding:.65rem 0;border-top:1px solid var(--rule);max-width:77ch}details p{margin:.55rem 0}summary{cursor:pointer;font-weight:730}a{color:var(--red);text-underline-offset:.15em}.group{margin:1.75rem 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1rem}.cards .panel{display:flex;flex-direction:column;align-items:start}.cards .button{margin-top:auto}.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:.32rem;list-style:none;padding:0;margin:.7rem 0}.chips li{border:1px solid #8389a1;border-radius:.35rem;text-align:center;padding:.35rem;color:#fff8ed;font-variant-numeric:tabular-nums}.chips strong{display:block}.chips .done{background:#405f57;border-color:#adcfac}.chips .current{background:var(--gold);color:var(--ink);border-color:var(--gold)}[hidden]{display:none!important}
 @media(max-width:720px){.layout{grid-template-columns:1fr;gap:.8rem}canvas{height:160px}}
+
+summary{min-height:44px;padding:.5rem 0}nav a{min-height:44px;padding:.55rem 0}
+[id$="-history"]{max-width:100%;overflow:auto}[id$="-history"] table{margin-bottom:.55rem}
 </style></head>
 <body><main>
 <nav aria-label="Site navigation"><a href="../index.html">Spooky Labs</a></nav>
-<header><p class="brand">Spooky Qubits · Computing</p><h1>Energy Valley</h1><p>Claim dial settings and find the lowest energy before the computer does.</p></header>
+<header><p class="brand">Spooky Qubits · College labs · Computing</p><h1>Energy Valley</h1><p>Claim dial settings and find the lowest energy before the computer does.</p></header>
 <script>'use strict';
 const $ = id => document.getElementById(id);
 const on = (id, event, listener) => $(id).addEventListener(event, listener);
@@ -44,39 +47,80 @@ function percent(probability) { return `${fmt(100 * probability, 1)}%`; }
 function bellMessage(random = Math.random) { return [randomInt(2, random), randomInt(2, random)]; }
 
 function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 + bit]; }
+
+function runLog(id, headings, maxEntries = 30) {
+  const body = element('tbody');
+  const header = element('tr');
+  header.append(...headings.map(label => element('th', label, {scope:'col'})));
+  const table = element('table', undefined, {'aria-label': headings[0] + ' history'});
+  const head = element('thead');
+  head.append(header);
+  table.append(head, body);
+  const download = element('button', 'Download results CSV', {type:'button', class:'secondary'});
+  download.disabled = true;
+  $(id).append(table, download);
+  const entries = [];
+  download.addEventListener('click', () => {
+    const encode = value => '"' + String(value).replaceAll('"', '""') + '"';
+    const csv = [headings, ...entries].map(row => row.map(encode).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+    const link = element('a', undefined, {href:url, download: id + '.csv'});
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  return values => {
+    entries.unshift(values);
+    if (entries.length > maxEntries) entries.pop();
+    const row = element('tr');
+    row.append(...values.map(value => element('td', value)));
+    body.prepend(row);
+    if (body.children.length > maxEntries) body.lastElementChild.remove();
+    download.disabled = false;
+  };
+}
 </script>
 <style>
-  .map{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:2px;margin:.6rem 0}.map button{aspect-ratio:1;min-height:0;min-width:0;width:100%;padding:0;border:1px solid #7a829d;background:#373d58;color:#fff;font-size:clamp(.55rem,2vw,.85rem);border-radius:.2rem}.map .picked{border:2px solid #ffdf8e}.map .you{background:#a33d5b}.map .rival{background:#3d7667}.map .best{border:3px solid #ffdf8e}.map button:disabled{opacity:1}.board table{color:#fff8ed}.board th,.board td{border-color:#6d7488}.readings{max-height:18rem;overflow:auto}
+  .map-scroll{overflow:auto;margin:.6rem 0 .2rem;padding:.25rem;scrollbar-color:#bba8be #373d58}
+  .map{display:grid;grid-template-columns:1.2rem repeat(12,minmax(2.55rem,1fr));gap:2px;min-width:33rem;align-items:center}
+  .map-label{font-size:.72rem;text-align:center;color:#edf0fb}
+  .map button{min-width:0;min-height:34px;width:100%;padding:0;border:1px solid #7a829d;background:#373d58;color:#fff;font-size:.67rem;border-radius:.2rem;font-variant-numeric:tabular-nums}
+  .map .picked,.map .best{outline:2px solid #ffdf8e;outline-offset:-2px;box-shadow:inset 0 0 0 3px #544018}
+  .map .you{border-bottom:3px solid #f7bed2}.map .rival{border-bottom:3px dashed #b9e6bc}
+  .map .revealed,.map .measured{background:var(--energy-color);color:var(--energy-ink)}
+  .board table{color:#fff8ed}.board th,.board td{border-color:#6d7488}
+  .readings{max-height:18rem;overflow:auto}.history{overflow:auto}.history button{margin-top:.55rem}
+  #shot-dots{display:block;width:100%;height:auto;color:#232941;background:#f6f1fb;border-radius:.4rem}
 </style>
-<div class="row" aria-label="Energy Valley modes"><button id="duel-mode" type="button" class="secondary" aria-pressed="true">Valley Duel</button><button id="lab-mode" type="button" class="secondary" aria-pressed="false">Spin lab</button></div>
+<div class="row" role="group" aria-label="Energy Valley modes"><button id="duel-mode" type="button" class="secondary" aria-pressed="true">Valley Duel</button><button id="lab-mode" type="button" class="secondary" aria-pressed="false">Spin lab</button></div>
 <div id="duel" class="layout">
   <section class="board" aria-labelledby="map-title">
-    <h2 id="map-title">Energy map</h2><p class="hint">Rows A–L and columns 1–12. Y marks your claims and R marks the rival’s.</p>
-    <div class="map" id="map" role="group" aria-label="Energy settings. Use the row and column controls to select a setting by keyboard."></div>
+    <h2 id="map-title">Energy map</h2><p class="hint">Each square sets two circuit angles. Darker readings are lower. Y marks your claims, R marks the rival’s, and ★ marks a global minimum in the reveal.</p>
+    <div class="map-scroll" tabindex="0" role="region" aria-label="Scrollable 12 by 12 energy map"><div class="map" id="map" role="group" aria-label="Energy settings. Use the row and column menus to select with a keyboard."></div></div>
     <p class="hint" id="map-note">The energy estimates appear in the claim log.</p>
   </section>
   <section class="panel" aria-labelledby="pick-title">
     <h2 id="pick-title">Claim a setting</h2>
-    <label for="opponent">Opponent</label><select id="opponent"><option value="random">Random</option><option value="neighbor" selected>Neighbor</option><option value="scout">Scout</option><option value="model">Model</option></select>
-    <p id="policy" class="hint"></p>
+    <label for="opponent">Opponent</label><select id="opponent"><option value="random" selected>Random</option><option value="neighbor">Neighbor</option><option value="scout">Scout</option><option value="model">Model</option></select>
+    <p id="policy" class="hint"></p><label>First claim<select id="first"><option value="you">You</option><option value="rival">Rival</option></select></label>
     <div class="split"><label>Row<select id="row"></select></label><label>Column<select id="column"></select></label></div>
-    <div class="row"><button id="claim" type="button">Claim A1</button><button id="restart" type="button" class="secondary">New valley</button></div>
-    <p id="turn" class="hint"></p><p id="duel-result" class="note" role="status"></p>
-    <div class="readings"><table aria-label="Public readings"><thead><tr><th>Setting</th><th>Claim</th><th>Sampled energy</th></tr></thead><tbody id="readings"></tbody></table></div>
+    <div class="row"><button id="claim" type="button">Claim a setting</button><button id="restart" type="button" class="secondary">New valley</button></div>
+    <p id="turn" class="hint"></p><p id="claim-status" class="hint" role="status"></p><p id="duel-result" class="note" role="status"></p>
+    <div class="readings"><table aria-label="Public readings"><thead><tr><th>Setting</th><th>Claim</th><th>Sampled energy</th><th>Exact energy</th></tr></thead><tbody id="readings"></tbody></table></div>
   </section>
 </div>
 <div id="lab" class="layout" hidden>
-  <section class="board"><h2>Energy and measurement</h2><div class="stats"><span>Exact energy <strong id="exact"></strong></span><span>Sampled energy <strong id="estimate">—</strong></span></div><p id="sample-note" class="hint" role="status">Take a batch of measurements to see how much the estimate moves.</p></section>
+  <section class="board"><h2>Energy and measurement</h2><p class="hint">Tune the circuit for lower exact energy. Keep the angles fixed and vary the number of shots to compare sampling error.</p><div class="stats"><span>Exact energy <strong id="exact"></strong></span><span>Sampled energy <strong id="estimate">—</strong></span></div><p id="sample-note" class="hint" role="status">Take a batch of measurements to see how much the estimate moves.</p><p class="hint" id="shot-outcomes"></p></section>
   <section class="panel stack"><h2>Tune a circuit</h2>
     <label>Experiment<select id="experiment"><option value="one">One spin · one dial</option><option value="noise">One spin · shot noise</option><option value="two">Two coupled spins</option></select></label>
-    <label>Rotation α <output id="alpha-text"></output><input id="alpha" type="range" min="0" max="360" value="90"></label>
+    <label>Y rotation α <output id="alpha-text"></output><input id="alpha" type="range" min="0" max="360" value="90"></label>
     <label id="beta-control" hidden>Entangling preparation β <output id="beta-text"></output><input id="beta" type="range" min="0" max="360" value="90"></label>
     <label>Shots per term<select id="shots"><option value="10">10</option><option value="100" selected>100</option><option value="1000">1,000</option></select></label>
     <button id="measure" type="button">Measure energy</button>
   </section>
 </div>
+<details class="history"><summary>Spin lab history</summary><p>Each dot is one batch at the current angles. The vertical position is absolute error. The table keeps the ten latest batches across settings.</p><svg id="shot-dots" viewBox="0 0 330 100" role="img" aria-label="Sampling error by shot count"></svg><div id="spin-history"></div></details>
 <details><summary>College lab questions</summary><p>In the spin lab, hold α at 90° and compare repeated estimates with 10, 100, and 1,000 shots. Then set α to 180°, try β = 0° and β = 90°, and explain why the exact energy changes from −1 to −3.</p><p>In the duel, record which public readings influenced your claims. Compare your best sampled setting with the setting that would actually have won. Explain why the game scores with exact energy.</p></details>
-<details><summary>Model and experiment</summary><p>One spin uses H = Z. For two spins the Hamiltonian is H = XX + YY + ZZ. Prepare the first spin with R<sub>y</sub>(β), apply a controlled-NOT from the first to the second spin, then rotate the first spin by α. The expectations are ⟨XX⟩ = sin β cos α, ⟨YY⟩ = −sin β, and ⟨ZZ⟩ = cos α. Each Pauli term is sampled separately with outcomes ±1.</p><p>The singlet has exact energy −3. A product preparation has minimum −1 for this model. Summing three sampled Pauli means stays in [−3,+3]. A noisy estimate can reach −3 even when the exact energy at that setting is higher. The duel offsets both angle dials and samples 24 shots per term. The Scout sometimes plays at random. The Model opponent estimates the offsets from the public log.</p><p>The optimization loop illustrates the idea behind a variational quantum eigensolver. <a href="https://arxiv.org/abs/1304.3061">Peruzzo et al., variational eigenvalue solver</a></p></details>
+<details><summary>Model and experiment</summary><p>One spin uses H = Z. For two spins the Hamiltonian is H = XX + YY + ZZ. Prepare the first spin with R<sub>y</sub>(β), apply a controlled-NOT from the first to the second spin, then rotate the first spin about Y by α. The expectations are ⟨XX⟩ = sin β cos α, ⟨YY⟩ = −sin β, and ⟨ZZ⟩ = cos α. Each Pauli term is sampled separately with outcomes ±1.</p><p>The singlet has exact energy −3. A product preparation has minimum −1 for this model. Summing three sampled Pauli means stays in [−3,+3]. A noisy estimate can reach −3 even when the exact energy at that setting is higher. The duel offsets both angle dials and samples 24 shots per term. The Scout sometimes plays at random. The Model opponent estimates the offsets from the public log.</p><p>The optimization loop illustrates the idea behind a variational quantum eigensolver. <a href="https://arxiv.org/abs/1304.3061">Peruzzo et al., variational eigenvalue solver</a></p></details>
 <script>
   const size = 12;
   const duelShots = 24;
@@ -94,12 +138,12 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
   const cells = [];
   let round;
 
+  function sampleBatch(means, shots, random = Math.random) {
+    const outcomes = means.map(mean => Array.from({length:shots}, () => random() < (1+mean)/2 ? 1 : -1));
+    return {outcomes, estimate:sum(outcomes.map(values=>sum(values)/shots))};
+  }
   function sample(means, shots, random = Math.random) {
-    return sum(means.map(mean => {
-      let up = 0;
-      for(let i=0;i<shots;i++) if(random() < (1+mean)/2) up++;
-      return (2*up-shots)/shots;
-    }));
+    return sampleBatch(means,shots,random).estimate;
   }
   function settingTerms(index, offset) {
     return terms(angle(30*(Math.floor(index/size)+offset[0])), angle(30*(index%size+offset[1])));
@@ -125,59 +169,85 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
   }
 
   function start() {
-    round = { picked:0, claims:[], offset:[randomInt(size),randomInt(size)] };
-    say('duel-result',''); redraw();
+    round = {picked:null, claims:[], offset:[randomInt(size),randomInt(size)]};
+    say('duel-result','');
+    say('claim-status',$('first').value==='rival' ? describe(rivalClaim()) : '');
+    $('row').value=''; $('column').value='';
+    redraw();
   }
-  function pick(index) { round.picked=index; redraw(); }
+  function pick(index) {
+    round.picked=index;
+    $('row').value=Math.floor(index/size);
+    $('column').value=index%size;
+    if (round.claims.some(claim=>claim.index===index)) say('claim-status',label(index)+' is already taken.');
+    redraw();
+  }
   function take(index, actor) {
-    round.claims.push({index,actor,reading:sample(settingTerms(index,round.offset),duelShots)});
+    const claim={index,actor,reading:sample(settingTerms(index,round.offset),duelShots)};
+    round.claims.push(claim);
+    return claim;
   }
   function freeSettings() { return settings.filter(i=>!round.claims.some(entry=>entry.index===i)); }
+  function rivalClaim() { return take(choose(freeSettings(),round.claims,$('opponent').value),'Rival'); }
+  function describe(claim) { return `${claim.actor}: ${label(claim.index)} read ${fmt(claim.reading)}.`; }
   function redraw() {
-    const count = round.claims.length/2;
-    const complete = count===5;
+    const count = round.claims.filter(entry=>entry.actor==='You').length;
+    const complete = round.claims.length===10;
     const claims = new Map(round.claims.map(claim=>[claim.index,claim]));
-    let winners = [];
-    if (complete) {
-      winners = ['You','Rival'].map(actor=>round.claims.filter(claim=>claim.actor===actor).reduce((a,b)=>exact(a.index,round.offset)<=exact(b.index,round.offset)?a:b));
-    }
+    const exacts = complete ? settings.map(index=>exact(index,round.offset)) : [];
+    const globalMin = Math.min(...exacts);
+    const best = actor => round.claims.filter(claim=>claim.actor===actor).reduce((a,b)=>exacts[a.index]<=exacts[b.index]?a:b);
+    const winners = complete ? [best('You'),best('Rival')] : [];
+    const tones=['#323d61','#4e5c7f','#6a7796','#939fb6','#c0c8d8','#e0e4ed','#f4f4ef'];
     for (const index of settings) {
-      const claim = claims.get(index);
-      const button = cells[index];
-      button.disabled = complete || Boolean(claim);
-      button.className = [round.picked===index ? 'picked' : '', claim ? (claim.actor==='You'?'you':'rival') : '', winners.includes(claim)?'best':''].join(' ');
-      button.textContent = claim ? claim.actor[0] : '';
-      button.setAttribute('aria-label', claim ? `${label(index)}, ${claim.actor}, measured ${fmt(claim.reading)}` : label(index));
+      const claim=claims.get(index), button=cells[index], energy=complete?exacts[index]:claim?.reading;
+      const minimum=complete&&Math.abs(energy-globalMin)<1e-10;
+      button.disabled=complete||Boolean(claim);
+      button.className=[round.picked===index?'picked':'',claim?(claim.actor==='You'?'you':'rival'):'',winners.includes(claim)||minimum?'best':'',complete?'revealed':claim?'measured':''].join(' ');
+      if(energy!==undefined) {
+        const tone=Math.round(energy+3);
+        button.style.setProperty('--energy-color',tones[tone]);
+        button.style.setProperty('--energy-ink',tone<3?'#fff':'#161b2a');
+      }
+      button.textContent=energy===undefined?'':`${minimum?'★ ':claim?.actor[0]??''}${fmt(energy,1)}`;
+      button.setAttribute('aria-label',[label(index),claim?.actor,claim?'measured '+fmt(claim.reading):'',complete?'exact '+fmt(energy):'',minimum?'global minimum':''].filter(Boolean).join(', '));
     }
-    $('row').value=Math.floor(round.picked/size); $('column').value=round.picked%size;
-    say('claim',`Claim ${label(round.picked)}`);
-    $('claim').disabled=complete||claims.has(round.picked);
-    $('opponent').disabled=round.claims.length>0;
+    say('claim',round.picked===null?'Claim a setting':`Claim ${label(round.picked)}`);
+    $('claim').disabled=complete||round.picked===null||claims.has(round.picked);
+    $('opponent').disabled=count>0; $('first').disabled=count>0;
     say('policy',policies[$('opponent').value]);
-    say('turn',`${count} of 5 claims each · ${duelShots} shots per Pauli term`);
-    rows('readings',round.claims.slice().reverse().map(({index,actor,reading})=>[label(index),actor,fmt(reading)]));
-    say('map-note', complete ? 'Outlined cells show each player’s best exact energy.' : 'The energy estimates appear in the claim log.');
-    if (complete) {
-      const [you,rival]=winners.map(claim=>exact(claim.index,round.offset));
+    say('turn',`${count} of 5 claims made · ${duelShots} shots per Pauli term`);
+    rows('readings',round.claims.slice().reverse().map(({index,actor,reading})=>[label(index),actor,fmt(reading),complete?fmt(exacts[index]):'—']));
+    say('map-note',complete?'The map now shows true energy. The claim log compares it with your earlier measurements.':'During play the map shows sample averages of three Pauli terms, so readings can exceed +1 and differ from the true energy. Scroll the map on narrow screens.');
+    if(complete) {
+      const [you,rival]=winners.map(claim=>exacts[claim.index]);
       const verdict=Math.abs(you-rival)<1e-10?'Tie.':you<rival?'You win.':'Rival wins.';
-      say('duel-result',`${verdict} Your best exact energy was ${fmt(you)} at ${label(winners[0].index)}. Rival’s was ${fmt(rival)} at ${label(winners[1].index)}.`);
+      say('duel-result',`${verdict} Your best exact energy was ${fmt(you)} at ${label(winners[0].index)}. Rival’s was ${fmt(rival)} at ${label(winners[1].index)}. Valley minimum: ${fmt(globalMin)}.`);
     }
   }
-
+  const mapLabel = value => element('span',value,{class:'map-label','aria-hidden':'true'});
+  $('map').append(mapLabel(''),...Array.from({length:size},(_,i)=>mapLabel(i+1)));
+  for (const [id,name] of [['row','Choose row'],['column','Choose column']]) $(id).append(option('',name));
   for (let i=0;i<size;i++) { $('row').append(option(i,alphabet[i])); $('column').append(option(i,i+1)); }
   for (const index of settings) {
-    const cell=element('button','',{type:'button',tabindex:'-1','aria-label':label(index)}); cell.addEventListener('click',()=>pick(index)); cells.push(cell);
+    if(index%size===0) $('map').append(mapLabel(alphabet[Math.floor(index/size)]));
+    const cell=element('button','',{type:'button',tabindex:'-1','aria-label':label(index)});
+    cell.addEventListener('click',()=>{pick(index);$('claim').focus();});
+    cells.push(cell);
+    $('map').append(cell);
   }
-  $('map').append(...cells);
-  for (const id of ['row','column']) on(id,'change',()=>pick(Number($('row').value)*size+Number($('column').value)));
-  on('opponent','change',redraw);
+  for (const id of ['row','column']) on(id,'change',()=>{
+    if($('row').value!==''&&$('column').value!=='') pick(Number($('row').value)*size+Number($('column').value));
+    else {round.picked=null;redraw();}
+  });
+  for (const id of ['opponent','first']) on(id,'change',start);
   click('restart',start);
   click('claim',()=>{
     if ($('claim').disabled) return;
-    take(round.picked,'You');
-    take(choose(freeSettings(),round.claims,$('opponent').value),'Rival');
-    if(round.claims.length<10) round.picked=freeSettings()[0];
-    redraw();
+    const results=[take(round.picked,'You')];
+    if(round.claims.length<10) results.push(rivalClaim());
+    round.picked=null; $('row').value=''; $('column').value='';
+    redraw(); say('claim-status',results.map(describe).join(' '));
     (round.claims.length===10 ? $('restart') : $('row')).focus();
   });
 
@@ -190,14 +260,46 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
   function updateLab() {
     say('alpha-text',`${$('alpha').value}°`); say('beta-text',`${$('beta').value}°`);
     say('exact',fmt(sum(means()))); say('estimate','—');
-    say('sample-note','Measure again at these settings to compare the samples.');
+    say('sample-note','Measure at these settings to compare the samples.');
+    say('shot-outcomes',''); plotShots();
   }
   on('experiment','change',labSettings);
   on('shots','change',updateLab);
   for(const id of ['alpha','beta']) on(id,'input',updateLab);
+  const logSpin=runLog('spin-history',['Batch','Circuit and angles','Shots per term','Estimate','Exact','Error'],10);
+  const batches=[];
+  const settingsKey=()=>`${$('experiment').selectedOptions[0].text} · ${$('alpha').value}°${$('experiment').value==='two'?'/'+$('beta').value+'°':''}`;
+  function plotShots() {
+    const group=batches.filter(batch=>batch.key===settingsKey());
+    const high=Math.max(.1,...group.map(batch=>batch.error));
+    const svg=$('shot-dots');
+    const node=(tag,attrs,label)=>{
+      const child=document.createElementNS('http://www.w3.org/2000/svg',tag);
+      for(const [key,value] of Object.entries(attrs)) child.setAttribute(key,value);
+      if(label) child.textContent=label;
+      return child;
+    };
+    svg.replaceChildren(node('path',{d:'M38 14v60h280',stroke:'currentColor',fill:'none'}),node('text',{x:5,y:19,'font-size':10},fmt(high)),node('text',{x:13,y:77,'font-size':10},'0'));
+    for(const [i,shots] of [10,100,1000].entries()) {
+      const x=80+100*i;
+      svg.append(node('text',{x,y:92,'font-size':11,'text-anchor':'middle'},String(shots)));
+      group.filter(batch=>batch.shots===shots).forEach((batch,j)=>{
+        svg.append(node('circle',{cx:x+(j%7-3)*4,cy:74-60*batch.error/high,r:3,fill:'#a51135'}));
+      });
+    }
+    svg.setAttribute('aria-label',`Absolute error for ${group.length} batches at these settings. Exact values are in the history table.`);
+  }
+  let batchNumber=0;
   click('measure',()=>{
-    const exactEnergy=sum(means()); const reading=sample(means(),Number($('shots').value));
-    say('estimate',fmt(reading)); say('sample-note',`This sample is ${fmt(Math.abs(reading-exactEnergy))} from the exact energy.`);
+    const shots=Number($('shots').value), exactEnergy=sum(means()), key=settingsKey();
+    const {estimate,outcomes}=sampleBatch(means(),shots);
+    const error=Math.abs(estimate-exactEnergy);
+    say('estimate',fmt(estimate)); say('sample-note',`This sample is ${fmt(error)} from the exact energy.`);
+    say('shot-outcomes',shots===10?outcomes.map((list,i)=>`${(outcomes.length===1?['Z']:['XX','YY','ZZ'])[i]}: ${list.map(value=>value>0?'+1':'−1').join(' ')}`).join(' · '):'');
+    batches.unshift({key,shots,error});
+    if(batches.length>10) batches.pop();
+    logSpin([++batchNumber,key,shots,fmt(estimate),fmt(exactEnergy),fmt(error)]);
+    plotShots();
   });
   for(const mode of ['duel','lab']) click(`${mode}-mode`,()=>{
     show('duel',mode==='duel'); show('lab',mode==='lab');

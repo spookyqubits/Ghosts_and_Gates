@@ -11,10 +11,13 @@ button,.button{display:inline-flex;align-items:center;justify-content:center;min
 .stats{display:flex;flex-wrap:wrap;gap:.65rem 1rem;margin:.65rem 0}.stats span{font-size:.9rem}.stats strong{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}.note{margin:.65rem 0;padding:.66rem .78rem;border-radius:.4rem;background:#efe7f3;color:#282539}.note:empty{display:none}.note > :last-child{margin-bottom:0}
 canvas{display:block;width:100%;height:190px;margin:.25rem 0}table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}th,td{padding:.32rem .2rem;border-bottom:1px solid var(--rule);text-align:left}th.num,td.num{text-align:right}details{padding:.65rem 0;border-top:1px solid var(--rule);max-width:77ch}details p{margin:.55rem 0}summary{cursor:pointer;font-weight:730}a{color:var(--red);text-underline-offset:.15em}.group{margin:1.75rem 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1rem}.cards .panel{display:flex;flex-direction:column;align-items:start}.cards .button{margin-top:auto}.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:.32rem;list-style:none;padding:0;margin:.7rem 0}.chips li{border:1px solid #8389a1;border-radius:.35rem;text-align:center;padding:.35rem;color:#fff8ed;font-variant-numeric:tabular-nums}.chips strong{display:block}.chips .done{background:#405f57;border-color:#adcfac}.chips .current{background:var(--gold);color:var(--ink);border-color:var(--gold)}[hidden]{display:none!important}
 @media(max-width:720px){.layout{grid-template-columns:1fr;gap:.8rem}canvas{height:160px}}
+
+summary{min-height:44px;padding:.5rem 0}nav a{min-height:44px;padding:.55rem 0}
+[id$="-history"]{max-width:100%;overflow:auto}[id$="-history"] table{margin-bottom:.55rem}
 </style></head>
 <body><main>
 <nav aria-label="Site navigation"><a href="../index.html">Spooky Labs</a></nav>
-<header><p class="brand">Spooky Qubits · Computing</p><h1>Quantum Drift</h1><p>Steer a shared quantum walker, then swap sides and see whose strategy holds up.</p></header>
+<header><p class="brand">Spooky Qubits · College labs · Computing</p><h1>Quantum Drift</h1><p>Steer a shared quantum walker, then swap sides and see whose strategy holds up.</p></header>
 <script>'use strict';
 const $ = id => document.getElementById(id);
 const on = (id, event, listener) => $(id).addEventListener(event, listener);
@@ -44,30 +47,61 @@ function percent(probability) { return `${fmt(100 * probability, 1)}%`; }
 function bellMessage(random = Math.random) { return [randomInt(2, random), randomInt(2, random)]; }
 
 function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 + bit]; }
+
+function runLog(id, headings, maxEntries = 30) {
+  const body = element('tbody');
+  const header = element('tr');
+  header.append(...headings.map(label => element('th', label, {scope:'col'})));
+  const table = element('table', undefined, {'aria-label': headings[0] + ' history'});
+  const head = element('thead');
+  head.append(header);
+  table.append(head, body);
+  const download = element('button', 'Download results CSV', {type:'button', class:'secondary'});
+  download.disabled = true;
+  $(id).append(table, download);
+  const entries = [];
+  download.addEventListener('click', () => {
+    const encode = value => '"' + String(value).replaceAll('"', '""') + '"';
+    const csv = [headings, ...entries].map(row => row.map(encode).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+    const link = element('a', undefined, {href:url, download: id + '.csv'});
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  return values => {
+    entries.unshift(values);
+    if (entries.length > maxEntries) entries.pop();
+    const row = element('tr');
+    row.append(...values.map(value => element('td', value)));
+    body.prepend(row);
+    if (body.children.length > maxEntries) body.lastElementChild.remove();
+    download.disabled = false;
+  };
+}
 </script>
 <style>
   .hands{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem}.hands button{min-height:55px}.teaching{max-width:57rem}.teaching .panel{margin:.8rem 0}.board th,.board td{border-color:#69738d}.chart-key{margin:.35rem 0}.chart-key b{color:#ffe5a1}.duel-actions{display:flex;flex-wrap:wrap;gap:.45rem;margin:.75rem 0}.board summary{color:#fff8ed}
 </style>
-<div class="row" aria-label="Quantum Drift modes"><button id="intro-mode" type="button" class="secondary">Three steps</button><button id="duel-mode" type="button" class="secondary">Drift Duel</button><button id="lab-mode" type="button" class="secondary">Observer lab</button></div>
+<div class="row" role="group" aria-label="Quantum Drift modes"><button id="intro-mode" type="button" class="secondary">Three steps</button><button id="duel-mode" type="button" class="secondary">Drift Duel</button><button id="lab-mode" type="button" class="secondary">Observer lab</button></div>
 <section class="teaching" id="intro">
-  <div class="board"><h2>Same three steps, different odds</h2><canvas id="intro-chart" role="img" aria-label="Ordinary and quantum probability bars after three steps"></canvas><p class="chart-key">Cream: ordinary · <b>Gold: quantum</b></p></div>
-  <div class="panel"><p>Which walk is more likely to land at position +1?</p><div class="row"><button id="ordinary-guess" type="button">Ordinary walk</button><button id="quantum-guess" type="button">Quantum walk</button></div><p class="note" id="intro-answer" role="status"></p><button id="start-duel" class="secondary" type="button">Play the duel</button></div>
+  <div class="board"><h2>Same three steps, different odds</h2><canvas id="intro-chart" role="img" aria-label="Ordinary and quantum probability bars after three steps"></canvas><p class="chart-key">Blue: ordinary · <b>Gold: quantum</b></p></div>
+  <div class="panel"><p>Which walk is more likely to land at position +1?</p><div class="row"><button id="ordinary-guess" type="button">Ordinary walk</button><button id="quantum-guess" type="button">Quantum walk</button></div><p class="note" id="intro-answer" role="status"></p><button id="start-duel" class="secondary" type="button">Play the duel</button><button id="resume" type="button" class="secondary" hidden>Resume saved match</button></div>
 </section>
 <div id="duel" class="layout" hidden>
   <section class="board" aria-labelledby="drift-chart-title"><h2 id="drift-chart-title">Distribution</h2><canvas id="duel-chart" role="img" aria-label="Walker probability by position"></canvas>
     <div class="stats"><span>Left<strong id="left"></strong></span><span>Zero<strong id="zero"></strong></span><span>Right<strong id="right"></strong></span></div>
     <details><summary>Inspect the two direction channels</summary><label>Position<select id="position"></select></label><p id="amplitude"></p></details>
   </section>
-  <section class="panel"><h2 id="drift-title"></h2><p id="role"></p>
-    <label>Computer opponent<select id="opponent"><option value="learner">Learner · one move ahead</option><option value="planner">Planner · full search</option></select></label>
-    <p id="opponent-hand" class="hint"></p><div class="hands" id="cards"></div>
+  <section class="panel"><h2 id="drift-title"></h2><p id="role"></p><p id="running-score" class="hint"></p><p id="opponent-note" class="hint"></p>
+    <label>Computer opponent<select id="opponent"><option value="starter">Starter · sometimes varies its move</option><option value="learner">Learner · one move ahead</option><option value="planner">Planner · perfect play</option></select></label>
+    <p id="opponent-hand" class="hint"></p><p id="sign-note" class="note"></p><ul id="signed-channels" class="chips" aria-label="Signed amplitudes after preview" hidden></ul><div class="hands" id="cards"></div>
     <div class="duel-actions"><button id="cast" type="button" disabled>Cast</button><button id="undo" type="button" class="secondary" disabled>Clear preview</button><button id="restart" type="button" class="secondary">Restart match</button></div>
-    <p class="hint" id="turn-status" role="status"></p><p class="note" id="score"></p><p id="sample-note" role="status"></p>
-    <div class="row"><button id="look" type="button" class="secondary" hidden>LOOK</button><button id="round-two" type="button" hidden>Round 2 · swap sides</button><button id="retry" type="button" class="secondary" hidden>Retry computer turn</button></div>
+    <p class="hint" id="turn-status" role="status"></p><p class="note" id="score" role="status"></p><p id="sample-note" role="status"></p>
+    <div class="row"><button id="look" type="button" class="secondary" hidden>LOOK</button><button id="round-two" type="button" hidden>Round 2 · swap sides</button><button id="retry" type="button" class="secondary" hidden>Retry computer turn</button><button id="again" type="button" hidden>Play again</button><button id="try-planner" type="button" class="secondary" hidden>Try Planner</button><button id="compare-observer" type="button" class="secondary" hidden>Compare with Observer</button></div>
   </section>
 </div>
 <section id="lab" class="teaching" hidden>
-  <div class="board"><h2>Sixteen-step comparison</h2><canvas id="lab-chart" role="img" aria-label="Sixteen-step probability comparison"></canvas><p class="chart-key">Cream: ordinary · <b>Gold: selected quantum experiment</b></p><p id="lab-rms"></p></div>
+  <div class="board"><h2>Sixteen-step comparison</h2><canvas id="lab-chart" role="img" aria-label="Sixteen-step probability comparison"></canvas><p class="chart-key">Blue: ordinary · <b>Gold: selected quantum experiment</b></p><p id="lab-rms"></p></div>
   <div class="panel"><label><input type="checkbox" id="observer"> Record the direction after every Ghost gate</label><p id="lab-note" role="status"></p><details><summary>Probability table</summary><table><thead><tr><th>Position</th><th>Ordinary</th><th>Selected</th></tr></thead><tbody id="lab-data"></tbody></table></details></div>
 </section>
 <details><summary>College lab questions</summary><p>After two Ghost steps, inspect position zero. Show why the left and right amplitudes contribute a combined probability of 1/2 even though the signs differ. Explain why the square is taken before adding the two terms.</p><p>Compare RMS distance from the origin for the ordinary walk, coherent walk, and the walk with direction read out. Explain why recording direction removes the interference in this fixed-Hadamard experiment.</p></details>
@@ -79,7 +113,7 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
   const initial = [[0,0,1]];
   const maxMoves = 10;
   const storageKey = 'spooky-labs-drift-1';
-  let rounds=[], match, preview=null, mode='intro', worker=null, workerUrl=null, failed=false;
+  let rounds=[], match, preview=null, mode='intro', worker=null, workerUrl=null, fallback=null, failed=false;
 
   function step(state,card) {
     const next=new Map();
@@ -129,25 +163,51 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
     });
     return { state,hands,turn:history.length };
   }
-  function save() { try { localStorage.setItem(storageKey,JSON.stringify({ rounds,opponent:$('opponent').value })); } catch {} }
+  function clearSave() { try { localStorage.removeItem(storageKey); } catch {} }
+  function save() {
+    if(rounds.length===2&&match.turn===maxMoves) {clearSave();return;}
+    try { localStorage.setItem(storageKey,JSON.stringify({ rounds,opponent:$('opponent').value })); } catch {}
+  }
   function load() {
     try {
       const data=JSON.parse(localStorage.getItem(storageKey));
       if(!data||!Array.isArray(data.rounds)||data.rounds.length<1||data.rounds.length>2|| (data.rounds.length===2 && data.rounds[0].length!==10)) return false;
       data.rounds.forEach(historyState);
+      if(data.rounds.length===2&&data.rounds[1].length===maxMoves) {clearSave();return false;}
       rounds=data.rounds;
-      $('opponent').value=data.opponent==='planner'?'planner':'learner'; return true;
+      $('opponent').value=['starter','learner','planner'].includes(data.opponent)?data.opponent:'starter'; return true;
     } catch { return false; }
   }
   function stopWorker() {
+    if(fallback!==null) clearTimeout(fallback);
+    fallback=null;
     if(worker) worker.terminate();
     if(workerUrl) URL.revokeObjectURL(workerUrl);
     worker=null; workerUrl=null;
   }
   function computeReply() {
     const side=rounds.length-1;
-    if(mode!=='duel'||worker||failed||match.turn===maxMoves||match.turn%2===side) return;
-    const depth=$('opponent').value==='planner'?maxMoves-match.turn:1;
+    if(mode!=='duel'||worker||fallback!==null||failed||match.turn===maxMoves||match.turn%2===side) return;
+    const opponent=$('opponent').value;
+    const depth=opponent==='planner'?maxMoves-match.turn:1;
+    const args=[match.state,match.hands,match.turn,depth];
+    const reply=card=>{
+      commit(card);
+      if(mode==='duel'&&match.turn%2===side) focusNext();
+    };
+    const tryLocally=()=>{
+      stopWorker();
+      fallback=setTimeout(()=>{
+        fallback=null;
+        try {reply(search(...args)[1]);}
+        catch {failed=true;drawDuel();$('retry').focus();}
+      },0);
+    };
+    if(opponent==='starter'&&Math.random()<.45) {
+      const legal=match.hands[match.turn%2].flatMap((count,i)=>count?[i]:[]);
+      fallback=setTimeout(()=>{fallback=null;reply(legal[randomInt(legal.length)]);},0);
+      return;
+    }
     const code=[step,distribution,regions,value,search].map(fn=>fn.toString()).join('\n')+'\nonmessage=({data})=>postMessage(search(...data)[1]);';
     try {
       workerUrl=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));
@@ -155,11 +215,11 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
       worker=job;
       job.onmessage=({data})=>{
         if(worker!==job) return;
-        stopWorker(); commit(data);
+        stopWorker(); reply(data);
       };
-      job.onerror=event=>{ event.preventDefault(); if(worker===job){stopWorker(); failed=true; drawDuel();} };
-      job.postMessage([match.state,match.hands,match.turn,depth]);
-    } catch { stopWorker(); failed=true; drawDuel(); }
+      job.onerror=event=>{ event.preventDefault(); if(worker===job)tryLocally(); };
+      job.postMessage(args);
+    } catch {tryLocally();}
   }
   function history() { return rounds.at(-1); }
   function commit(card) {
@@ -169,7 +229,7 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
   }
   function reset() {
     stopWorker(); rounds=[[]]; preview=null; failed=false; match=historyState(history());
-    say('sample-note',''); say('look','LOOK'); save(); drawDuel();
+    say('sample-note',''); say('look','LOOK'); clearSave(); drawDuel();
   }
   function ordinary(n) {
     let result=[[0,1]];
@@ -200,7 +260,7 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
     for(const tick of ticks) ctx.fillText(tick,x(tick),height-7);
     const barWidth=Math.min(15,(width-48)/Math.max(2*range+1,1)/series.length);
     series.forEach((data,i)=>{
-      ctx.fillStyle=['#ffe5a1','#f2eef5'][series.length===1?0:1-i];
+      ctx.fillStyle=['#ffe5a1','#83c8e2'][series.length===1?0:1-i];
       for(const [position,p] of data) {
         const px=x(position)+(i-series.length/2)*barWidth;
         ctx.fillRect(px,y(p),Math.max(barWidth-1,1),y(0)-y(p));
@@ -214,7 +274,17 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
     const canPlay=!complete&&turn%2===side;
     const shown=preview===null?state:step(state,preview);
     say('drift-title',`Round ${rounds.length} · ${turn} of 10 moves`);
-    say('role',`You are ${side?'Left':'Right'}. Right moves first.`);
+    say('role',`You are ${side?'Left':'Right'}. After ten moves, collect the probability on your side plus half at zero. Right moves first. Aim to beat 50 points this round.`);
+    say('opponent-note',$('opponent').value==='planner'?'Planner plays optimally. Against perfect play, a tie is your best possible two-round result.':'');
+    const current=100*value(state)/128;
+    say('running-score',`Points if scored now · You ${fmt(side?100-current:current,1)} · Computer ${fmt(side?current:100-current,1)}.`);
+    const signPreview=preview===2;
+    say('sign-note',signPreview?'Sign reverses the right channel. Compare the signed previews for Sign and Leave. Their immediate bars match, but later interference can change.':preview===3?'Leave preserves the channel signs. Compare them with Sign.':'');
+    show('signed-channels',signPreview||preview===3);
+    if(signPreview||preview===3) {
+      const signed=n=>n>=0?'+'+n:String(n);
+      $('signed-channels').replaceChildren(...shown.map(([x,l,r])=>element('li',`${x}: L ${signed(l)}, R ${signed(r)}`)));
+    }
     say('opponent-hand',`Computer hand · ${deck.map((name,i)=>`${name} ${hands[1-side][i]}`).join(' · ')}`);
     $('opponent').disabled=rounds.length>1||turn>0;
     $('cards').replaceChildren(...deck.map((name,i)=>{
@@ -233,6 +303,9 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
     graph('duel-chart',[data],10,[-10,-5,0,5,10],1);
     $('duel-chart').setAttribute('aria-label',`Position probabilities. ${data.map(([x,p])=>`${x}: ${percent(p)}`).join(', ')}.`);
     show('look',complete); show('round-two',complete&&side===0); show('retry',failed);
+    show('again',complete&&side===1);show('try-planner',complete&&side===1&&$('opponent').value!=='planner');
+    show('compare-observer',complete&&side===1);
+
     if(complete) {
       const score=side?128-value(state):value(state);
       const points=units=>fmt(100*units/128,1);
@@ -246,17 +319,21 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
     } else say('score','');
     inspect();
   }
+  function focusNext() {
+    if(match.turn===maxMoves) (rounds.length===1?$('round-two'):$('again')).focus();
+    else $('cards').querySelector('button:not(:disabled)')?.focus();
+  }
   function inspect() {
     const x=Number($('position').value),state=preview===null?match.state:step(match.state,preview);
     const [,left,right]=state.find(entry=>entry[0]===x)||[x,0,0];
     const p=distribution(state).find(entry=>entry[0]===x)?.[1]??0;
     const denominator=state.reduce((sum,[,l,r])=>sum+l*l+r*r,0);
-    say('amplitude',`Position ${x} · L ${left} · R ${right}. Probability (${left}² + ${right}²) / ${denominator} = ${percent(p)}.`);
+    say('amplitude',`Position ${x} · L ${left} · R ${right}. Probability ((${left})² + (${right})²) / ${denominator} = ${percent(p)}.`);
   }
   function drawLab() {
     const observed=$('observer').checked;
     const fair=ordinary(16), data=observed?fair:coherent(16);
-    graph('lab-chart',[fair,data],16,[-16,-8,0,8,16],.25);
+    graph('lab-chart',[fair,data],16,[-16,-8,0,8,16],.4);
     rows('lab-data',fair.map(([x,p])=>[x,percent(p),percent(data.find(entry=>entry[0]===x)?.[1]??0)]));
     say('lab-rms',`RMS distance in steps · Ordinary ${fmt(rms(fair),1)} · ${observed?'Observed':'Coherent'} ${fmt(rms(data),1)}`);
     say('lab-note',observed?'Directions are recorded before each shift. The ensemble matches the ordinary walk.':'With coherent directions, paths can interfere. The walker spreads farther in this setup.');
@@ -265,18 +342,22 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
     stopWorker(); preview=null; failed=false; mode=view;
     for(const name of ['intro','duel','lab']) { show(name,name===view); $(`${name}-mode`).setAttribute('aria-pressed',String(name===view)); }
     if(view==='intro') graph('intro-chart',[ordinary(3),coherent(3)],3,[-3,-1,1,3],.75);
-    if(view==='duel') { drawDuel(); computeReply(); }
+    if(view==='duel') {show('resume',false);drawDuel();computeReply();}
     if(view==='lab') drawLab();
   }
   for(const view of ['intro','duel','lab']) click(`${view}-mode`,()=>navigate(view));
-  click('start-duel',()=>navigate('duel'));
-  for(const name of ['ordinary','quantum']) click(`${name}-guess`,()=>say('intro-answer',`${name==='quantum'?'Yes.':'Try comparing the bars at +1.'} The quantum walk gives +1 with 62.5% probability and the ordinary walk with 37.5%.`));
+  click('start-duel',()=>{$('opponent').value='starter';reset();show('resume',false);navigate('duel');focusNext();});
+  click('resume',()=>{show('resume',false);navigate('duel');});
+  click('again',()=>{reset();focusNext();});
+  click('try-planner',()=>{$('opponent').value='planner';reset();focusNext();});
+  click('compare-observer',()=>{navigate('lab');$('observer').focus();});
+  for(const name of ['ordinary','quantum']) click(`${name}-guess`,()=>say('intro-answer',name==='quantum'?'Yes. The quantum walk gives +1 with 62.5% probability and the ordinary walk with 37.5%.':'Look again at the bars above +1 and try another guess.'));
   for(let position=-10;position<=10;position++) $('position').append(element('option',position,{value:position}));
   $('position').value='0';
-  on('position','change',inspect); on('observer','change',drawLab); on('opponent','change',save);
-  click('cast',()=>{if(preview!==null&&match.turn%2===rounds.length-1) commit(preview);});
-  click('undo',()=>{preview=null;drawDuel();});
-  click('restart',reset);
+  on('position','change',inspect); on('observer','change',drawLab); on('opponent','change',()=>{drawDuel();computeReply();});
+  click('cast',()=>{if(preview!==null&&match.turn%2===rounds.length-1) {commit(preview);if(match.turn===maxMoves)focusNext();}});
+  click('undo',()=>{preview=null;drawDuel();focusNext();});
+  click('restart',()=>{reset();focusNext();});
   click('retry',()=>{failed=false;drawDuel();computeReply();});
   click('round-two',()=>{if(rounds.length!==1||match.turn!==maxMoves)return; rounds.push([]); match=historyState(history()); say('sample-note',''); say('look','LOOK'); save(); drawDuel(); computeReply();});
   click('look',()=>{
@@ -292,7 +373,7 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
     if(mode==='duel') graph('duel-chart',[distribution(preview===null?match.state:step(match.state,preview))],10,[-10,-5,0,5,10],1);
     if(mode==='lab') drawLab();
   }).observe(document.querySelector('main'));
-  navigate(resumed?'duel':'intro');
+  show('resume',resumed);navigate('intro');
 </script>
 
 </main></body></html>

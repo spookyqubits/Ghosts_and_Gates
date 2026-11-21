@@ -11,10 +11,13 @@ button,.button{display:inline-flex;align-items:center;justify-content:center;min
 .stats{display:flex;flex-wrap:wrap;gap:.65rem 1rem;margin:.65rem 0}.stats span{font-size:.9rem}.stats strong{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}.note{margin:.65rem 0;padding:.66rem .78rem;border-radius:.4rem;background:#efe7f3;color:#282539}.note:empty{display:none}.note > :last-child{margin-bottom:0}
 canvas{display:block;width:100%;height:190px;margin:.25rem 0}table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}th,td{padding:.32rem .2rem;border-bottom:1px solid var(--rule);text-align:left}th.num,td.num{text-align:right}details{padding:.65rem 0;border-top:1px solid var(--rule);max-width:77ch}details p{margin:.55rem 0}summary{cursor:pointer;font-weight:730}a{color:var(--red);text-underline-offset:.15em}.group{margin:1.75rem 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1rem}.cards .panel{display:flex;flex-direction:column;align-items:start}.cards .button{margin-top:auto}.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:.32rem;list-style:none;padding:0;margin:.7rem 0}.chips li{border:1px solid #8389a1;border-radius:.35rem;text-align:center;padding:.35rem;color:#fff8ed;font-variant-numeric:tabular-nums}.chips strong{display:block}.chips .done{background:#405f57;border-color:#adcfac}.chips .current{background:var(--gold);color:var(--ink);border-color:var(--gold)}[hidden]{display:none!important}
 @media(max-width:720px){.layout{grid-template-columns:1fr;gap:.8rem}canvas{height:160px}}
+
+summary{min-height:44px;padding:.5rem 0}nav a{min-height:44px;padding:.55rem 0}
+[id$="-history"]{max-width:100%;overflow:auto}[id$="-history"] table{margin-bottom:.55rem}
 </style></head>
 <body><main>
 <nav aria-label="Site navigation"><a href="../index.html">Spooky Labs</a></nav>
-<header><p class="brand">Spooky Qubits · Quantum networks</p><h1>Ghost Post</h1><p>Send a sealed state through a five-hop route and decode the message at each stop.</p></header>
+<header><p class="brand">Spooky Qubits · College labs · Quantum networks</p><h1>Ghost Post</h1><p>Send a sealed state through a five-hop route and decode the message at each stop.</p></header>
 <script>'use strict';
 const $ = id => document.getElementById(id);
 const on = (id, event, listener) => $(id).addEventListener(event, listener);
@@ -44,21 +47,69 @@ function percent(probability) { return `${fmt(100 * probability, 1)}%`; }
 function bellMessage(random = Math.random) { return [randomInt(2, random), randomInt(2, random)]; }
 
 function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 + bit]; }
+
+function runLog(id, headings, maxEntries = 30) {
+  const body = element('tbody');
+  const header = element('tr');
+  header.append(...headings.map(label => element('th', label, {scope:'col'})));
+  const table = element('table', undefined, {'aria-label': headings[0] + ' history'});
+  const head = element('thead');
+  head.append(header);
+  table.append(head, body);
+  const download = element('button', 'Download results CSV', {type:'button', class:'secondary'});
+  download.disabled = true;
+  $(id).append(table, download);
+  const entries = [];
+  download.addEventListener('click', () => {
+    const encode = value => '"' + String(value).replaceAll('"', '""') + '"';
+    const csv = [headings, ...entries].map(row => row.map(encode).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+    const link = element('a', undefined, {href:url, download: id + '.csv'});
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  return values => {
+    entries.unshift(values);
+    if (entries.length > maxEntries) entries.pop();
+    const row = element('tr');
+    row.append(...values.map(value => element('td', value)));
+    body.prepend(row);
+    if (body.children.length > maxEntries) body.lastElementChild.remove();
+    download.disabled = false;
+  };
+}
 </script>
+<style>.route-state{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center;margin:.65rem 0}.state-token{display:inline-block;padding:.35rem .55rem;border-radius:.35rem;background:#efe7f3;color:#23263a;font:700 1rem system-ui}.board .history{overflow:auto}</style>
 <div class="layout">
-  <section class="board"><h2>Route from sender to receiver</h2><ol id="route" class="chips" aria-label="Route hops"></ol><div class="stats"><span>Hops completed<strong id="hop"></strong></span><span>Ticks left<strong id="ticks"></strong></span><span>Classical bits sent<strong id="bits"></strong></span></div><p id="route-rule" class="hint"></p></section>
-  <section class="panel"><h2 id="stage"></h2><p id="instruction"></p>
+  <section class="board"><h2>Route from sender to receiver</h2><ol id="route" class="chips" aria-label="Route hops"></ol><div class="stats"><span>Hops completed<strong id="hop"></strong></span><span>Ticks left<strong id="ticks"></strong></span><span>Classical bits sent<strong id="bits"></strong></span></div><p id="route-rule" class="hint"></p><div class="route-state" id="route-state"></div></section>
+  <section class="panel"><h2 id="stage"></h2><p>Win by completing all five hops with zero decoding mistakes. Your score on a clean delivery is 5 points plus 1 per unused tick.</p><p id="instruction" role="status"></p>
     <div class="row" id="link-actions"><button id="fast" type="button">Fast link · 1 tick</button><button id="checked" class="secondary" type="button">Checked link · 2 ticks</button></div>
     <div class="row" id="corrections" hidden><button type="button" data-correction="I">Leave</button><button type="button" data-correction="X">X</button><button type="button" data-correction="Z">Z</button><button type="button" data-correction="XZ">X and Z</button></div>
-    <p id="post-log" class="note" role="status"></p><button id="restart" class="secondary" type="button">New route</button>
+    <details><summary>Correction guide</summary><p>First bit: Z, a half-turn about the Z axis. Second bit: X, a half-turn about X. A 1 means apply it. A 0 means leave it off.</p></details><p id="post-log" class="note" role="status"></p><button id="restart" class="secondary" type="button">New route</button>
   </section>
 </div>
-<details><summary>College lab questions</summary><p>Predict survival for five independent fast links, then for three fast links and two checked links. Explain which paired resources are consumed and why each hop still needs two classical bits. Describe what a detectable erasure means for a state already consumed at an earlier hop.</p></details>
+<details><summary>Corrections on this route</summary><ol id="hop-history"></ol></details>
+<details><summary>Route history</summary><div id="post-history"></div></details>
+<details><summary>Compare link policies</summary><p>Simulate 1,000 routes for each possible number of checked links. This comparison assumes every surviving hop is decoded correctly.</p><button id="batch" type="button" class="secondary">Run policy comparison</button><p id="policy-results" role="status"></p></details>
+<details><summary>College lab questions</summary><p>Predict survival for five independent fast links, then for three fast links and two checked links. Explain which paired resources are consumed and why each hop still needs two classical bits. Use the hop history to explain how a wrong correction could leave the displayed fidelity at 100%. Compare the simulated survival rates and the score for completing a clean route.</p></details>
 <details><summary>Model and experiment</summary><p>Each hop uses one pair and sends the two bits from a Bell measurement. The first bit calls for Z and the second for X. A wrong correction changes how the sealed state is carried forward. The debrief uses the simulator’s hidden state to compute fidelity.</p><p>A fast hop has an independent 5% erasure chance. A checked hop is ideal in this classroom model. All-fast survival is 0.95⁵ ≈ 77.4% before correction errors. This game models an erasure flag for a lost state. Real hardware can have additional errors. <a href="https://arxiv.org/abs/2110.11373">Hermans et al., teleportation across a network</a></p></details>
 <script>
   const preparations=[['|0⟩',[0,0,1]],['|1⟩',[0,0,-1]],['|+⟩',[1,0,0]],['|−⟩',[-1,0,0]],['|+i⟩',[0,1,0]],['|−i⟩',[0,-1,0]]];
   const hops=5,totalTicks=7;
-  let route;
+  let route,completed=0;
+  const logPost=runLog('post-history',['Route','Outcome','Fast attempts','Checked attempts','Correct hops','Ticks left','Fidelity','Score']);
+  const stateLabel=vector=>preparations.find(([,v])=>v.every((value,i)=>value===vector[i]))[0];
+  function stateView() {
+    const state=(name,vector)=>element('span',`${name}: ${stateLabel(vector)}`,{class:'state-token'});
+    $('route-state').replaceChildren();
+    if(route.before) $('route-state').append(state('Before correction',route.before));
+    if(route.hop&&route.after) $('route-state').append(state(route.stage==='correct'?'Previous hop output':'After correction',route.after));
+    if(route.before) $('route-state').append(element('span','Simulator view only. A receiver cannot inspect the sealed state directly.',{class:'hint'}));
+  }
+  function record() {
+    const delivered=route.hop===hops, won=delivered&&!route.mistakes;
+    logPost([++completed,won?'Clean delivery':delivered?'Decoding failed':'Lost',route.fast,route.checked,route.hop-route.mistakes,route.ticks,delivered?percent(fidelity(route.start,route.state)):'—',won?hops+route.ticks:0]);
+  }
   function applyPauli(vector,operator) {
     let [x,y,z]=vector;
     if(operator.includes('X')) { y=-y; z=-z; }
@@ -68,47 +119,61 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
   function fidelity(a,b) { return (1+a.reduce((sum,value,i)=>sum+value*b[i],0))/2; }
   function start() {
     const [label,vector]=preparations[randomInt(preparations.length)];
-    route={label,start:vector,state:vector,ticks:totalTicks,hop:0,bits:0,stage:'link',message:null,fast:0,mistakes:0};
-    say('post-log','');render();
+    route={label,start:vector,state:vector,ticks:totalTicks,hop:0,bits:0,stage:'link',message:null,fast:0,checked:0,mistakes:0,before:null,after:null};
+    $('hop-history').replaceChildren();say('post-log','');render();
   }
   function render() {
-    $('route').replaceChildren(...Array.from({length:hops},(_,i)=>element('li',`Hop ${i+1}`,{class:i<route.hop?'done':i===route.hop&&route.stage!=='end'?'current':''})));
+    $('route').replaceChildren(...Array.from({length:hops},(_,i)=>element('li',`Hop ${i+1}${i<route.hop?' · done':''}`,{class:i<route.hop?'done':i===route.hop&&route.stage!=='end'?'current':''})));
     say('hop',`${route.hop} / ${hops}`);say('ticks',route.ticks);say('bits',route.bits);
-    say('route-rule','Fast links have a 5% erasure chance. Checked links are ideal here, and cost an extra tick.');
+    say('route-rule','Fast links have a 5% erasure chance. Checked links are ideal here and cost an extra tick. Keep enough ticks for all remaining hops.');
     show('link-actions',route.stage==='link');show('corrections',route.stage==='correct');
     $('checked').disabled=route.ticks-2<hops-route.hop-1;
     if(route.stage==='link') {
-      say('stage',`Prepare hop ${route.hop+1}`);say('instruction','Choose a link that leaves time to finish the route.');
+      say('stage',`Prepare hop ${route.hop+1}`);say('instruction',$('checked').disabled?'Only a fast link leaves enough ticks to finish.':'Spend an extra tick to remove the loss risk, or save it for a higher score.');
     } else if(route.stage==='correct') {
-      say('stage',`Decode hop ${route.hop+1}`);say('instruction',`Two-bit message ${route.message.join('')}. First bit 1 means Z. Second bit 1 means X.`);
+      say('stage',`Decode hop ${route.hop+1}`);say('instruction',`Two-bit message ${route.message.join('')}. ${route.hop<2?'First bit 1 means Z. Second bit 1 means X.':'Choose the matching correction.'}`);
     } else {
-      say('stage',route.hop===hops?'Route complete':'State lost');
-      say('instruction',route.hop===hops?`Prepared state ${route.label}. Final fidelity ${percent(fidelity(route.start,route.state))}.`: 'An erasure cut this route short. A new route begins with a fresh state.');
+      say('stage',route.hop===hops?(route.mistakes?'Delivery failed':'Clean delivery'):'State lost');
+      say('instruction',route.hop===hops?`Prepared state ${route.label}. Final fidelity ${percent(fidelity(route.start,route.state))}. Score ${route.mistakes?0:hops+route.ticks}. ${route.mistakes&&fidelity(route.start,route.state)===1?'The state matched despite the mistakes. The decoding goal was missed.':''}`: 'An erasure cut this route short. Press New route to try again.');
     }
+    stateView();
   }
   function begin(checked,random=Math.random) {
     if(route.stage!=='link'||(checked&&$('checked').disabled)) return;
     route.ticks-=checked?2:1;
-    if(!checked) route.fast++;
-    if(!checked&&random()<.05) { route.stage='end';say('post-log','A fast hop returned an erasure flag.'); }
+    if(checked) route.checked++; else route.fast++;
+    if(!checked&&random()<.05) { route.stage='end';route.before=null;record();say('post-log','A fast hop returned an erasure flag. No state arrived at the next station.'); }
     else {
       route.message=bellMessage(random);route.bits+=2;
-      route.state=applyPauli(route.state,bellCorrection(route.message));route.stage='correct';
+      route.state=applyPauli(route.state,bellCorrection(route.message));route.before=route.state;route.stage='correct';
       say('post-log','The source and one shared pair were used for this Bell measurement.');
     }
     render();
+    (route.stage==='end'?$('restart'):$('corrections').querySelector('button')).focus();
   }
   function correct(operator) {
     if(route.stage!=='correct') return;
     const needed=bellCorrection(route.message);
-    route.state=applyPauli(route.state,operator);route.hop++;
+    route.state=applyPauli(route.state,operator);route.after=route.state;route.hop++;
     if(operator!==needed) route.mistakes++;
+    const name=gate=>gate==='I'?'Leave':gate==='XZ'?'X and Z':gate;
+    $('hop-history').append(element('li',`Message ${route.message.join('')}. ${stateLabel(route.before)} → ${stateLabel(route.after)}. Chose ${name(operator)}, needed ${name(needed)}.`));
     route.stage=route.hop===hops?'end':'link';
+    if(route.stage==='end')record();
     const result=operator===needed?'Correction matches the message.':`The message called for ${needed==='I'?'Leave':needed}. Your chosen operation was applied.`;
     say('post-log',route.stage==='end'?`${result} Correction mistakes: ${route.mistakes}. Fast hops used: ${route.fast}.`:result);render();
+    (route.stage==='end'?$('restart'):$('fast')).focus();
   }
   click('fast',()=>begin(false));click('checked',()=>begin(true));for(const button of document.querySelectorAll('[data-correction]')) button.addEventListener('click',()=>correct(button.dataset.correction));
-  click('restart',start);start();
+  click('batch',()=>{
+    const results=[0,1,2].map(checked=>{
+      let successes=0;
+      for(let i=0;i<1000;i++) if(Array.from({length:hops-checked},()=>Math.random()>=.05).every(Boolean))successes++;
+      return `${checked} checked: ${successes}/1,000 survived (expected ${percent(.95**(hops-checked))}). Clean score: ${totalTicks-checked}.`;
+    });
+    say('policy-results',results.join(' '));
+  });
+  click('restart',()=>{start();$('fast').focus();});start();
 </script>
 
 </main></body></html>

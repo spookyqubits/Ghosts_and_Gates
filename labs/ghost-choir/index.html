@@ -11,10 +11,13 @@ button,.button{display:inline-flex;align-items:center;justify-content:center;min
 .stats{display:flex;flex-wrap:wrap;gap:.65rem 1rem;margin:.65rem 0}.stats span{font-size:.9rem}.stats strong{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}.note{margin:.65rem 0;padding:.66rem .78rem;border-radius:.4rem;background:#efe7f3;color:#282539}.note:empty{display:none}.note > :last-child{margin-bottom:0}
 canvas{display:block;width:100%;height:190px;margin:.25rem 0}table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}th,td{padding:.32rem .2rem;border-bottom:1px solid var(--rule);text-align:left}th.num,td.num{text-align:right}details{padding:.65rem 0;border-top:1px solid var(--rule);max-width:77ch}details p{margin:.55rem 0}summary{cursor:pointer;font-weight:730}a{color:var(--red);text-underline-offset:.15em}.group{margin:1.75rem 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1rem}.cards .panel{display:flex;flex-direction:column;align-items:start}.cards .button{margin-top:auto}.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:.32rem;list-style:none;padding:0;margin:.7rem 0}.chips li{border:1px solid #8389a1;border-radius:.35rem;text-align:center;padding:.35rem;color:#fff8ed;font-variant-numeric:tabular-nums}.chips strong{display:block}.chips .done{background:#405f57;border-color:#adcfac}.chips .current{background:var(--gold);color:var(--ink);border-color:var(--gold)}[hidden]{display:none!important}
 @media(max-width:720px){.layout{grid-template-columns:1fr;gap:.8rem}canvas{height:160px}}
+
+summary{min-height:44px;padding:.5rem 0}nav a{min-height:44px;padding:.55rem 0}
+[id$="-history"]{max-width:100%;overflow:auto}[id$="-history"] table{margin-bottom:.55rem}
 </style></head>
 <body><main>
 <nav aria-label="Site navigation"><a href="../index.html">Spooky Labs</a></nav>
-<header><p class="brand">Spooky Qubits · Computing</p><h1>Ghost Choir</h1><p>Recover a hidden bit string using classical questions and a simulated quantum oracle.</p></header>
+<header><p class="brand">Spooky Qubits · College labs · Computing</p><h1>Ghost Choir</h1><p>Recover a hidden bit string using classical questions and a simulated quantum oracle.</p></header>
 <script>'use strict';
 const $ = id => document.getElementById(id);
 const on = (id, event, listener) => $(id).addEventListener(event, listener);
@@ -44,61 +47,187 @@ function percent(probability) { return `${fmt(100 * probability, 1)}%`; }
 function bellMessage(random = Math.random) { return [randomInt(2, random), randomInt(2, random)]; }
 
 function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 + bit]; }
+
+function runLog(id, headings, maxEntries = 30) {
+  const body = element('tbody');
+  const header = element('tr');
+  header.append(...headings.map(label => element('th', label, {scope:'col'})));
+  const table = element('table', undefined, {'aria-label': headings[0] + ' history'});
+  const head = element('thead');
+  head.append(header);
+  table.append(head, body);
+  const download = element('button', 'Download results CSV', {type:'button', class:'secondary'});
+  download.disabled = true;
+  $(id).append(table, download);
+  const entries = [];
+  download.addEventListener('click', () => {
+    const encode = value => '"' + String(value).replaceAll('"', '""') + '"';
+    const csv = [headings, ...entries].map(row => row.map(encode).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+    const link = element('a', undefined, {href:url, download: id + '.csv'});
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  return values => {
+    entries.unshift(values);
+    if (entries.length > maxEntries) entries.pop();
+    const row = element('tr');
+    row.append(...values.map(value => element('td', value)));
+    body.prepend(row);
+    if (body.children.length > maxEntries) body.lastElementChild.remove();
+    download.disabled = false;
+  };
+}
 </script>
+<style>
+  .voice-buttons{display:grid;grid-template-columns:repeat(auto-fit,minmax(46px,1fr));gap:.35rem;margin:.5rem 0}
+  .voice-buttons button{padding:.3rem}.parity-picker{display:flex;flex-wrap:wrap;gap:.4rem}
+  .parity-picker label{display:flex;align-items:center;min-height:44px;padding:.25rem .4rem;border:1px solid var(--rule);border-radius:.35rem}
+</style>
 <div class="layout">
-  <section class="board"><h2>Choir register</h2><ol id="register" class="chips" aria-label="Bits in the secret string"></ol><div class="stats"><span>Classical queries<strong id="classic-count"></strong></span><span>Quantum queries<strong id="quantum-count"></strong></span></div><p class="hint" id="register-note"></p></section>
-  <section class="panel"><h2>Find the hidden pattern</h2><label>Number of voices<select id="size"><option value="5">5</option><option value="8">8</option><option value="25">25</option></select></label>
-    <div class="split"><label>Voice to query<select id="voice"></select></label><button type="button" id="ask">Ask one classical bit</button></div>
-    <p class="hint">A classical query here sets a single input bit to 1. You can compare that with one coherent query to the same parity oracle.</p>
-    <form id="guess-form"><label>Classical guess<input type="text" id="guess" inputmode="numeric" autocomplete="off" required></label><button id="submit" type="submit">Lock in your guess</button></form>
-    <div class="row"><button id="query" type="button">Run quantum query</button><button id="read" type="button" hidden>Apply final H gates and read</button><button id="restart" type="button" class="secondary">New secret</button></div>
+  <section class="board">
+    <h2>Choir register</h2>
+    <ol id="register" class="chips" aria-label="Voices and their current values"></ol>
+    <div class="stats"><span>Classical queries<strong id="classic-count"></strong></span><span>Independent answers<strong id="rank"></strong></span><span>Quantum queries<strong id="quantum-count"></strong></span></div>
+    <p class="hint" id="register-note"></p>
+  </section>
+  <section class="panel">
+    <h2>Find the hidden pattern</h2>
+    <p>Recover all the bits with as few questions as possible. First use classical parity questions. Then predict the quantum readout and compare how many calls each method used.</p>
+    <label>Number of voices<select id="size"><option value="5">5</option><option value="8">8</option><option value="25">25</option></select></label>
+    <div id="classical-controls">
+      <h3>Ask about one voice</h3>
+      <div id="voices" class="voice-buttons" role="group" aria-label="Single-voice queries"></div>
+      <details>
+        <summary>Ask about several voices</summary>
+        <p>Select voices to ask whether their bits add to an even sum (0) or an odd sum (1).</p>
+        <div id="parity-voices" class="parity-picker"></div>
+        <button type="button" id="ask-parity">Ask selected parity</button>
+      </details>
+      <form id="guess-form" novalidate>
+        <label>Classical guess<input type="text" id="guess" inputmode="numeric" autocomplete="off"></label>
+        <button id="submit" type="submit">Check your guess</button>
+      </form>
+      <div class="row"><button id="give-up" type="button" class="secondary">End classical attempt</button></div>
+    </div>
+    <div class="row"><button id="query" type="button" disabled>Run quantum query</button><button id="restart" type="button" class="secondary">New secret</button></div>
+    <form id="quantum-form" novalidate hidden>
+      <label>Predict the bits after Hadamard (H) gates<input id="prediction" type="text" inputmode="numeric" autocomplete="off"></label>
+      <button id="read" type="submit">Check prediction and read</button>
+    </form>
     <p id="result" class="note" role="status"></p>
   </section>
 </div>
-<details><summary>College lab questions</summary><p>Explain why the response to the classical input with only bit i set is exactly secret bit i. Then start a new secret and run the coherent query. Explain how the signs introduced by the oracle turn into bits after the last H gates.</p></details>
-<details><summary>Model and experiment</summary><p>The Bernstein–Vazirani oracle evaluates the bitwise dot product x · s modulo 2. One coherent query marks amplitude x with sign (−1)<sup>x · s</sup>. This particular phase pattern factors across the voices, so a Hadamard on each voice returns the hidden string with certainty in the ideal model.</p><p>Each independent classical parity answer gives at most one bit of information about an arbitrary N-bit secret, so exact classical recovery needs N such queries in the worst case. The game counts oracle calls and treats preparation, gates, hardware, and readout as separate operations. <a href="https://doi.org/10.1137/S0097539796300921">Bernstein and Vazirani, Quantum Complexity Theory</a></p></details>
+<details><summary>Classical questions asked</summary><ol id="questions"></ol></details>
+<details><summary>College lab questions</summary><p>Ask questions involving several voices. Find a question whose answer is implied by earlier answers. Why does it increase the query count without increasing the number of independent answers? Try five and eight voices.</p><p>Explain how the oracle’s amplitude pairs (+,+) and (+,−) become 0 or 1 after H. Compare an exact recovery with a correct guess made while some bits were undetermined.</p></details>
+<details><summary>Model and experiment</summary><p>The Bernstein–Vazirani oracle evaluates the bitwise dot product x · s modulo 2. One coherent query marks amplitude x with sign (−1)<sup>x · s</sup>. This phase pattern factors into one amplitude pair per voice. The display computes this exact ideal model. A Hadamard on each voice then recovers the hidden string with certainty.</p><p>Each independent classical parity answer gives at most one bit of information about an arbitrary N-bit secret. Exact classical recovery needs N independent answers in the worst case. The game counts oracle calls separately from preparation, gates and readout. <a href="https://doi.org/10.1137/S0097539796300921">Bernstein and Vazirani, Quantum Complexity Theory</a></p></details>
 <script>
   let choir;
-  function parity(secret,query) { return secret.reduce((acc,bit,i)=>acc^(bit&query[i]),0); }
-  function phaseVoices(secret) { return secret.map(bit=>[Math.SQRT1_2,bit?-Math.SQRT1_2:Math.SQRT1_2]); }
-  function readVoices(amplitudes) {
-    return amplitudes.map(([a,b])=>Math.abs(a-b)>Math.abs(a+b)?1:0);
+  function parity(secret,selected) { return selected.reduce((acc,i)=>acc^secret[i],0); }
+  function record(mask,reply) {
+    const n=choir.secret.length;
+    for(let i=n-1;i>=0;i--) if((mask>>i&1)&&choir.equations[i]) {
+      mask^=choir.equations[i].mask;
+      reply^=choir.equations[i].reply;
+    }
+    if(!mask) return false;
+    const pivot=31-Math.clz32(mask);
+    for(const equation of choir.equations) if(equation&&(equation.mask>>pivot&1)) {
+      equation.mask^=mask; equation.reply^=reply;
+    }
+    choir.equations[pivot]={mask,reply};
+    choir.rank++;
+    return true;
   }
+  function known(i) {
+    const row=choir.equations[i];
+    return row?.mask===(1<<i)?row.reply:null;
+  }
+  function phaseVoices(secret) { return secret.map(bit=>[Math.SQRT1_2,bit?-Math.SQRT1_2:Math.SQRT1_2]); }
+  function readVoices(amplitudes) { return amplitudes.map(([a,b])=>Math.abs(a-b)>Math.abs(a+b)?1:0); }
   function start() {
     const n=Number($('size').value);
-    choir={secret:Array.from({length:n},()=>randomInt(2)),known:Array(n).fill(null),classical:0,phase:null,quantum:null,guessLocked:false};
-    $('voice').replaceChildren(...Array.from({length:n},(_,i)=>element('option',i+1,{value:i})));
-    $('guess').value='';$('guess').pattern=`[01]{${n}}`; $('guess').maxLength=n; $('guess').placeholder=`${n} bits`;
+    choir={secret:Array.from({length:n},()=>randomInt(2)),equations:Array(n).fill(null),rank:0,classical:0,phase:null,quantum:null,classicEnd:false,guessRank:-1};
+    $('voices').replaceChildren(...choir.secret.map((_,i)=>{
+      const b=element('button',i+1,{type:'button',class:'secondary','aria-label':`Ask voice ${i+1}`});
+      b.addEventListener('click',()=>ask([i],b));
+      return b;
+    }));
+    $('parity-voices').replaceChildren(...choir.secret.map((_,i)=>{
+      const label=element('label',String(i+1));
+      label.prepend(element('input',undefined,{type:'checkbox',value:i,'aria-label':`Include voice ${i+1}`}));
+      return label;
+    }));
+    $('questions').replaceChildren();
+    for(const id of ['guess','prediction']) { $(id).value='';$(id).placeholder=`${n} bits`; }
     say('result','');render();
   }
   function render() {
     $('register').replaceChildren(...choir.secret.map((_,i)=>{
-      const result=choir.quantum?.[i]??choir.known[i];
-      const tile=element('li',String(i+1),{class:result===null?'':'done','aria-label':`Voice ${i+1}, ${result===null?'unknown':result}`});
-      tile.append(element('strong',result===null?'?':result));return tile;
+      const amplitude=choir.phase?.[i][1];
+      const value=choir.quantum?.[i]??(choir.phase?(amplitude<0?'+ −':'+ +'):known(i)??'?');
+      const spoken=choir.quantum?value:choir.phase?(amplitude<0?'plus minus':'plus plus'):value;
+      const tile=element('li',String(i+1),{class:value==='?'?'':'done','aria-label':`Voice ${i+1}, ${spoken}`});
+      tile.append(element('strong',value));return tile;
     }));
-    say('classic-count',choir.classical);say('quantum-count',choir.phase?1:0);
-    say('register-note',choir.quantum?'Readout after the final H gates.':choir.phase?'The oracle has changed relative signs. Apply H to turn the signs into bits.':'Query a voice or run the whole quantum register.');
-    const locked=choir.guessLocked||Boolean(choir.phase);
-    $('ask').disabled=locked||choir.known[Number($('voice').value)]!==null;
-    $('submit').disabled=locked;$('guess').disabled=locked;
-    $('query').disabled=Boolean(choir.phase);show('read',Boolean(choir.phase&&!choir.quantum));
+    say('classic-count',choir.classical);say('rank',choir.rank);say('quantum-count',choir.phase?1:0);
+    say('register-note',choir.quantum?'Each displayed bit is the result after H.':choir.phase?'Each pair shows the signs of the |0⟩ and |1⟩ amplitudes after one oracle call. Predict which pair becomes 1 after H.':'A question can determine a bit or establish a relationship between several bits.');
+    [...$('voices').children].forEach((b,i)=>{b.disabled=known(i)!==null;});
+    show('classical-controls',!choir.classicEnd);
+    $('submit').disabled=choir.guessRank===choir.rank;
+    $('query').disabled=!choir.classicEnd||Boolean(choir.phase);
+    show('quantum-form',Boolean(choir.phase&&!choir.quantum));
   }
-  click('ask',()=>{
-    if($('ask').disabled) return;
-    const index=Number($('voice').value);
-    const query=choir.secret.map((_,i)=>i===index?1:0);
-    const reply=parity(choir.secret,query);choir.known[index]=reply;choir.classical++;
-    say('result',`Voice ${index+1} returned ${reply}.`);render();
-  });
-  on('voice','change',render);
+  function ask(selected,source) {
+    if(choir.classicEnd) return;
+    if(!selected.length) {say('result','Select at least one voice.');return;}
+    const reply=parity(choir.secret,selected),mask=selected.reduce((acc,i)=>acc|(1<<i),0);
+    const independent=record(mask,reply);
+    choir.classical++;
+    const text=`Voice${selected.length===1?'':'s'} ${selected.map(i=>i+1).join(', ')} → ${reply} (${reply?'odd':'even'}).`;
+    $('questions').append(element('li',text));
+    say('result',`${text} ${independent?'Independent answer.':'Already implied by earlier answers.'} ${choir.classical} queries, ${choir.rank} independent. ${choir.rank===choir.secret.length?'All bits determined. Check your guess.':''}`);
+    render();
+    if(source?.disabled) ([...$('voices').children].find(b=>!b.disabled)||$('guess')).focus();
+  }
+  function entry(id) {
+    const value=$(id).value.trim();
+    if(value.length===choir.secret.length&&/^[01]+$/.test(value)) return value;
+    say('result',`Enter exactly ${choir.secret.length} digits, each 0 or 1.`);$(id).focus();return null;
+  }
+  function endClassical(message) {
+    choir.classicEnd=true;say('result',message);render();$('query').focus();
+  }
+  click('ask-parity',()=>ask([...$('parity-voices').querySelectorAll('input:checked')].map(input=>Number(input.value))));
+  click('give-up',()=>{if(!choir.classicEnd)endClassical(`Classical attempt ended after ${choir.classical} queries, with ${choir.rank} independent answers. Run the quantum query to compare.`);});
   on('guess-form','submit',event=>{
-    event.preventDefault();if($('submit').disabled)return;
-    choir.guessLocked=true;
-    say('result',`${$('guess').value===choir.secret.join('')?'Correct.':'That guess missed.'} Run the quantum query to see the whole register, or start a new secret.`);render();
+    event.preventDefault();if(choir.classicEnd||$('submit').disabled)return;
+    const value=entry('guess');if(value===null)return;
+    if(value!==choir.secret.join('')) {
+      if(choir.rank<choir.secret.length) {
+        choir.guessRank=choir.rank;render();
+        say('result','That guess missed. Ask a new independent question before guessing again.');
+        ([...$('voices').children].find(b=>!b.disabled)||$('ask-parity')).focus();
+      } else {say('result','That guess missed. All bits are determined. Check the register for a typing slip.');$('guess').focus();}
+      return;
+    }
+    const confirmed=choir.rank===choir.secret.length;
+    endClassical(confirmed?`Exact recovery in ${choir.classical} classical queries. Try the quantum method on the same secret.`:`Correct guess in ${choir.classical} queries, with only ${choir.rank} independent answers. Other secrets still fit the answers. Compare with quantum recovery.`);
   });
-  click('query',()=>{ if(choir.phase)return;choir.phase=phaseVoices(choir.secret);say('result','One oracle call applied a relative sign to each voice specified by the hidden pattern.');render(); });
-  click('read',()=>{ if(!choir.phase||choir.quantum)return;choir.quantum=readVoices(choir.phase);say('result',`Whole string recovered · ${choir.quantum.join('')}.`);render(); });
+  click('query',()=>{
+    if(!choir.classicEnd||choir.phase)return;
+    choir.phase=phaseVoices(choir.secret);
+    say('result','The oracle has set the relative signs. Enter your prediction before the final H gates.');
+    render();$('prediction').focus();
+  });
+  on('quantum-form','submit',event=>{
+    event.preventDefault();if(!choir.phase||choir.quantum)return;
+    const prediction=entry('prediction');if(prediction===null)return;
+    choir.quantum=readVoices(choir.phase);
+    const score=choir.quantum.filter((bit,i)=>String(bit)===prediction[i]).length;
+    say('result',`Whole string recovered · ${choir.quantum.join('')}. You predicted ${score} of ${choir.secret.length} bits. Classical: ${choir.classical} queries (${choir.rank} independent). Quantum: 1 query.`);
+    render();$('restart').focus();
+  });
   on('size','change',start);click('restart',start);start();
 </script>
 

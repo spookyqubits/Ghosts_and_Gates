@@ -11,10 +11,13 @@ button,.button{display:inline-flex;align-items:center;justify-content:center;min
 .stats{display:flex;flex-wrap:wrap;gap:.65rem 1rem;margin:.65rem 0}.stats span{font-size:.9rem}.stats strong{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}.note{margin:.65rem 0;padding:.66rem .78rem;border-radius:.4rem;background:#efe7f3;color:#282539}.note:empty{display:none}.note > :last-child{margin-bottom:0}
 canvas{display:block;width:100%;height:190px;margin:.25rem 0}table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}th,td{padding:.32rem .2rem;border-bottom:1px solid var(--rule);text-align:left}th.num,td.num{text-align:right}details{padding:.65rem 0;border-top:1px solid var(--rule);max-width:77ch}details p{margin:.55rem 0}summary{cursor:pointer;font-weight:730}a{color:var(--red);text-underline-offset:.15em}.group{margin:1.75rem 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1rem}.cards .panel{display:flex;flex-direction:column;align-items:start}.cards .button{margin-top:auto}.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:.32rem;list-style:none;padding:0;margin:.7rem 0}.chips li{border:1px solid #8389a1;border-radius:.35rem;text-align:center;padding:.35rem;color:#fff8ed;font-variant-numeric:tabular-nums}.chips strong{display:block}.chips .done{background:#405f57;border-color:#adcfac}.chips .current{background:var(--gold);color:var(--ink);border-color:var(--gold)}[hidden]{display:none!important}
 @media(max-width:720px){.layout{grid-template-columns:1fr;gap:.8rem}canvas{height:160px}}
+
+summary{min-height:44px;padding:.5rem 0}nav a{min-height:44px;padding:.55rem 0}
+[id$="-history"]{max-width:100%;overflow:auto}[id$="-history"] table{margin-bottom:.55rem}
 </style></head>
 <body><main>
 <nav aria-label="Site navigation"><a href="../index.html">Spooky Labs</a></nav>
-<header><p class="brand">Spooky Qubits · Quantum networks</p><h1>Ghost Copy Shop</h1><p>Audit three copying machines with fresh qubits and look for a counterexample.</p></header>
+<header><p class="brand">Spooky Qubits · College labs · Quantum networks</p><h1>Ghost Copy Shop</h1><p>Audit three copying machines with fresh qubits and look for a counterexample.</p></header>
 <script>'use strict';
 const $ = id => document.getElementById(id);
 const on = (id, event, listener) => $(id).addEventListener(event, listener);
@@ -44,25 +47,56 @@ function percent(probability) { return `${fmt(100 * probability, 1)}%`; }
 function bellMessage(random = Math.random) { return [randomInt(2, random), randomInt(2, random)]; }
 
 function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 + bit]; }
+
+function runLog(id, headings, maxEntries = 30) {
+  const body = element('tbody');
+  const header = element('tr');
+  header.append(...headings.map(label => element('th', label, {scope:'col'})));
+  const table = element('table', undefined, {'aria-label': headings[0] + ' history'});
+  const head = element('thead');
+  head.append(header);
+  table.append(head, body);
+  const download = element('button', 'Download results CSV', {type:'button', class:'secondary'});
+  download.disabled = true;
+  $(id).append(table, download);
+  const entries = [];
+  download.addEventListener('click', () => {
+    const encode = value => '"' + String(value).replaceAll('"', '""') + '"';
+    const csv = [headings, ...entries].map(row => row.map(encode).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+    const link = element('a', undefined, {href:url, download: id + '.csv'});
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  return values => {
+    entries.unshift(values);
+    if (entries.length > maxEntries) entries.pop();
+    const row = element('tr');
+    row.append(...values.map(value => element('td', value)));
+    body.prepend(row);
+    if (body.children.length > maxEntries) body.lastElementChild.remove();
+    download.disabled = false;
+  };
+}
 </script>
 <div class="layout">
-  <section class="board"><h2 id="device"></h2><p id="claim"></p><p id="budget" class="hint"></p><div id="test-chart" hidden><p class="hint" id="tested"></p><table aria-label="Output distribution"><thead><tr><th>Result</th><th>Two true copies</th><th>Machine model</th><th>Sample count</th></tr></thead><tbody id="distribution"></tbody></table></div></section>
-  <section class="panel"><h2>Run an audit</h2><div class="split"><label>Fresh input<select id="input"><option value="0">|0⟩</option><option value="1">|1⟩</option><option value="+">|+⟩</option><option value="-">|−⟩</option></select></label><label>Measure both outputs<select id="basis"><option value="Z">Z basis</option><option value="X">X basis</option></select></label></div>
+  <section class="board"><h2 id="device"></h2><p id="claim"></p><p id="budget" class="hint"></p><div id="test-chart" hidden><p class="hint" id="tested"></p><table aria-label="Output distribution"><thead><tr><th scope="col">Result</th><th scope="col">Two true copies</th><th scope="col">Sample count</th><th scope="col">Machine model</th></tr></thead><tbody id="distribution"></tbody></table></div></section>
+  <section class="panel"><h2>Run an audit</h2><p>Each machine claims to make two perfect copies of any input. Find one preparation and measurement where the machine’s output probabilities differ from two ideal copies. Use Z for |0⟩ or |1⟩, and X for |+⟩ or |−⟩, or test in the other basis.</p><div class="split"><label>Fresh input<select id="input"><option value="0">|0⟩</option><option value="1">|1⟩</option><option value="+">|+⟩</option><option value="-">|−⟩</option></select></label><label>Measure both outputs<select id="basis"><option value="Z">Z basis</option><option value="X">X basis</option></select></label></div>
     <div class="row"><button id="test" type="button">Test 64 fresh inputs</button><button id="challenge" class="secondary" type="button" disabled>Submit as counterexample</button></div>
-    <p id="feedback" class="note" role="status"></p><div class="row"><button id="next" type="button" hidden>Next device</button><button id="restart" class="secondary" type="button">Restart audits</button></div>
+    <label>Review a test<select id="history" disabled></select></label><p id="feedback" class="note" role="status"></p><div class="row"><button id="retry" type="button" class="secondary" hidden>Try this device again</button><button id="next" type="button" hidden>Next device</button><button id="restart" class="secondary" type="button">Restart audits</button></div>
   </section>
 </div>
 <details><summary>College lab questions</summary><p>Find a test that lets the controlled copier pass and one that exposes it. Explain why copying orthogonal states in one basis is possible. For a |+⟩ input, compare the controlled copier’s joint X-basis distribution with measuring two independently prepared copies.</p></details>
-<details><summary>Model and experiment</summary><p>Every run starts with a fresh source and target |0⟩. The controlled copier applies CNOT. The transfer device swaps the source and target. The measure-and-prepare device measures Z and uses the result to produce both outputs. The table compares probabilities for these devices with the probability for two independently prepared copies.</p><p>Unitary evolution is linear. A device that copies |0⟩ and |1⟩ sends their superposition to an entangled state, while two copies would be a product state. This audit illustrates a counterexample to the claim. <a href="https://doi.org/10.1038/299802a0">Wootters and Zurek, no-cloning</a></p></details>
+<details><summary>Model and experiment</summary><p>Every run starts with a fresh source and target |0⟩. The controlled copier applies CNOT. The transfer device swaps the source and target. The X-basis copier measures X and prepares the reported eigenstate twice. The table compares probabilities for these devices with the probability for two independently prepared copies.</p><p>Unitary evolution is linear. A device that copies |0⟩ and |1⟩ sends their superposition to an entangled state, while two copies would be a product state. This audit illustrates a counterexample to the claim. <a href="https://doi.org/10.1038/299802a0">Wootters and Zurek, no-cloning</a></p></details>
 <script>
   const root=Math.SQRT1_2;
   const states={'0':[1,0],'1':[0,1],'+':[root,root],'-':[root,-root]};
   const devices=[
-    ['Controlled copier','“I copy into a blank qubit using a controlled flip.”','A superposition can become entangled with the target.'],
-    ['Transfer device','“I move the input to the target. Count that as two copies.”','The target receives the state. The source is reset to |0⟩.'],
-    ['Measure and prepare','“I read the source in Z, then prepare two outputs for you.”','The Z result preserves a basis label and loses the input’s phase information.'],
+    ['Controlled copier','“My controlled flip makes two perfect copies of any input.”','A superposition can become entangled with the target.'],
+    ['Transfer device','“My swap makes two perfect copies of any input.”','The target receives the state. The source is reset to |0⟩.'],
+    ['X-basis copier','“I read the input in X and make two perfect copies of any state.”','This device copies X eigenstates. It loses information for inputs outside that basis.'],
   ];
-  let device=0,budget=3,last=null,closed=false,found=0;
+  let device=0,budget=3,tests=[],active=-1,closed=false,found=0,batches=0;
   function probabilities(vector,basis) {
     const [a,b,c,d]=vector;
     const amplitudes=basis==='Z'?vector:[(a+b+c+d)/2,(a-b+c-d)/2,(a+b-c-d)/2,(a-b-c+d)/2];
@@ -71,8 +105,9 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
   function audit(which,key,basis) {
     const [a,b]=states[key];
     const ideal=probabilities([a*a,a*b,a*b,b*b],basis);
+    const xx=[.5,.5,.5,.5],minus=[.5,-.5,-.5,.5],weight=Math.min(1,(a+b)**2/2);
     const actual=which===0?probabilities([a,0,0,b],basis):which===1?probabilities([a,b,0,0],basis)
-      :probabilities([1,0,0,0],basis).map((p,i)=>a*a*p+b*b*probabilities([0,0,0,1],basis)[i]);
+      :probabilities(xx,basis).map((p,i)=>weight*p+(1-weight)*probabilities(minus,basis)[i]);
     const difference=.5*ideal.reduce((sum,p,i)=>sum+Math.abs(p-actual[i]),0);
     return {ideal,actual,difference};
   }
@@ -84,38 +119,58 @@ function bellCorrection([phase, bit]) { return ['I', 'X', 'Z', 'XZ'][phase * 2 +
     }
     return counts;
   }
+  function testLabel({key,basis}) {
+    return `|${key==='-'?'−':key}⟩ · ${basis} basis`;
+  }
   function render() {
+    const last=tests[active];
     say('device',`Device ${device+1} of ${devices.length} · ${devices[device][0]}`);
-    say('claim',devices[device][1]); say('budget',`${budget} test batches left`);
-    $('test').disabled=closed||!budget; $('challenge').disabled=closed||!last;
-    $('input').disabled=closed; $('basis').disabled=closed;
-    show('test-chart',Boolean(last)); show('next',closed&&device<devices.length-1);
+    say('claim',devices[device][1]);say('budget',`${budget} attempts left · ${tests.length} batches sampled`);
+    $('test').disabled=closed||!budget;$('challenge').disabled=closed||!last;
+    $('input').disabled=closed;$('basis').disabled=closed;
+    $('history').disabled=!tests.length;
+    $('history').replaceChildren(...tests.map((test,i)=>element('option',`Test ${i+1} · ${testLabel(test)}`,{value:i})));
+    $('history').value=active;
+    show('test-chart',Boolean(last));show('next',closed&&device<devices.length-1);
+    show('retry',closed&&!tests.some(test=>test.accepted));
     if(last) {
       const symbols=last.basis==='Z'?['00','01','10','11']:['++','+−','−+','−−'];
-      say('tested',`Most recent test · |${last.key}⟩ input · ${last.basis} basis`);
-      rows('distribution',symbols.map((symbol,i)=>[symbol,percent(last.ideal[i]),percent(last.actual[i]),last.counts[i]]));
+      say('tested',`Test ${active+1} · ${testLabel(last)}`);
+      rows('distribution',symbols.map((symbol,i)=>[symbol,percent(last.ideal[i]),last.counts[i],percent(last.actual[i])]));
     }
   }
-  function resetCase() { budget=3;last=null;closed=false;$('input').value='0';$('basis').value='Z';say('feedback','');render(); }
+  function resetCase() {
+    budget=3;tests=[];active=-1;closed=false;$('input').value='0';$('basis').value='Z';say('feedback','');render();
+  }
   click('test',()=>{
     if(closed||!budget) return;
-    const key=$('input').value, basis=$('basis').value, result=audit(device,key,basis);
-    last={...result,key,basis,counts:sample(result.actual)};budget--;
-    say('feedback','Compare the two probability columns. Sample counts can vary from batch to batch.');render();
+    const key=$('input').value,basis=$('basis').value,result=audit(device,key,basis);
+    active=tests.push({...result,key,basis,counts:sample(result.actual)})-1;budget--;batches++;
+    say('feedback','First look for a surprising sample result, then check the exact probabilities. You can submit any test in this audit.');render();
+    if(!budget)$('challenge').focus();
   });
+  on('history','change',()=>{active=Number($('history').value);render();});
   function finish(success) {
-    closed=true;if(success) found++;
-    const summary=success?'Counterexample found.':'Audit budget used. Try a different input next time.';
-    say('feedback',`${summary} ${devices[device][2]}${device===2?` Total · ${found} of 3 audits.`:''}`);render();
+    closed=true;
+    if(success){tests[active].accepted=true;found++;}
+    const summary=success?`Counterexample found in ${tests.length} test batch${tests.length===1?'':'es'}.`:'Audit budget used. Retry this device with a different input or basis.';
+    const lesson=device===2?` Total: ${found} of 3 audits, ${batches} test batches. ${found===3?'Every machine failed on some input. No single device can copy every unknown quantum state.':''}`:'';
+    say('feedback',`${summary} ${devices[device][2]}${lesson}`);render();
+    if(success) (device<2?$('next'):$('restart')).focus();else $('retry').focus();
   }
   click('challenge',()=>{
+    const last=tests[active];
     if(!last||closed) return;
     if(last.difference>1e-8) finish(true);
-    else if(!budget) finish(false);
-    else say('feedback','The predicted distributions match for this test. Try a different input or basis.');
+    else if(!budget || --budget===0) {
+      if(tests.some(test=>test.difference>1e-8)) {
+        say('feedback','This test’s distributions match. Your earlier tests remain available to submit.');render();
+      } else finish(false);
+    } else {say('feedback','The predicted distributions match. One attempt used.');render();}
   });
-  click('next',()=>{if(closed&&device<2){device++;resetCase();}});
-  click('restart',()=>{device=0;found=0;resetCase();});
+  click('next',()=>{if(closed&&device<2){device++;resetCase();$('test').focus();}});
+  click('retry',()=>{resetCase();$('test').focus();});
+  click('restart',()=>{device=0;found=0;batches=0;resetCase();});
   resetCase();
 </script>
 
