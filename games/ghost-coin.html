@@ -243,34 +243,34 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
   </div>
 
   <details><summary>How to play</summary>
-    <p><b>Solo quick play.</b> Start at Level 2 against the computer. Pick two cards. The game resolves the sequence, shows any cancellation, and opens the box. The challenge is to make HEADS certain. Turn off “Resolve moves together” to reveal and step through each chip move yourself. Next round keeps your settings.</p>
-    <p><b>Goal.</b> The coin starts as one green chip on HEADS. Player A wins if the coin ends on HEADS. Player B wins if it ends on TAILS.</p>
-    <p><b>Turns.</b> A, then B, then A each pick one card in secret. The cards stay face-down. Then reveal them and do the moves in order.</p>
-    <table><tr><th>Card</th><th>What happens to the chips</th></tr>
-      <tr><td>Leave</td><td>Nothing.</td></tr>
-      <tr><td>Flip</td><td>Swap what is in the two boxes.</td></tr>
-      <tr><td>Sign</td><td>Every chip on TAILS changes color.</td></tr>
-      <tr><td>Ghost</td><td>Each HEADS chip becomes a same-color chip on HEADS <b>and</b> one on TAILS. Each TAILS chip becomes a same-color chip on HEADS and an <b>opposite</b>-color chip on TAILS.</td></tr></table>
-    <p><b>Clean up.</b> A green and a red chip in the same box are a <b>zero pair</b>: remove both. If two matching chips are left in a box, keep one.</p>
-    <p><b>Open the box.</b> Chips in one box only: that side wins. Chips in both boxes: toss a real coin.</p>
-    <p><b>Levels.</b> 1: only Leave and Flip. 2: Player A also gets Ghost. 3: Player B also gets Sign. 4: everyone gets every card.</p>
-    <p><b>On a projector:</b> type a card's letter (L, F, S, G) instead of clicking, so nobody sees the choice.</p>
+    <p>The coin starts on <strong>HEADS</strong>. Player A wants it to stay there. Player B wants <strong>TAILS</strong>.</p>
+    <ol>
+      <li><strong>Pick your cards in secret.</strong> A picks first, then B, then A again. Reveal the three cards and play them in that order.</li>
+      <li><strong>Move the chips.</strong> Use the card rules below. After each move, remove a green and a red chip together whenever they share a box. Two chips of the same color in a box become one.</li>
+      <li><strong>Open the box.</strong> If only one side has chips left, it wins. If both sides have chips, each has a 50% chance. At a tabletop, flip a coin to decide.</li>
+    </ol>
+    <table><tr><th>Card</th><th>What you do</th></tr>
+      <tr><td>Leave</td><td>Keep the chips where they are.</td></tr>
+      <tr><td>Flip</td><td>Swap everything in the HEADS and TAILS boxes.</td></tr>
+      <tr><td>Sign</td><td>Change the color of every chip in the TAILS box.</td></tr>
+      <tr><td>Ghost</td><td>Split each chip into two, one for each box. Keep the original color for both copies of a HEADS chip. For a TAILS chip, change the color of the copy that goes into TAILS.</td></tr></table>
+    <p><strong>Playing alone?</strong> Choose <strong>Solo quick play</strong>. You play A at Level 2 and pick both of A’s cards against the computer. Try to make HEADS certain. Turn off <strong>Resolve moves together</strong> to follow the moves one at a time.</p>
+    <p>Start at Level 1 with Leave and Flip. Level 2 gives A the Ghost card. Level 3 gives B the Sign card. At Level 4, both players get all four cards. On a projector, use the card keys L, F, S, and G to keep choices private.</p>
   </details>
   <details><summary>Why can Player A always win in Level 2? (spoiler)</summary>
-    <p>A plays <b>Ghost</b>: the coin is now in both boxes with the same colors. Flip just swaps two matching chips, so B's move changes nothing. A plays <b>Ghost</b> again: the two TAILS chips are one green and one red, a zero pair, so they cancel. Only HEADS is left.</p>
-    <p>In Level 3, B can play <b>Sign</b>. The coin still looks 50/50, but now the HEADS chips cancel after the second Ghost, and the coin lands on TAILS. A hidden sign you cannot "see" decides the game.</p>
+    <p>Try <strong>Ghost → any B move → Ghost</strong>. A’s first Ghost card puts a green chip in each box. B can leave them alone or swap them. Either way, A starts the last move with a green chip in each box.</p>
+    <p>After the second Ghost, HEADS has two green chips. TAILS has a green chip and a red chip, so they cancel. HEADS is the only possible result.</p>
+    <p>Now try B’s Sign card at Level 3. The boxes still show 50/50 before A’s last move, but the colors differ. The second Ghost makes the HEADS chips cancel this time and leaves TAILS.</p>
   </details>
   <details><summary>For teachers: the real quantum ideas</summary>
-    <table><tr><th>In the game</th><th>In quantum computing</th></tr>
-      <tr><td>A chip in a box</td><td>An amplitude (a signed "maybe")</td></tr>
-      <tr><td>Ghost card</td><td>Hadamard gate (H): makes a superposition</td></tr>
-      <tr><td>Flip card</td><td>X gate (quantum NOT)</td></tr>
-      <tr><td>Sign card</td><td>Z gate (phase flip)</td></tr>
-      <tr><td>Zero pair cancels</td><td>Destructive interference</td></tr>
-      <tr><td>Two matching chips</td><td>Constructive interference</td></tr>
-      <tr><td>Open the box</td><td>Measurement</td></tr></table>
-    <p>The chip rules are exact: they give the same results as the real gates, and the coin can only be HEADS, TAILS, or a 50/50 ghost. Level 2 is David Meyer's quantum penny-flip game (<i>Physical Review Letters</i> 82, 1052, 1999), where a quantum player always beats a classical one. Zero pairs connect to Common Core 7.NS.A.1a: opposite quantities combine to make 0.</p>
-    <p><b>Discussion questions.</b> Is Level 1 fair? Why does A win every time in Level 2? The Sign card changes nothing you can see. Why does it matter? Does a ghost coin with different colors look different from one with the same colors when you open it?</p>
+    <p>After students solve Level 2, play it again with B’s Sign card. Pause before A’s last Ghost move. Have students predict the outcome from the chip colors, then compare their prediction with the displayed 50/50 odds. Ask why the color mattered on the next move.</p>
+    <table><tr><th>What students see</th><th>The quantum idea</th></tr>
+      <tr><td>Green and red chips</td><td>Positive and negative amplitudes. They help determine the odds when you open the box.</td></tr>
+      <tr><td>Ghost, Flip, and Sign cards</td><td>Hadamard (H), bit flip (X), and phase flip (Z) gates.</td></tr>
+      <tr><td>A green chip and a red chip cancel</td><td>Destructive interference. Two chips of the same color reinforce each other.</td></tr>
+      <tr><td>Opening the box gives one result</td><td>Measurement.</td></tr></table>
+    <p>With these cards and the HEADS starting state, the coin is always certain HEADS, certain TAILS, or 50/50 when measured. The chip rules reproduce those gate results. A zero pair also makes a concrete example of opposite quantities adding to zero (Common Core 7.NS.A.1a).</p>
+    <p>Level 2 is based on David Meyer’s quantum penny-flip game (<i>Physical Review Letters</i> 82, 1052, 1999).</p>
   </details>
   <p class="credit">Ghost Coin · works offline in any browser.</p>
 </main>

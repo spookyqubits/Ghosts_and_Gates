@@ -121,14 +121,17 @@ details p { max-width: 1000px; }
     </aside>
   </div>
   <details><summary>How to play</summary>
-    <p>This version follows Allan Goff's superposition rule: <strong>spooky marks may share a square</strong>. A square holds at most <strong>two</strong> marks. Placement continues until every square holds at least one mark, and then the pairs are measured.</p>
-    <p><strong>Place:</strong> X and O take turns. Choose a <strong>Classical</strong> move, which puts one real mark in a completely empty square, or a <strong>Superposition</strong> move, which puts a matching pair of spooky marks in two different squares. Each pair has its own color and move number; the first square is <strong>A</strong> and the second is <strong>B</strong>. A spooky mark may go into a square that already holds one other spooky mark. A real mark locks its square, so nothing further may be placed there.</p>
-    <p><strong>Entanglement:</strong> two pairs that share a square are entangled, exactly as in Goff's article. They cannot both end up in that square, so collapsing one forces the other into its far square, and that forcing can cascade through a chain of shared squares. The game applies these forced collapses for you and lists them after the roll.</p>
-    <p><strong>Measure when every square is filled:</strong> once no square is empty, take turns measuring the remaining pairs. Each player may select and measure <strong>only their own pairs</strong>: X measures X, and O measures O. If the next player has no pairs remaining, measurement passes to the other player. Select your half on the playing pad, then click <strong>Roll die</strong>. An odd roll keeps A and an even roll keeps B. The surviving half becomes a real mark for the pair's owner, any entangled partners are forced at the same time, and the emptied squares become available again.</p>
-    <p><strong>Continue or finish:</strong> after every pair is measured, three real X's or O's in a row wins. Spooky marks never count toward a win. If nobody has won and empty squares remain, the next player continues placing until every square is filled again. Repeat until a win or a draw. A full board of real marks with no winning line is a draw.</p>
-    <p><strong>Conventions for details Goff leaves open here:</strong> odd → A and even → B; placement and measurement share one alternating turn order; if both players hold a winning line once all pairs are measured, the game is a draw. Dice rolls are generated locally and require no internet.</p>
-    <p><strong>Controls:</strong> click the pad or press 1–9. During measurement a shared square selects only the current player's marks; repeated clicks cycle between that player's pairs if there are two. Squares holding only the other player's marks are disabled. Escape cancels a pending selection. Undo cancels a selection or reverses the last placement or measurement. New game starts over. For projection, open this file directly in a browser and click Full screen.</p>
-    <p>Superposition, shared squares, entanglement, and collapse follow Allan Goff, <em>Quantum tic-tac-toe: A teaching metaphor for superposition in quantum mechanics</em>, American Journal of Physics 74 (2006), pp. 962–973.</p>
+    <p>Try for three in a row. In this version, you can put a spooky mark in two squares at once. Only real marks count toward a win.</p>
+    <ol>
+      <li><strong>Place a mark.</strong> Take turns as X and O. Choose <strong>Classical</strong> to lock one empty square with a real mark. Choose <strong>Superposition</strong> to put two matching spooky marks in two different squares. Your first choice is A and your second is B. A square can hold two spooky marks, or one real mark.</li>
+      <li><strong>Roll when every square has a mark.</strong> Choose one of your own pairs and tap <strong>Roll die</strong>. Odd keeps A. Even keeps B. The half you keep becomes a real mark and the other half disappears. Pass the turn if you have no pair left.</li>
+
+      <li><strong>Watch for a chain.</strong> If another pair shares the square that just became real, its other half has to become real. One roll can settle several linked pairs. The game shows what happened after the roll.</li>
+
+      <li><strong>Check for a winner.</strong> After all pairs have been settled, look for three real marks in a row. If both players have a line, it’s a draw. If neither has a line, use any empty squares to keep playing. A full board of real marks without a line is a draw.</li>
+    </ol>
+    <p><strong>Board controls.</strong> Tap the pad or use keys 1–9. If two of your own pairs share a square, tap it again to switch between them. Escape cancels a selection. Undo backs up a move. Use Full screen when you’re sharing the board with a class.</p>
+    <p>Based on Allan Goff’s <i>Quantum tic-tac-toe</i> (<i>American Journal of Physics</i>, 2006). The first two versions use a die to settle a pair.</p>
   </details>
 </main>
 <script>

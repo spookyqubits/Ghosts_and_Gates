@@ -166,14 +166,16 @@ body[data-phase="collapse"] #event {display:none}
       </div>
     </aside>
   </div>
-  <details>
-    <summary>How to play and score</summary>
-    <p><strong>Place:</strong> every move is one pair of spooky marks. X takes odd-numbered moves and O takes even-numbered moves. Put the pair in two different squares that do not contain real marks. Spooky marks from any number of earlier moves may share a square. If only one nonclassical square remains on move nine, both marks go there.</p>
-    <p><strong>Entangle:</strong> pairs sharing a square become entangled. If a new pair closes a loop, the entire connected group—including any stems—must collapse. Its marks are underlined while a collapse choice is pending.</p>
-    <p><strong>Collapse:</strong> the player who <em>did not</em> close the loop chooses which square receives the loop-closing pair. That choice forces every linked pair into one square. The kept halves become real marks; the rejected halves disappear. Real squares are locked. Choosing the collapse does not use the chooser’s regular move.</p>
-    <p><strong>Win:</strong> only real marks count. Three real marks in a row wins after a collapse. If one collapse produces several rows, a row’s completion number is its largest move number. Each row with the smallest completion number scores 1 point and later rows score ½ point; the higher total wins. Equal totals are a draw. If move nine produces no real three-in-a-row, the game is a cat’s game (tie).</p>
-    <p><strong>Controls:</strong> use the right-side pad or keys 1–9. Escape cancels the first square. During a cycle, choose either destination offered for the newest pair. Each pair has a color, move number, and halves A and B. After choosing a collapse, click Next step, either highlighted square, or press Enter, Right Arrow, or Page Down to resolve each forced mark. Orange shows the departing mark; green shows its destination. Wins are checked only when the whole group is resolved. Undo cancels a selection or reverses one placement, collapse choice, or chain step. New game resets everything. Full screen is best for projection.</p>
-    <p>Rules follow Allan Goff, “Quantum tic-tac-toe: A teaching metaphor for superposition in quantum mechanics,” <em>American Journal of Physics</em> 74 (2006), pp. 962–973. The score calculation uses the classical move-order method described for simultaneous three-in-a-rows.</p>
+  <details><summary>How to play and score</summary>
+    <p>Only real marks count toward three in a row. In this version, every turn starts with a pair of spooky marks.</p>
+    <ol>
+      <li><strong>Pick two squares.</strong> Choose any two different squares without real marks. Earlier spooky marks can share them. On move nine, if only one unlocked square is left, put both halves there.</li>
+      <li><strong>Spot the loop.</strong> Picture each pair as a line connecting its two squares. When a new pair closes a loop, the connected marks are underlined. All the linked pairs, including any branches off the loop, now have to settle.</li>
+      <li><strong>Let the other player choose.</strong> The player who didn’t close the loop chooses where the newest pair becomes real. Tap <strong>Next step</strong> to see each linked pair settle. Green shows where a mark lands and orange shows which one leaves. The player who made the choice still gets their normal turn.</li>
+    </ol>
+    <p><strong>Who wins?</strong> Check for three real marks in a row after the whole chain settles. If several lines appear at once, find the highest move number in each line. Each line with the smallest of those numbers earns one point. Each later line earns half a point. Higher score wins. Equal scores, or no line after move nine, make a draw.</p>
+    <p><strong>Board controls.</strong> Use the pad or keys 1–9. Escape clears your first choice. During a chain, you can tap either highlighted square to step through it, or press Enter, Right Arrow, or Page Down. Undo backs up one choice or step. Use Full screen to project the board.</p>
+    <p>Based on Allan Goff’s <i>Quantum tic-tac-toe</i> (<i>American Journal of Physics</i>, 2006), including his scoring by move order.</p>
   </details>
 </main>
 <script>

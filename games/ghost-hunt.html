@@ -215,28 +215,28 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
   </section>
 
   <details><summary>How to play</summary>
-    <p><b>Solo quick play.</b> Play a six-night duel against the computer. On your hunts, choosing a round count runs those rounds together; then LOOK. On your hiding nights, pick rooms and lock them in. The tracker keeps the arithmetic available. Turn off “Resolve chosen rounds together” or enable math practice to take every step yourself. New duel keeps your settings.</p>
-    <p><b>The idea.</b> A ghost hides in one of 8 rooms, numbered in binary from 000 to 111. A quantum computer spreads a search wave over every room (4 in each room). It cannot look at the wave, but it can change it.</p>
-    <p><b>One round = flip, then reflect.</b> 1. FLIP: the ghost room's wave changes sign (only the hider knows which room). 2. AVERAGE: add all 8 rooms and divide by 8. 3. REFLECT: every room's new wave = 2 × average − old wave. 4. CHECK: the squares of all 8 waves still add up to 128.</p>
-    <p><b>Two numbers are enough.</b> Every empty room always has the same wave, so you only track G (each ghost room) and E (each empty room). With M ghosts: average = (M × (−G) + (8 − M) × E) ÷ 8, new G = 2 × average + G, new E = 2 × average − E.</p>
-    <p><b>Look.</b> Flip 7 coins and read them as a binary number from 0 to 127. If it is less than M × G², you caught a ghost.</p>
-    <p><b>Ghost Duel.</b> The hider secretly picks 1, 2 or 3 ghost rooms. The hunter then picks 0 to 3 rounds without knowing how many ghosts there are. The game reveals the number of ghosts (not where they are), runs the rounds, and the hunter looks. Swap roles each night; 6 nights.</p>
+    <p>Can you catch a ghost without knowing where it’s hiding? Choose <strong>Solo quick play</strong> to take turns hunting and hiding against the computer.</p>
+    <ol>
+      <li><strong>Hide.</strong> The hider puts ghosts in one, two, or three of the eight rooms and locks them in.</li>
+      <li><strong>Choose how long to search.</strong> The hunter picks zero to three rounds before seeing how many ghosts are hiding. The game then reveals how many there are and changes the room waves for the chosen number of rounds.</li>
+      <li><strong>Look.</strong> The game shows your catch chance. Flip the seven coins to see whether you caught a ghost. A catch earns the hunter one point. Switch roles for the next night and play six nights in all.</li>
+    </ol>
+    <p>Want to see the arithmetic? Turn off <strong>Resolve chosen rounds together</strong> to follow each step. Choose <strong>Type the answers first (math practice)</strong> to work it out before the game reveals the answer.</p>
+    <p><strong>Try one round in the lab.</strong> Start with 4 in each room. Flip the sign in each room with a ghost, find the mean of all eight values, then reflect each value across that mean. If an old value is 2 below the mean, its new value is 2 above. A room’s new value is twice the mean minus its old value.</p>
   </details>
   <details><summary>Why it works</summary>
-    <p>This is Grover's quantum search algorithm (1996). The flip is the "oracle", which marks the answer. Reflecting around the average is the "diffusion" step. Each round moves a little more of the wave into the ghost room, but too many rounds push it back out again. With 1,000,000 rooms and one ghost, the first peak is at 785 rounds; with 1,048,576 rooms (2²⁰), it is at 804 rounds. A normal search needs about half the rooms on average. A real quantum computer does the flip and reflect with gates on qubits; here you do the same arithmetic by hand.</p>
+    <p>Try the lab with eight rooms and one ghost. Before you do anything, the catch chance is 1 in 8. It rises to about 78% after one round and about 95% after two. Try a third round and watch the chance drop. Timing matters as much as finding a way to boost the odds.</p>
+    <p>This is the idea behind Grover’s quantum search. The <strong>flip</strong> marks a hiding place by changing the sign of its wave. The <strong>reflection</strong> changes every room’s wave using the new mean. Squaring the room values turns those waves into weights for the final look. The chance of a catch is the share of the total weight in rooms with ghosts.</p>
+    <p>Each run starts with one wave spread evenly over the rooms. A quantum circuit uses gates to perform the same sign changes and reflections you see here.</p>
   </details>
   <details><summary>For teachers</summary>
-    <table><tr><th>In the game</th><th>Math or computer-science idea</th></tr>
-      <tr><td>Flip: the ghost room's wave becomes its opposite</td><td>The opposite of the opposite is the number itself (CCSS 6.NS.C.6.a)</td></tr>
-      <tr><td>Average of the 8 rooms</td><td>The mean (CCSS 6.SP.B.5.c)</td></tr>
-      <tr><td>Reflect: 2 × average − old</td><td>Distance on the number line and rational-number arithmetic (CCSS 7.NS.A.1.b, 7.NS.A.3)</td></tr>
-      <tr><td>Squares add up to 128</td><td>Whole-number exponents (6.EE.A.1); a checksum for catching mistakes</td></tr>
-      <tr><td>Chance = M × G² ÷ 128; coin look</td><td>Probability models (7.SP.C.7)</td></tr>
-      <tr><td>Rooms 000–111, 7-coin binary number</td><td>Binary numbers and data encoding (CSTA 2-DA-07)</td></tr>
-      <tr><td>Repeat "flip, reflect" and stop at the right time; the 128 check as a test</td><td>Loops and testing (CSTA 2017: 2-AP-12, 2-AP-17)</td></tr>
-      <tr><td>Best rounds ≈ 0.785 × √rooms</td><td>Square roots (CCSS 8.EE.A.2)</td></tr></table>
-    <p><b>Faithfulness.</b> The two-number rule is exactly Grover's algorithm: it matches the real circuit (Hadamard gates, oracle, diffusion) for every hiding place. The 7-coin look matches the exact chance to within 0.6%.</p>
-    <p><b>Background.</b> Hadamard's Hoard (Institute for Quantum Computing, University of Waterloo) is an earlier quantum-search board game. In it a quantum player races a classical player along a track of preset chances. Ghost Hunt instead has students compute the waves themselves and adds the hidden number of ghosts.</p>
+    <p>Project the lab with eight rooms and one ghost. Take a vote before each round. “Will our chance go up again?” Record the chance for zero, one, two, and three rounds, then ask groups where they would stop and why.</p>
+    <p><strong>Work one round on paper.</strong> Have one group compute the mean after the sign flip. Ask another to reflect the room values. The squares still add to 128. Use that as a quick way to catch arithmetic slips before anyone looks for the ghost.</p>
+    <p>For a shorter calculation, call the wave in each ghost room G and the wave in each empty room E. With M ghosts, after the flip the mean is (M × (−G) + (8 − M) × E) ÷ 8. Then the new G is twice that mean plus G, and the new E is twice that mean minus E.</p>
+    <p><strong>Connect the math.</strong> The game uses opposites (CCSS 6.NS.C.6.a), the mean (6.SP.B.5.c), rational-number arithmetic (7.NS.A.1.b and 7.NS.A.3), squares (6.EE.A.1), probability (7.SP.C.7), and binary numbers (CSTA 2-DA-07).</p>
+    <p>For a bigger example, open the hotel size tool and compare one ghost in 1,000,000 rooms with one in 1,048,576 rooms. The best first stopping points are 785 and 804 rounds, respectively. Ask why quadrupling the number of rooms roughly doubles the best round count.</p>
+    <p>For tabletop play, read the seven coins as a binary number, with Heads as 1 and Tails as 0. The hunter catches a ghost when that number is smaller than the combined squared weight of the marked rooms. With fractional weights, the coin method approximates the game’s ideal probability.</p>
+    <p>Ghost Hunt builds on a tradition of classroom search games that includes the University of Waterloo’s <i>Hadamard’s Hoard</i>.</p>
   </details>
   <p class="credit">Ghost Hunt · works offline in any browser.</p>
 </main>

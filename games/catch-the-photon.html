@@ -320,38 +320,29 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
   </div>
 
   <details><summary>How to play</summary>
-    <p><b>Goal.</b> Make your detector bright and your opponent's dark, then catch the photon.</p>
-    <p><a class="text-link" href="CatchThePhoton_Wave_Cards.html" target="_blank" rel="noopener">Print the 40 wave cards ↗</a></p>
-    <p><b>Cards.</b> The arrow gives the direction; the number is wave strength (amplitude) and tells you how many squares to move. ↑ up is blue, ↓ down red, → right purple, and ← left gold. There are 40 cards: seven strength-1 and three strength-2 cards per direction. The small plots all use the same scale and frequency.</p>
+    <p>Make your detector brighter so it has a better chance of catching the photon. Try <strong>Solo quick play</strong> for your first game, or take turns with a friend.</p>
     <ol>
-      <li><b>Choose.</b> Start with three cards each. Secretly pick one card and either detector. Build your own wave or try to cancel your opponent’s.</li>
-      <li><b>Reveal and move.</b> Apply A’s card first, then B’s. Move the chosen token in the arrow’s direction by the full card strength. ↑2 and ↓1 leave ↑1; ↑2 and ↓2 cancel.</li>
-      <li><b>Refill and repeat.</b> Refill hands to three. Play 8 rounds. If both detectors end dark, play another round.</li>
-      <li><b>Catch.</b> Draw from exactly 64 equal-sized slips: blue equal to A’s brightness, purple equal to B’s, gray for the rest. Blue or purple wins. Return gray, mix, and send a new photon with the same settings. The browser handles retries.</li>
+      <li><strong>Pick a card and a detector.</strong> The arrow tells you which way to move the token. The number tells you how many squares to move. A <strong>↑2</strong> card moves it up two squares. You can build up your own detector or move the other player’s token closer to the center to dim it.</li>
+      <li><strong>Reveal both cards.</strong> A moves first, then B. Refill to three cards and keep going for eight rounds. If both detectors are dark at the end, play one more round.</li>
+      <li><strong>Fire the photon.</strong> Blue means A caught it. Purple means B caught it. Gray means it missed both detectors. The browser sends a fresh photon after a miss.</li>
     </ol>
-    <p><b>Solo quick play.</b> Click “Solo quick play” to show your hand and play against the computer. Each choice resolves both cards and starts the next round. “New game” keeps your play mode for an easy replay.</p>
-    <p><b>Passing one screen.</b> The other player looks away before you show your cards. For a projector, open <b>Play options → Open hands</b>. Computer play and brightness hints are there too.</p>
-    <p><b>Edge of the board.</b> Choose a full move that stays on the board. If A’s move makes B’s already-chosen move leave the board, B’s card is lost. Never make a partial move. With no legal move on either detector, discard the first card.</p>
-    <p><b>Hear a move.</b> Pick a card, open “Hear a move”, then preview it on A or B before choosing its target. In Wave lab, try the musical challenges or open “Try an example”.</p>
+    <p>Try this on the board. Move up two squares, then down one. You finish one square above the center. Move down one more and the detector goes dark.</p>
+    <p><strong>When you reach the edge.</strong> Choose a move that fits in full. If A’s move leaves B’s chosen move blocked, B loses that card. If you have no legal move on either detector, discard your first card.</p>
+    <p><strong>Sharing a screen?</strong> Look away while the other player picks. For a class demonstration, open <strong>Play options</strong> and choose <strong>Open hands</strong>. To hear how a card would change a wave before you play it, choose a card and open <strong>Hear a move</strong>.</p>
+    <p><strong>Playing with paper?</strong> Use <a class="text-link" href="CatchThePhoton_Wave_Cards.html" target="_blank" rel="noopener">the 40 printable wave cards</a>. Fill a cup with blue slips equal to A’s brightness, purple slips equal to B’s, and enough gray slips to make 64. Draw one. After a gray draw, return the slip and mix before trying again.</p>
   </details>
   <details><summary>Why it works</summary>
-    <p><b>The musical sound model.</b> Every contribution shares the same three notes and timing. The arrow sets phase within each note, and strength sets amplitude. The app adds wave components before playback, using a fixed audio scale. Equal opposite contributions cancel the whole tune. The sound is an audible model of wave interference. Detector A and B are auditioned separately.</p>
-    <p>The arrow is a direction on the amplitude board, not the photon’s travel direction. It represents the <b>phase</b>: where a wave starts in its cycle. The number gives its <b>amplitude</b>. Up starts at a crest, down at a trough, right at zero rising, and left at zero falling. Adding these waves means adding their arrows tip to tail.</p>
-    <p>In-step amplitudes add. Opposite phases subtract; equal opposites cancel completely. Two equal waves a quarter-cycle apart have a combined amplitude about 1.4 times either one. The plots show a wave value over time, not the path of a photon.</p>
-    <p>At board position (x, y), brightness is x² + y². Each detector reaches at most 32, so together they use at most 64 slips. <b>Per photon:</b> A’s chance is A brightness ÷ 64, B’s is B brightness ÷ 64, and the missed chance is the remaining share. Brightnesses 25 and 9 give 25/64, 9/64, and 30/64. <b>Among detections:</b> A wins with chance 25/34 and B with 9/34. Replacing gray slips and sending identical new photons preserves those eventual-win odds. A missed photon is gone; the next attempt uses a new photon.</p>
+    <p>Play an up arrow and an equal down arrow. The token comes back to the center and the brightness drops to zero. That’s <strong>interference</strong> you can see on the board and hear in the Wave lab.</p>
+    <p>The number on a card is its wave’s strength, or <strong>amplitude</strong>. The arrow stands for <strong>phase</strong>, where the wave starts in its cycle. Up starts at a crest, down at a trough, right at zero and rising, and left at zero and falling. Waves that rise and fall together reinforce each other. Equal waves half a cycle apart cancel. Two equal waves a quarter of a cycle apart make a wave about 1.4 times as strong as either one.</p>
+    <p>In <strong>Hear a move</strong>, each wave uses the same three notes. Changing the arrow shifts the start of each note. Try two equally strong waves in opposite directions and listen as the whole tune disappears.</p>
+    <p>From a board position (x, y), the brightness is x² + y². With brightness 25 on A and 9 on B, each photon has a 25-in-64 chance of reaching A, a 9-in-64 chance of reaching B, and a 30-in-64 chance of missing both. Of the photons that are caught, about 74% reach A (25 out of 34).</p>
   </details>
   <details><summary>For teachers</summary>
-    <table><tr><th>In the game</th><th>Math or science idea</th></tr>
-      <tr><td>The board is a grid around a center</td><td>Coordinate plane, four quadrants (CCSS 6.NS.C.8)</td></tr>
-      <tr><td>↑1 + ↓1 = 0; →2 + ←2 = 0</td><td>Opposite quantities combine to make 0 (CCSS 7.NS.A.1a)</td></tr>
-      <tr><td>Brightness = height × height</td><td>Whole-number exponents (CCSS 6.EE.A.1)</td></tr>
-      <tr><td>Brightness = distance² from the center</td><td>Pythagorean theorem and distance in the coordinate plane (CCSS 8.G.B.7–8)</td></tr>
-      <tr><td>The photon bar</td><td>Probability models (CCSS 7.SP.C.7); the Born rule of quantum physics</td></tr>
-      <tr><td>Twice the height, four times the brightness</td><td>Wave amplitude and energy (NGSS MS-PS4-1; that standard's assessment excludes light, so you can call these sound or water waves)</td></tr></table>
-    <p><b>A physical detection model.</b> An ideal source sends one photon at a time into a 50:50 splitter. Each branch has an adjustable loss channel and an ideal detector. Set the branch transmissions to A brightness ÷ 32 and B brightness ÷ 32. Then the per-photon detection probabilities are exactly A brightness ÷ 64 and B brightness ÷ 64; all other photons leave through loss channels and are not detected at A or B. Both detectors can brighten as losses decrease.</p>
-    <p><b>What the cards represent.</b> Cards add four-phase wave contributions on the amplitude board. The resulting brightness sets each branch’s transmission. This reproduces the stated detection probabilities; a card is not literally a newly opened optical path or a physical gate. The board is a wave-arithmetic teaching model, not a detailed optical interferometer. Interference can redirect light to other outputs; cancellation does not itself prove absorption. Real waves can have any phase; the cards use four.</p>
-    <p><b>Sound physics reference.</b> Joe Wolfe, UNSW, <a class="text-link" href="https://newt.phys.unsw.edu.au/jw/musFAQ.html" target="_blank" rel="noopener"><i>Acoustics FAQ</i> ↗</a>: background on phase, reinforcement and cancellation.</p>
-    <p><b>Background.</b> The arrow method comes from Feynman's <i>QED</i> (1985). Choudhary and Blair's "phasor wheels" (<i>European Journal of Physics</i>, 2021) use the same idea as a hands-on tool for middle school and up.</p>
+    <p><strong>Start with the sound off.</strong> Put a token two squares above the center and ask, “Which card takes us back to zero?” Have students explain their choice, then play it. Repeat with sound on in the Wave lab. Ask what they expect to hear before you play the result.</p>
+    <p><strong>Then compare the odds.</strong> Try one square from the center and then two in the same direction. Why does doubling the distance make the brightness four times as large? Ask students to use the 64-slip cup to explain how brightness changes the chance of a catch.</p>
+    <p><strong>Connect it to class.</strong> The board practices coordinates (6.NS.C.8), opposite quantities (7.NS.A.1a), squares and distance (6.EE.A.1 and 8.G.B.7–8), and probability (7.SP.C.7). Use the sound waves for the amplitude and energy connection in NGSS MS-PS4-1.</p>
+    <p><strong>What the model shows.</strong> The arrows stand for wave contributions. Their sum sets detector brightness through the squared amplitude, the idea behind the Born rule. An ideal optical setup with the same odds sends one photon into a 50:50 splitter. Each arm transmits a fraction equal to its brightness divided by 32. Photons that leave through a loss channel reach neither detector. The board simplifies the wave arithmetic to four phases. A real interferometer can redirect light to other outputs.</p>
+    <p>For background, see Joe Wolfe’s <a class="text-link" href="https://newt.phys.unsw.edu.au/jw/musFAQ.html" target="_blank" rel="noopener">Acoustics FAQ</a>, Feynman’s <i>QED</i> (1985), and Choudhary and Blair’s phasor wheels (<i>European Journal of Physics</i>, 2021).</p>
   </details>
   <p class="credit">Catch the Photon · works offline in any browser.</p>
 </main>

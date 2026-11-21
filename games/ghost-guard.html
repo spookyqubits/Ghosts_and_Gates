@@ -262,31 +262,26 @@ details td, details th { border: 1px solid #d9dce4; padding: 5px 10px; text-alig
     </div>
   </section>
 
-  <details>
-    <summary>How to play</summary>
-    <p><b>Goal.</b> The Keeper hides a ghost in the box: a row of three HEADS coins and a row of three TAILS coins, each with its own chips (the secret). The <b style="color:var(--g)">Guardian</b> wins if after seven nights the ghost comes back exactly as it started. The <b style="color:var(--r)">Gremlin</b> wins if it does not.</p>
-    <p><b>Hands.</b> Guardian: 3 Check + 4 Rest. Gremlin: 2 Flip + 5 Calm (Level 2: one Calm becomes a Sign). Every night each player plays one card face-down.</p>
+  <details><summary>How to play</summary>
+    <p>You’re guarding a secret ghost. The <strong>Gremlin</strong> tries to change it. The <strong>Guardian</strong> gets just three Check cards to see what’s gone wrong. A third player can be the <strong>Keeper</strong> when you play with real coins. In the browser, the game handles the hidden box.</p>
+    <ol>
+      <li><strong>Set up the secret.</strong> Level 0 uses one hidden row. Starting at Level 1, use three HEADS coins in one row and three TAILS coins in the other, with chips for each row. The Keeper keeps the secret hidden.</li>
+      <li><strong>Play seven nights.</strong> Pick your cards secretly. Each night the Keeper handles the Gremlin’s move first, then the Guardian’s. The Gremlin can Flip twice and plays Calm the other nights. The Guardian can Check three times and Rests the other nights.</li>
+      <li><strong>Check and fix.</strong> The Keeper tells you whether coins 1 and 2 match, then whether coins 2 and 3 match. Use the table to decide which coin to turn. For example, if the first pair differs and the second pair matches, turn coin 1 in every row.</li>
+      <li><strong>Open the box.</strong> After night seven there’s a free final Check and Fix. The Guardian wins if the rows and chip colors match the original secret. Otherwise, the Gremlin wins.</li>
+    </ol>
     <table>
-      <tr><th>Card</th><th>What the Keeper does</th></tr>
-      <tr><td>Calm</td><td>Nothing.</td></tr>
-      <tr><td>Flip k</td><td>Turns coin k over <b>in both rows</b>.</td></tr>
-      <tr><td>Sign k</td><td>In every row whose coin k shows TAILS, swaps every chip's colour.</td></tr>
-      <tr><td>Rest</td><td>Nothing.</td></tr>
-      <tr><td>Check</td><td>Says only: "Coins 1 &amp; 2 match / don't match. Coins 2 &amp; 3 match / don't match." The answer is the same for both rows.</td></tr>
-      <tr><td>Peek k</td><td>Shows coin k, but the ghost must pick one row (chance ∝ chips²). The other row is lost, and so is the secret.</td></tr>
+      <tr><th>Coins 1 and 2</th><th>Coins 2 and 3</th><th>What to turn</th></tr>
+      <tr><td>Match</td><td>Match</td><td>Nothing</td></tr>
+      <tr><td>Differ</td><td>Match</td><td>Coin 1</td></tr>
+      <tr><td>Differ</td><td>Differ</td><td>Coin 2</td></tr>
+      <tr><td>Match</td><td>Differ</td><td>Coin 3</td></tr>
     </table>
-    <p><b>Check table.</b></p>
-    <table>
-      <tr><th>Coins 1 &amp; 2</th><th>Coins 2 &amp; 3</th><th>Turn</th></tr>
-      <tr><td>match</td><td>match</td><td>nothing</td></tr>
-      <tr><td>don't match</td><td>match</td><td>coin 1</td></tr>
-      <tr><td>don't match</td><td>don't match</td><td>coin 2</td></tr>
-      <tr><td>match</td><td>don't match</td><td>coin 3</td></tr>
-    </table>
-    <p><b>End.</b> After night 7 there is one free final Check and Fix. Then the box opens. Same chips, same colours, same rows: the Guardian wins.</p>
-    <p><b>Level 2 is a diagnosis.</b> The single Sign error cannot be repaired by the available Check and Flip cards. Try the short Sign + Check example, compare the chip colours with the secret, then explain what is missing. You can also explore all seven nights. Neither route adds a duel win or loss.</p>
-    <p><b>The physics.</b> The two rows are the two parts of one qubit stored in three qubits (the 3-qubit bit-flip code). Chips are amplitudes, colours are signs. Flip is a bit-flip error (X), Sign is a phase error (Z), Check measures the parities Z₁Z₂ and Z₂Z₃, and Peek is a measurement that collapses the superposition. Two flips between checks make the Guardian "fix" the wrong coin and swap the rows: a logical error.</p>
-    <p class="credit">Ghost Guard builds on Ghost Grid’s collapse mechanic. Ghost Grid used QCaMP’s <cite>Quantum Tic Tac Toe: Two versions</cite>. Works offline. The Level 1 computer uses equilibrium strategies. Level 2 explores the limits of the bit-flip code through an unscored diagnosis.</p>
+    <p><strong>What about Peek?</strong> Peek shows a coin directly. The ghost then has to choose one row, with odds set by the squared chip amplitudes. You lose the other row and the original secret.</p>
+    <p><strong>Try Level 2.</strong> One of the Gremlin’s Calm cards becomes Sign. That card swaps the chip colors in each row where the named coin shows TAILS. Try <strong>Inspect one Sign + Check</strong>, or play through all seven nights. Compare the chip colors with the Check answers and see if you can explain the change. Level 2 is a practice challenge without a duel score.</p>
+    <p><strong>Why the checks work.</strong> Check tells you how neighboring coins compare. One flip leaves a pattern that tells you which coin to turn. Two flips between checks can look just like a single flip in the other coin, so the fix can swap the two rows. Sign changes the chips while leaving the coin comparisons the same.</p>
+    <p><strong>The quantum connection.</strong> This is the three-qubit bit-flip code. The chip colors give the signs of the two amplitudes. Flip models an X error, Sign models a Z error, and the two comparisons model the parity checks Z₁Z₂ and Z₂Z₃.</p>
+    <p class="credit">Ghost Guard builds on Ghost Grid’s collapse mechanic. Ghost Grid used QCaMP’s <cite>Quantum Tic Tac Toe: Two versions</cite>.</p>
   </details>
   <pre id="selftest"></pre>
 </main>
