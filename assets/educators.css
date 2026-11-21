@@ -1,0 +1,63 @@
+.educators {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: start;
+  padding-block: clamp(2rem, 6vw, 4rem);
+}
+
+.classroom-intro h1 {
+  margin: 0;
+  font-size: clamp(2.3rem, 6vw, 4.25rem);
+  line-height: 1.05;
+  letter-spacing: -.05em;
+}
+
+.classroom-intro p {
+  max-width: 39ch;
+  margin: 1.25rem 0 1.5rem;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.classroom-intro .download-caption {
+  margin: .55rem 0 0;
+  font-size: .8125rem;
+}
+
+.teacher-steps {
+  padding: clamp(1.15rem, 3vw, 2.15rem);
+  border: 1px solid #e1dbcf;
+  border-radius: var(--radius);
+  background: #efece2;
+}
+
+.teacher-steps section + section {
+  margin-top: 1.15rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid #d9d6cb;
+}
+
+.teacher-steps h2 {
+  margin: 0 0 .4rem;
+  font-size: 1.125rem;
+}
+
+.teacher-steps p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.teacher-steps a {
+  color: var(--ink);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: .18em;
+}
+
+.teacher-steps a:hover { color: var(--red); }
+
+@media (max-width: 700px) {
+  .educators { grid-template-columns: 1fr; }
+}
