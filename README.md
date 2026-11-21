@@ -79,6 +79,6 @@ For the underlying science, see IBM Quantum Learning on [Grover iteration counts
 
 ## Credits and model scope
 
-Credits in original games and guides are retained. The collection uses QCaMP classroom materials; the site does not claim to be an official QCaMP website. Ghost Grid draws on Allan Goff’s quantum tic-tac-toe. No new blanket license is assigned to source material.
+Credits in original games and guides are retained. Ghost Grid draws on Allan Goff’s quantum tic-tac-toe. No new blanket license is assigned to source material.
 
 Each game’s resource panel describes its model and limitations. In particular, Ghost Grid is a metaphor, Catch the Photon uses wave arithmetic to set an ideal lossy detection setup: a 50:50 splitter and two independently controlled loss channels; cards are not literal optical paths or physical gates, and Ghost Guard’s bit-flip code does not correct every kind of quantum error.
