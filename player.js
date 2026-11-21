@@ -13,6 +13,7 @@
   const announce = document.querySelector('#player-announcement');
   const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   document.title = `${game.name} — SpookyQubits`;
+  if (game.id === 'ghost-coin') document.body.classList.add('ghost-coin-page');
   for (const item of catalog) selector.add(new Option(item.name, item.id, false, item === game));
   selector.addEventListener('change', () => { location.href = `play.html?game=${encodeURIComponent(selector.value)}`; });
   const links = game.resources.map(item => `<a class="resource-link" href="${item.file}" download><span>${escape(item.name)}</span><span aria-hidden="true">↓</span></a>`).join('');

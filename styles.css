@@ -29,3 +29,6 @@
 .materials-card .eyebrow,.materials-card .text-link{color:#215844}
 .labs-card{background:#e9edf8;border-color:#c6cfe5}
 .labs-card .eyebrow,.labs-card .text-link{color:#31547b}
+
+.ghost-coin-page .screen-note { display: none; }
+.ghost-coin-page .game-area iframe { min-width: 0 !important; }
