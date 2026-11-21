@@ -33,23 +33,27 @@
 .ghost-coin-page .screen-note { display: none; }
 .ghost-coin-page .game-area iframe { min-width: 0 !important; }
 
-.site-header nav > a.concept-nav-link {
+.site-header nav > a.page-nav-link {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
   white-space: nowrap;
 }
 
-@media (min-width: 801px) and (max-width: 980px) {
-  .home-header nav { gap: 12px; }
+@media (min-width: 801px) and (max-width: 1050px) {
+  .home-header nav { gap: 14px; }
 }
 
-@media (max-width: 640px) {
-  .home-header { height: auto; min-height: 78px; flex-wrap: wrap; row-gap: 8px; padding-block: 12px; }
+@media (max-width: 1050px) {
+  .home-header { height: auto; min-height: 102px; flex-wrap: wrap; row-gap: 8px; padding-block: 12px; }
   .home-header nav { flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
+}
+
+@media (max-width: 800px) {
+  .home-header { min-height: 78px; }
 }
 
 @media (max-width: 560px) {
   .home-header { min-height: 73px; }
-  .home-header .concept-nav-link { font-size: 12px; }
+  .home-header .page-nav-link { font-size: 12px; }
 }
