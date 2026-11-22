@@ -35,7 +35,7 @@
       const frame = document.createElement('iframe');
       frame.title = `${game.name}: ${item.name}`;
       const target = item.file + (params.get('solo') === '1' && game.quickPlay ? '?solo=1' : '');
-      frame.src = target;
+      frame.src = target + '#sq-embedded-header';
       frame.allow = 'fullscreen';
       frame.setAttribute('allowfullscreen', '');
       area.append(frame);
