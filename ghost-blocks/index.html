@@ -125,20 +125,22 @@
         <p>Make a quantum game or simulation with drag-and-drop blocks. Start with Schrödinger’s Cat, or see what you can build with qubits of your own.</p>
         <div class="blocks-actions">
           <a class="button primary" href="editor/">Open Ghost Blocks Editor</a>
-          <a class="button light" href="editor/?starter=cat">Try Schrödinger’s Cat</a>
+          <a class="button light" href="editor/?starter=cat">Try the Cat Decay Lab</a>
         </div>
       </div>
       <img width="600" height="372" src="assets/ghost-blocks.svg" alt="">
     </section>
     <section class="blocks-help" aria-label="Getting started">
       <article>
-        <h2>Run the cat experiment</h2>
+        <h2>Test radioactive decay</h2>
         <ol>
-          <li>Open the starter and click the green flag.</li>
-          <li>Click the box. Compare the atom and cat results. The cat is asleep for 0 and awake for 1.</li>
-          <li>Reset with the green flag. Run several trials and tally how often the cat wakes up.</li>
+          <li>Open the lab, click the green flag, and choose how many half-lives to wait.</li>
+          <li>Run one trial. If the simulated nucleus decays, the ideal detector records a click and triggers the outcome for the cat.</li>
+          <li>Run 100 trials at each of 1, 2, and 3 half-lives. Compare your measured percentages with the predicted 50%, 75%, and 87.5%.</li>
         </ol>
-        <p><a href="projects/schrodingers-cat.sb3" download>Download the cat starter (.sb3)</a></p>
+        <p>After <var>t</var> half-lives, the probability of decay is 1 − 2<sup>−<var>t</var></sup>. The lab checks at whole half-life intervals. <a href="https://openstax.org/books/university-physics-volume-3/pages/10-3-radioactive-decay">Decay model</a></p>
+        <p>The lab tests decay statistics. Schrödinger’s thought experiment asks how a quantum event leads to a definite outcome at the scale of a cat. <a href="https://www.aps.org/apsnews/2002/03/march-1935-schroedingers-paradoxical-cat">Original thought experiment</a></p>
+        <p><a href="projects/schrodingers-cat.sb3" download>Download the decay lab (.sb3)</a> · <a href="projects/schrodingers-cat-intro.sb3" download>Download the original 50/50 starter (.sb3)</a></p>
       </article>
       <article>
         <h2>Make a project of your own</h2>
