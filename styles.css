@@ -64,3 +64,6 @@
   color: var(--muted);
   font-size: .875rem;
 }
+
+.ghost-blocks-card { background: #fce9e6; border-color: #e5c6c1; }
+.ghost-blocks-card .collection-quick-play { color: #a52232; background: #fffaf6; border-color: #dba6a7; }
