@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#faf7f1">
-  <meta name="description" content="Build games and quantum simulations with drag-and-drop blocks. Start with Schrödinger’s Cat or make your own project.">
+  <meta name="description" content="Build games and quantum simulations in Scratch. Explore the Cat Decay Lab and look up every Ghost Blocks command and reporter.">
   <title>Ghost Blocks | SpookyQubits</title>
   <link rel="icon" href="../assets/ghost.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../styles.css">
@@ -24,12 +24,30 @@
     .blocks-help p:last-child{margin-bottom:0}
     .blocks-help li+li{margin-top:9px}
     .blocks-help a,.blocks-footer a{text-decoration:underline;text-underline-offset:3px}
-    .blocks-reference{margin-bottom:36px;border:1px solid var(--line);border-radius:18px;background:#fffaf5;padding:clamp(18px,4vw,32px)}
-    .blocks-reference summary{cursor:pointer;font-size:1.3rem;font-weight:750}
-    .blocks-reference p,.blocks-reference li{line-height:1.6}
-    .blocks-reference li+li{margin-top:9px}
+    .blocks-reference{margin-bottom:40px}
+    .blocks-reference h2{font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-.055em;margin:0}
+    .blocks-reference h3{font-size:1.55rem;letter-spacing:-.035em;margin:0 0 14px}
+    .blocks-reference h4{font-size:1.05rem;margin:0 0 6px}
+    .blocks-reference p,.blocks-reference li,.blocks-reference dd{line-height:1.6;max-width:76ch}
+    .blocks-reference-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 24px}
+    .blocks-reference-head .button{border:1px solid #8d0011;color:#8d0011}
+    .blocks-reference-head .button:hover{background:#f6e7e8}
+    .blocks-reference-nav{display:flex;flex-wrap:wrap;gap:8px 18px;margin:18px 0 24px}
+    .blocks-reference-nav a{font-weight:700;text-decoration:underline;text-underline-offset:3px;padding:8px 0}
+    .blocks-reference section{margin-top:18px;padding:clamp(18px,4vw,30px);border:1px solid var(--line);border-radius:18px;background:#fffaf5;scroll-margin-top:20px}
+    .blocks-reference #gates{background:#f6e7e8}
+    .blocks-reference #reading-qubits{background:#f3edf7}
+    .blocks-reference #light-and-arrows{background:#e8eee1}
+    .blocks-reference ol{padding-left:1.3em}
+    .blocks-reference li+li{margin-top:8px}
+    .block-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0}
+    .block-list div,.block-example{border:1px solid var(--line);border-radius:12px;background:var(--paper,#fffaf5);padding:14px 16px}
+    .block-list dt{font-weight:800;color:#8d0011}
+    .block-list dd{margin:4px 0 0}
+    .block-example{margin-top:14px}
+    .block-example p{margin:0}
     .blocks-footer{border-top:1px solid var(--line);padding-block:24px 30px;color:var(--muted)}
-    @media(max-width:740px){.blocks-intro,.blocks-help{grid-template-columns:1fr}.blocks-intro img{max-width:420px}}
+    @media(max-width:740px){.blocks-intro,.blocks-help,.block-list{grid-template-columns:1fr}.blocks-intro img{max-width:420px}}
   </style>
 <style>
 .sq-site-header {
@@ -130,6 +148,7 @@
         <div class="blocks-actions">
           <a class="button primary" href="editor/">Open Ghost Blocks Editor</a>
           <a class="button light" href="editor/?starter=cat">Try the Cat Decay Lab</a>
+          <a class="text-link" href="#block-reference">Browse the blocks <span aria-hidden="true">↓</span></a>
         </div>
       </div>
       <img width="600" height="372" src="assets/ghost-blocks.svg" alt="">
@@ -156,16 +175,83 @@
         <p>Use this editor to reopen projects that use Ghost Blocks. No sign-in is required.</p>
       </article>
     </section>
-    <details class="blocks-reference">
-      <summary>Try the quantum gates and measurement blocks</summary>
-      <p>Start with a new ghost coin. Apply <strong>ghost</strong> (H), <strong>phase by 180°</strong>, then <strong>ghost</strong> again. The chance of measuring 1 rises to 100%. Try 90° instead and see how the odds change.</p>
-      <ul>
-        <li><strong>Phase (P)</strong> turns the amplitude of the 1 component by an angle. Use 90° for S or 45° for T.</li>
-        <li><strong>Rotate</strong> turns a qubit around the X, Y, or Z axis of the Bloch sphere. Rotate a fresh coin 90° around Y and compare its odds in the X and Z bases.</li>
-        <li><strong>Controlled Z</strong> changes the sign of the component where both qubits are 1. <strong>SWAP</strong> exchanges two qubits’ states. <strong>CCX</strong> flips the target when both controls are 1.</li>
-        <li><strong>Chance %</strong> in a chosen basis shows the odds and leaves the state intact. <strong>Measure</strong> samples an outcome and updates the state. In the X and Y bases, 0 labels the +1 eigenstate and 1 labels the −1 eigenstate.</li>
-      </ul>
-    </details>
+    <section class="blocks-reference" id="block-reference" aria-labelledby="reference-title">
+      <div class="blocks-reference-head">
+        <h2 id="reference-title">Ghost Blocks reference</h2>
+        <a class="button light" href="downloads/ghost-blocks-reference.docx" download>Download the Word guide (.docx)</a>
+      </div>
+      <p class="reference-intro">Look up each Ghost Blocks command and reporter as you build a circuit or simulate light in the Scratch editor.</p>
+      <nav class="blocks-reference-nav" aria-label="Block reference">
+        <a href="#start-building">Start building</a>
+        <a href="#gates">Qubits and gates</a>
+        <a href="#reading-qubits">Reading qubits</a>
+        <a href="#light-and-arrows">Photons and arrows</a>
+      </nav>
+      <section id="start-building" aria-labelledby="start-building-title">
+        <h3 id="start-building-title">Start building</h3>
+        <ol>
+          <li>Open the <a href="editor/">Ghost Blocks Editor</a> on a computer. Select <strong>Add Extension → Ghost Blocks</strong>.</li>
+          <li>Stack commands under the green flag. Start with <strong>put away all ghost coins</strong> for a fresh circuit on every run. A ghost coin is a simulated qubit. Use the same name to refer to it and choose different names for different qubits. You can use up to eight.</li>
+          <li>Drop rounded reporter blocks into <strong>say</strong> or <strong>set variable to</strong> to see their values. Brackets in this guide mark the places where you type or pick an input.</li>
+        </ol>
+      </section>
+      <section id="gates" aria-labelledby="gates-title">
+        <h3 id="gates-title">Qubits and gates</h3>
+        <dl class="block-list">
+          <div><dt>new ghost coin [coin]</dt><dd>Prepares the named qubit in state 0. Reusing a name measures and resets that qubit, which can change the state of qubits entangled with it.</dd></div>
+          <div><dt>ghost [coin]</dt><dd>Applies the Hadamard gate (H). On a fresh qubit it makes a superposition with equal 0 and 1 odds. A second H reverses the first if no other operation intervenes.</dd></div>
+          <div><dt>flip [coin]</dt><dd>Applies X, exchanging the 0 and 1 amplitudes of the qubit.</dd></div>
+          <div><dt>sign [coin]</dt><dd>Applies Z, reversing the sign of the 1 amplitude. The immediate Z-basis odds stay the same.</dd></div>
+          <div><dt>link [control] to [target]</dt><dd>Applies controlled-X (CNOT). The gate flips the target in components where the control is 1. It can entangle two qubits.</dd></div>
+          <div><dt>phase [coin] by [angle] degrees (P)</dt><dd>Turns the phase of the 1 amplitude. Use 90° for S or 45° for T.</dd></div>
+          <div><dt>rotate [coin] around [axis] by [angle] degrees</dt><dd>Rotates the qubit about X, Y, or Z on the Bloch sphere. A 90° Y rotation takes a fresh qubit from 0 to the positive X eigenstate.</dd></div>
+          <div><dt>controlled Z with [control] on [target]</dt><dd>Applies CZ, reversing the sign of the component where both qubits are 1.</dd></div>
+          <div><dt>swap [coin A] and [coin B] (SWAP)</dt><dd>Exchanges two qubits, including their correlations with other qubits.</dd></div>
+          <div><dt>flip [target] if [coin A] and [coin B] are 1 (CCX)</dt><dd>Applies Toffoli (CCX). It flips the target in components where both controls are 1. Use three distinct names.</dd></div>
+        </dl>
+      </section>
+      <section id="reading-qubits" aria-labelledby="reading-qubits-title">
+        <h3 id="reading-qubits-title">Reading qubits</h3>
+        <p>The <strong>chance %</strong> blocks preview odds for an existing qubit. Evaluating <strong>look</strong> or <strong>measure</strong> samples an outcome and updates the state. In the X and Y bases, outcome 0 labels the +1 eigenstate and outcome 1 labels the −1 eigenstate.</p>
+        <dl class="block-list">
+          <div><dt>look at [coin]</dt><dd>Measures in the Z basis and returns one result, 0 or 1.</dd></div>
+          <div><dt>chance % that [coin] is 1</dt><dd>Reports the predicted percentage of 1 outcomes in the Z basis.</dd></div>
+          <div><dt>measure [coin] in [basis] basis</dt><dd>Measures along X, Y, or Z. A second measurement in the same basis gives the same result if no intervening operation changes the state.</dd></div>
+          <div><dt>chance % of [coin] outcome 1 in [basis] basis</dt><dd>Reports the predicted percentage of 1 outcomes in the selected basis.</dd></div>
+          <div><dt>all chips</dt><dd>Lists joint-state amplitudes in coin creation order. It shows signed chip counts when possible and rounded amplitudes such as +0.7071i for complex states.</dd></div>
+          <div><dt>put away all ghost coins</dt><dd>Clears the named qubits and their shared quantum state. Use it at the start of a run or each independent trial.</dd></div>
+        </dl>
+        <article class="block-example">
+          <h4>Turn a phase into a measurable change</h4>
+          <p>Create a fresh coin. Apply <strong>ghost → phase 180° → ghost</strong>, then show its Z-basis chance of 1. Expect 100%. Start over with 90° and expect 50%.</p>
+        </article>
+        <article class="block-example">
+          <h4>Make a Bell pair</h4>
+          <p>Start with fresh coins <strong>a</strong> and <strong>b</strong>. Apply <strong>ghost [a]</strong>, then <strong>link [a] to [b]</strong>. Each coin has a 50% chance of 1 in Z. Use <strong>look at</strong> to read both and check that their results match. Rebuild the pair for each new trial.</p>
+        </article>
+      </section>
+      <section id="light-and-arrows" aria-labelledby="light-and-arrows-title">
+        <h3 id="light-and-arrows-title">Photons and arrows</h3>
+        <p>Use the two-slit model to sample photon positions on a screen. Use arrows at a named spot to build your own example of amplitudes combining.</p>
+        <dl class="block-list">
+          <div><dt>two slits: gap [gap] wave [wave] screen distance [distance]</dt><dd>Sets the slit separation, wavelength, and distance to the screen. Enter positive values in the same units.</dd></div>
+          <div><dt>watch the slits [off/on]</dt><dd>Switches the idealized path detectors. With detectors off, the paths interfere. With detectors on, the stripes disappear.</dd></div>
+          <div><dt>brightness % at x [x]</dt><dd>Reports the relative brightness at screen position x on a 0–100 scale.</dd></div>
+          <div><dt>shoot one photon: landing x</dt><dd>Samples one horizontal landing position. Repeat and plot the values to see the brightness pattern emerge.</dd></div>
+          <div><dt>add arrow turned [angle] to spot [name]</dt><dd>Adds a unit-length arrow pointing at the given angle in degrees to the named spot.</dd></div>
+          <div><dt>brightness of spot [name]</dt><dd>Reports the squared length of the sum of the arrows at that spot. Two aligned unit arrows give 4.</dd></div>
+          <div><dt>clear spot [name]</dt><dd>Removes all the arrows from that spot so you can start a fresh comparison.</dd></div>
+        </dl>
+        <article class="block-example">
+          <h4>Compare a bright and dark fringe</h4>
+          <p>Set gap to 10, wave to 2, and screen distance to 300. With watching off, compare <strong>brightness %</strong> at x = 0 and x = 30. Expect 100% and 0%. Turn watching on and check both positions again.</p>
+        </article>
+        <article class="block-example">
+          <h4>Make two arrows cancel</h4>
+          <p>Clear spot <strong>A</strong>. Add an arrow at 0° and one at 180°. Check that the brightness is 0. Clear the spot, try two arrows at 0°, and check that the brightness is 4.</p>
+        </article>
+      </section>
+    </section>
   </main>
   <footer class="wrap blocks-footer">
     Based on the open-source Scratch editor from the Scratch Foundation. This independent editor uses a browser-based simulation.
