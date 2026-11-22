@@ -24,6 +24,10 @@
     .blocks-help p:last-child{margin-bottom:0}
     .blocks-help li+li{margin-top:9px}
     .blocks-help a,.blocks-footer a{text-decoration:underline;text-underline-offset:3px}
+    .blocks-reference{margin-bottom:36px;border:1px solid var(--line);border-radius:18px;background:#fffaf5;padding:clamp(18px,4vw,32px)}
+    .blocks-reference summary{cursor:pointer;font-size:1.3rem;font-weight:750}
+    .blocks-reference p,.blocks-reference li{line-height:1.6}
+    .blocks-reference li+li{margin-top:9px}
     .blocks-footer{border-top:1px solid var(--line);padding-block:24px 30px;color:var(--muted)}
     @media(max-width:740px){.blocks-intro,.blocks-help{grid-template-columns:1fr}.blocks-intro img{max-width:420px}}
   </style>
@@ -152,6 +156,16 @@
         <p>Use this editor to reopen projects that use Ghost Blocks. No sign-in is required.</p>
       </article>
     </section>
+    <details class="blocks-reference">
+      <summary>Try the quantum gates and measurement blocks</summary>
+      <p>Start with a new ghost coin. Apply <strong>ghost</strong> (H), <strong>phase by 180°</strong>, then <strong>ghost</strong> again. The chance of measuring 1 rises to 100%. Try 90° instead and see how the odds change.</p>
+      <ul>
+        <li><strong>Phase (P)</strong> turns the amplitude of the 1 component by an angle. Use 90° for S or 45° for T.</li>
+        <li><strong>Rotate</strong> turns a qubit around the X, Y, or Z axis of the Bloch sphere. Rotate a fresh coin 90° around Y and compare its odds in the X and Z bases.</li>
+        <li><strong>Controlled Z</strong> changes the sign of the component where both qubits are 1. <strong>SWAP</strong> exchanges two qubits’ states. <strong>CCX</strong> flips the target when both controls are 1.</li>
+        <li><strong>Chance %</strong> in a chosen basis shows the odds and leaves the state intact. <strong>Measure</strong> samples an outcome and updates the state. In the X and Y bases, 0 labels the +1 eigenstate and 1 labels the −1 eigenstate.</li>
+      </ul>
+    </details>
   </main>
   <footer class="wrap blocks-footer">
     Based on the open-source Scratch editor from the Scratch Foundation. This independent editor uses a browser-based simulation.
