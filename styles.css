@@ -42,6 +42,9 @@
 
 .collection-heading h3 { margin: 0; }
 .collection-heading img { width: clamp(3.5rem, 7vw, 5rem); height: auto; }
+.demo-card { display: block; }
+.demo-card h2 { margin: 0; font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.2; }
+.demo-card p:not(.eyebrow) { font-size: 1rem; }
 .collection-grid-icon {
   padding: clamp(.4rem, .8vw, .65rem);
   border-radius: 20%;
